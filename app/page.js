@@ -842,6 +842,142 @@ export default function HomePage() {
 
   const scenarioSummary = `${payoffLabel(form.payoff_method)} · ${accelerationLabel(form.acceleration_method)}`;
 
+  const bestPathForward = useMemo(() => {
+    const effPay =
+      form.payoff_method === PAYOFF_METHODS.FASTEST_ROUTE &&
+      projection.effectivePayoffMethod
+        ? projection.effectivePayoffMethod
+        : form.payoff_method;
+
+    const isStd = form.acceleration_method === ACCELERATION_METHODS.STANDARD;
+    const standardMinimumPath = isStd && appliedTowardStrategy === 0;
+
+    let recommended = "";
+    if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
+      recommended = "Banking Strategy";
+    } else if (form.acceleration_method === ACCELERATION_METHODS.HELOC) {
+      recommended = "HELOC Strategy";
+    } else if (standardMinimumPath) {
+      recommended = "Minimum Payment";
+    } else if (effPay === PAYOFF_METHODS.AVALANCHE) {
+      recommended = "Accelerated Avalanche";
+    } else {
+      recommended = "Accelerated Snowball";
+    }
+
+    const sb = strategyComparisonProjections.standardSnowball;
+    const av = strategyComparisonProjections.standardAvalanche;
+    const bankProj = strategyComparisonProjections.banking;
+
+    const consumerMo = (p) =>
+      p.policyContributionExceedsAppliedStrategy ? null : p.consumerDebtFreeMonth;
+
+    const fasterStandardLabel = () => {
+      const msb = consumerMo(sb);
+      const mav = consumerMo(av);
+      if (msb == null && mav == null) return "Accelerated Snowball";
+      if (msb == null) return "Accelerated Avalanche";
+      if (mav == null) return "Accelerated Snowball";
+      return msb <= mav ? "Accelerated Snowball" : "Accelerated Avalanche";
+    };
+
+    let backup = "";
+    if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
+      backup = fasterStandardLabel();
+    } else if (form.acceleration_method === ACCELERATION_METHODS.HELOC) {
+      backup = "Accelerated Avalanche";
+    } else if (standardMinimumPath) {
+      backup = "Accelerated Snowball";
+    } else if (isStd) {
+      const bankingRuns = !bankProj.policyContributionExceedsAppliedStrategy;
+      if (bankingRuns && aggregated.total > 0) {
+        backup = "Banking Strategy";
+      } else if (effPay === PAYOFF_METHODS.AVALANCHE) {
+        backup = "Accelerated Snowball";
+      } else {
+        backup = "Accelerated Avalanche";
+      }
+    } else {
+      backup = fasterStandardLabel();
+    }
+
+    const bullets = [];
+
+    if (!policyContributionExceedsAppliedStrategy) {
+      const tl = formatDebtFreeMonths(timelineDebtFreeMonth);
+      if (tl) {
+        bullets.push(
+          `Faster debt payoff trajectory on this path: ${tl} to the primary modeled milestone.`
+        );
+      }
+    }
+
+    if (!policyContributionExceedsAppliedStrategy && interestSavedVsMinimum > 0) {
+      bullets.push(
+        `Interest savings vs minimum-only through your modeled consumer payoff: ${toCurrency(interestSavedVsMinimum)}.`
+      );
+    }
+
+    if (
+      form.acceleration_method === ACCELERATION_METHODS.BANKING &&
+      bankingActive &&
+      !policyContributionExceedsAppliedStrategy
+    ) {
+      bullets.push(
+        `Capital-building angle: modeled Banking Strategy net (cash value − loan) ends around ${toCurrency(endingNetPolicyEquity)}.`
+      );
+    }
+
+    if (isStd && !standardMinimumPath) {
+      bullets.push(
+        "Works without needing a policy first—an excellent foundation if you explore Banking Strategy later."
+      );
+    }
+
+    if (
+      form.acceleration_method === ACCELERATION_METHODS.HELOC &&
+      !policyContributionExceedsAppliedStrategy
+    ) {
+      bullets.push(
+        `HELOC path uses your line as a hub; modeled HELOC interest totals ${toCurrency(totalHelocInterestPaid ?? 0)}—weigh that against payoff speed in the cards below.`
+      );
+    }
+
+    if (standardMinimumPath) {
+      bullets.push(
+        "Minimums keep payments predictable; even a modest strategy budget can materially shorten the curve."
+      );
+    }
+
+    let trimmed = bullets.slice(0, 4);
+    if (trimmed.length === 0) {
+      trimmed = [
+        "Every comparison below reuses your Step 1 inputs so you can judge paths side by side without retyping.",
+        "Tweak payoff order or acceleration anytime—this summary updates with your selections."
+      ];
+    } else if (trimmed.length === 1) {
+      trimmed.push(
+        "Use the strategy comparison cards to sanity-check this path against alternatives with the same assumptions."
+      );
+    }
+    trimmed = trimmed.slice(0, 4);
+
+    return { recommended, backup, bullets: trimmed };
+  }, [
+    form.payoff_method,
+    form.acceleration_method,
+    appliedTowardStrategy,
+    projection.effectivePayoffMethod,
+    strategyComparisonProjections,
+    aggregated.total,
+    policyContributionExceedsAppliedStrategy,
+    interestSavedVsMinimum,
+    timelineDebtFreeMonth,
+    bankingActive,
+    endingNetPolicyEquity,
+    totalHelocInterestPaid
+  ]);
+
   const updateField = useCallback((name, value) => {
     setForm((prev) => ({
       ...prev,
@@ -1803,6 +1939,129 @@ export default function HomePage() {
               </span>
             ) : null}
           </p>
+
+          <div
+            role="region"
+            aria-labelledby="best-path-heading"
+            style={{
+              margin: "6px 0 22px",
+              padding: "20px 22px 22px",
+              background: "var(--card)",
+              border: "1px solid #e8ecf4",
+              borderRadius: 14,
+              boxShadow:
+                "0 1px 3px rgba(15, 23, 42, 0.05), 0 6px 20px rgba(15, 23, 42, 0.05)"
+            }}
+          >
+            <h3
+              id="best-path-heading"
+              className="subsection-title"
+              style={{ marginTop: 0, marginBottom: 10 }}
+            >
+              Your Best Path Forward
+            </h3>
+            <p className="help tight" style={{ marginBottom: 18 }}>
+              Based on your numbers, here is the strongest strategy path to help you
+              eliminate debt faster and improve long-term financial control.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "var(--muted)",
+                    marginBottom: 6
+                  }}
+                >
+                  Recommended Strategy
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color: "var(--text)",
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1.3
+                  }}
+                >
+                  {bestPathForward.recommended}
+                </p>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "var(--muted)",
+                    marginBottom: 8
+                  }}
+                >
+                  Why This Fits
+                </div>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: 20,
+                    color: "var(--text)",
+                    fontSize: "0.9rem",
+                    lineHeight: 1.55
+                  }}
+                >
+                  {bestPathForward.bullets.map((line, i) => (
+                    <li key={i} style={{ marginBottom: 6 }}>
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    color: "var(--muted)",
+                    marginBottom: 6
+                  }}
+                >
+                  Backup Path
+                </div>
+                <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.5, color: "var(--text)" }}>
+                  If priorities change, a strong alternate to model next is{" "}
+                  <strong>{bestPathForward.backup}</strong>—same numbers, different
+                  mechanics. Not every strategy fits every situation. The goal is to
+                  identify the best next step for where you are right now.
+                </p>
+              </div>
+            </div>
+            {form.acceleration_method !== ACCELERATION_METHODS.BANKING ? (
+              <p
+                className="help tight"
+                style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
+              >
+                Standard and HELOC paths can be powerful on their own—you are not
+                behind if Banking Strategy is not the right fit today. When you are
+                ready, the Banking column below shows how capital-building could layer
+                on with the same inputs.
+              </p>
+            ) : (
+              <p
+                className="help tight"
+                style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
+              >
+                Banking Strategy can pair disciplined paydown with long-term capital
+                optionality; keep monitoring contributions and loan mechanics so the
+                model stays aligned with how you run the plan.
+              </p>
+            )}
+          </div>
 
           <div
             className="strategy-comparison-section"

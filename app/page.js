@@ -1292,21 +1292,19 @@ export default function HomePage() {
         <section className="card step-card" aria-labelledby="step1-heading">
           <div className="step-badge">Step 1</div>
           <h2 id="step1-heading">Your numbers</h2>
-          <p className="help">
-            Guided flow: enter your numbers and debts, see which payoff option gets you
-            out of debt faster, choose your payoff approach, then pick acceleration
-            options.
-            Everything recalculates on every change.
+          <p className="help tight">
+            Enter your debts and monthly numbers below, then we&apos;ll show you the
+            strongest payoff path based on your situation.
           </p>
 
           <div className="local-scenarios-panel step1-scenario-controls">
             <p className="help tight local-scenarios-lead">
-              Saved scenarios are stored in this browser (localStorage). Your last
-              working inputs auto-restore on refresh.
+              Your progress saves automatically on this device. You can come back
+              anytime and continue where you left off.
             </p>
             <div className="local-scenarios-controls">
               <div className="field load-scenario-field">
-                <label htmlFor="load-local-scenario">Load scenario</label>
+                <label htmlFor="load-local-scenario">Continue where you left off</label>
                 <select
                   id="load-local-scenario"
                   value={loadScenarioSelect}
@@ -1327,7 +1325,7 @@ export default function HomePage() {
                 </select>
               </div>
               <div className="field delete-scenario-field">
-                <label htmlFor="delete-local-scenario">Remove saved</label>
+                <label htmlFor="delete-local-scenario">Delete a saved plan</label>
                 <select
                   id="delete-local-scenario"
                   value={deleteScenarioId}
@@ -1451,6 +1449,10 @@ export default function HomePage() {
             </div>
           ) : null}
 
+          <p className="help tight">
+            Start by entering your debts below. We&apos;ll show you the fastest way
+            to pay them off.
+          </p>
           <div className="debt-section-header">
             <div className="debt-section-header-text">
               <h3 className="subsection-title debt-section-title">Debts</h3>

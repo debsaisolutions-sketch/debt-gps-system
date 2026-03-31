@@ -1079,6 +1079,7 @@ export default function HomePage() {
             <div
               style={{
                 width: "220px",
+                minWidth: "200px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "flex-end",
@@ -1097,8 +1098,8 @@ export default function HomePage() {
                 <Image
                   src="/logo.png"
                   alt="True Freedom Financial"
-                  height={110}
-                  width={110}
+                  height={180}
+                  width={180}
                   style={{ objectFit: "contain" }}
                   priority
                 />

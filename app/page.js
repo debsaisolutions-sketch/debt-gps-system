@@ -288,6 +288,7 @@ export function MonthTable({ columns, rows, className = "", style = {}, ...props
   );
 }
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -1007,7 +1008,39 @@ export default function HomePage() {
       <header className="hero hero-dashboard">
         <div className="hero-inner" style={{ maxWidth: 760 }}>
           <p className="hero-eyebrow">Financial Strategy Dashboard</p>
-          <h1 style={{ marginBottom: "12px" }}>Debt GPS System</h1>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 20,
+              marginBottom: "12px",
+            }}
+          >
+            <h1 style={{ margin: 0, flex: "1 1 auto", minWidth: 0 }}>
+              Debt GPS System
+            </h1>
+            <Link
+              href="/"
+              style={{
+                flexShrink: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                lineHeight: 0,
+              }}
+              aria-label="True Freedom Financial home"
+            >
+              <Image
+                src="/logo.png"
+                alt="True Freedom Financial"
+                height={40}
+                width={40}
+                style={{ objectFit: "contain" }}
+                priority
+              />
+            </Link>
+          </div>
           <p
             style={{
               margin: "0 0 20px",

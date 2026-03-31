@@ -1,5 +1,293 @@
 "use client";
 
+// Enhanced Professional SaaS-style Financial Dashboard Layout Helpers
+//
+// VERSION: WIDE, CRISP, PREMIUM (as seen in best-in-class fintech dashboards)
+
+import React from "react";
+
+// DashboardGrid component: 
+// - Wider maxWidth (1400px), 
+// - Left = fixed width (380–420px), 
+// - Right = dominant, flexible
+export function DashboardGrid({ left, right, className = "", style = {}, ...props }) {
+  return (
+    <div
+      className={`dashboard-pro-grid wide-dashboard ${className}`}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(380px,420px) 1fr",
+        gap: "44px",
+        width: "100%",
+        maxWidth: "1400px",
+        margin: "0 auto",
+        alignItems: "flex-start",
+        ...style,
+      }}
+      {...props}
+    >
+      <aside
+        className="dashboard-pro-grid-sidebar"
+        style={{
+          position: "relative",
+          minWidth: 380,
+          maxWidth: 420,
+          width: "100%",
+          paddingRight: 0,
+        }}
+      >
+        {left}
+      </aside>
+      <main
+        className="dashboard-pro-grid-main"
+        style={{
+          width: "100%",
+          minWidth: 0,
+          // The right column is visually wider/dominant
+        }}
+      >
+        {right}
+      </main>
+    </div>
+  );
+}
+
+// Professional, visually strong section header utility
+export function SectionHeader({ children, style = {}, className = "" }) {
+  return (
+    <h2
+      className={`dashboard-section-header ${className}`}
+      style={{
+        fontSize: "1.45rem",
+        fontWeight: 800,
+        letterSpacing: "0.01em",
+        marginBottom: "18px",
+        marginTop: "0",
+        lineHeight: 1.18,
+        ...style,
+      }}
+    >
+      {children}
+    </h2>
+  );
+}
+
+// KPIGrid: Grid for KPIs (2–3 columns, numbers big, labels muted & small)
+export function KPIGrid({ children, columns = 3, className = "", style = {}, ...props }) {
+  return (
+    <div
+      className={`kpi-grid ${className}`}
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+        gap: "20px 24px",
+        margin: "24px 0 34px 0",
+        ...style,
+      }}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
+
+// KPITile: Big number, small muted label
+export function KPITile({ value, label, extra = null, style = {}, className = "", ...props }) {
+  return (
+    <div
+      className={`kpi-tile card ${className}`}
+      style={{
+        background: "var(--card)",
+        border: "1px solid var(--line)",
+        borderRadius: "14px",
+        padding: "26px 20px 22px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "6px",
+        ...style,
+      }}
+      {...props}
+    >
+      <div
+        className="kpi-value"
+        style={{
+          fontSize: "2.1rem",
+          fontWeight: 800,
+          color: "var(--accent)",
+          lineHeight: 1.07,
+          letterSpacing: "0.01em",
+        }}
+      >
+        {value}
+      </div>
+      {extra && <div className="kpi-extra">{extra}</div>}
+      <div
+        className="kpi-label"
+        style={{
+          fontSize: "0.96rem",
+          color: "var(--muted)",
+          fontWeight: 500,
+          letterSpacing: 0,
+          marginTop: 2,
+        }}
+      >
+        {label}
+      </div>
+    </div>
+  );
+}
+
+// StrategyComparisonPanel: Wide cards, spaced, centered important numbers.
+export function StrategyComparisonPanel({ children, className = "", style = {}, ...props }) {
+  return (
+    <section
+      className={`strategy-comparison-panel ${className}`}
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        gap: "28px",
+        justifyContent: "center",
+        margin: "36px 0 38px 0",
+        padding: "0",
+        ...style,
+      }}
+      {...props}
+    >
+      {React.Children.map(children, (child) =>
+        React.cloneElement(child, {
+          style: {
+            minWidth: "320px",
+            flex: 1,
+            padding: "30px 28px 24px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "18px",
+            ...((child.props && child.props.style) || {}),
+          },
+        })
+      )}
+    </section>
+  );
+}
+
+// BankingEngineSection: Enforced side-by-side on desktop, large padding inside cards
+export function BankingEngineSection({ left, right, className = "", style = {}, ...props }) {
+  return (
+    <section
+      className={`banking-engine-section wide-cards ${className}`}
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        gap: "32px",
+        width: "100%",
+        margin: "38px 0",
+        ...style,
+      }}
+      {...props}
+    >
+      <div
+        className="banking-engine-card"
+        style={{
+          flex: 1,
+          background: "var(--card)",
+          border: "1px solid var(--line)",
+          borderRadius: "14px",
+          padding: "34px 32px 30px",
+          minWidth: 0,
+        }}
+      >
+        {left}
+      </div>
+      <div
+        className="banking-engine-card"
+        style={{
+          flex: 2.2,
+          background: "var(--card)",
+          border: "1px solid var(--line)",
+          borderRadius: "14px",
+          padding: "34px 32px 30px",
+          minWidth: 0,
+        }}
+      >
+        {right}
+      </div>
+    </section>
+  );
+}
+
+// MonthTable: Max height & scroll, sticky header
+export function MonthTable({ columns, rows, className = "", style = {}, ...props }) {
+  return (
+    <div
+      className={`month-table-container ${className}`}
+      style={{
+        maxHeight: "480px",
+        overflowY: "auto",
+        borderRadius: "12px",
+        border: "1px solid var(--line)",
+        background: "var(--card)",
+        margin: "30px 0",
+        ...style,
+      }}
+      {...props}
+    >
+      <table
+        className="month-table"
+        style={{
+          width: "100%",
+          borderCollapse: "separate",
+          borderSpacing: 0,
+        }}
+      >
+        <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "var(--card)" }}>
+          <tr>
+            {columns.map((col) => (
+              <th
+                key={col.key || col}
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  background: "var(--card)",
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  color: "var(--heading)",
+                  borderBottom: "2px solid var(--line)",
+                  padding: "14px 16px",
+                  zIndex: 3,
+                }}
+              >
+                {col.label || col}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={row.key || i}>
+              {columns.map((col) => (
+                <td
+                  key={col.key || col}
+                  style={{
+                    fontSize: "0.98rem",
+                    color: "var(--text)",
+                    fontWeight: 500,
+                    padding: "10px 16px",
+                    borderBottom: "1px solid var(--line)",
+                  }}
+                >
+                  {row[col.key || col]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 import Link from "next/link";
 import { useMemo, useState, useCallback, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
@@ -376,7 +664,7 @@ export default function HomePage() {
     [form.debts, form.payoff_method, projection.effectivePayoffMethod]
   );
 
-  /** Side-by-side compare: same inputs, three acceleration paths (engine unchanged). */
+  /** Side-by-side compare: same inputs; includes minimum-only and three acceleration paths (engine unchanged). */
   const strategyComparisonProjections = useMemo(() => {
     const advRaw = (form.advanced_projection_years || "").trim();
     const advNum = Number(advRaw);
@@ -406,7 +694,15 @@ export default function HomePage() {
       amountTowardDebtStrategyRaw: form.amount_toward_debt_strategy
     };
 
+    const minimumCore = computeLayeredProjection({
+      ...shared,
+      payoffMethod: PAYOFF_METHODS.SNOWBALL,
+      accelerationMethod: ACCELERATION_METHODS.STANDARD,
+      amountTowardDebtStrategyRaw: 0
+    });
+
     return {
+      minimum: { ...minimumCore, interestSaved: 0 },
       standardSnowball: computeLayeredProjection({
         ...shared,
         payoffMethod: PAYOFF_METHODS.SNOWBALL,
@@ -506,6 +802,26 @@ export default function HomePage() {
     if (formatted) return formatted;
     const capY = Math.round(p.projectionMaxMonths / 12);
     return p.hitProjectionCap ? `Not cleared within ${capY}-yr cap` : "—";
+  };
+
+  const renderStrategyComparisonTimelineInCards = (p, which) => {
+    if (p.policyContributionExceedsAppliedStrategy) return "—";
+
+    const m =
+      which === "consumer"
+        ? p.consumerDebtFreeMonth
+        : p.schedule.debtFreeMonth;
+
+    if (m === null || m === undefined) return "—";
+
+    return (
+      <span className="strategy-comparison-timeline-value">
+        <span className="strategy-comparison-timeline-line">{m} mo</span>
+        <span className="strategy-comparison-timeline-line">
+          {(m / 12).toFixed(1)} yr
+        </span>
+      </span>
+    );
   };
 
   const showPolicySeries =
@@ -1406,10 +1722,10 @@ export default function HomePage() {
           >
             <h3 className="subsection-title">Strategy Comparison</h3>
             <p className="help tight strategy-comparison-lead">
-              Uses the same income, expenses, debts, and strategy budget as Step 1. Three
+              Uses the same income, expenses, debts, and strategy budget as Step 1. Four
               projections run in the background—you do not need to switch strategies.
-              Snowball (Standard) uses Snowball payoff and Standard acceleration; Banking
-              Strategy and HELOC use your selected payoff method (
+              Snowball (Standard) and Avalanche (Standard) use Standard acceleration with
+              fixed payoff order; Banking Strategy and HELOC use your selected payoff method (
               {payoffLabel(form.payoff_method)}).
             </p>
             <div className="strategy-comparison-grid">
@@ -1429,8 +1745,8 @@ export default function HomePage() {
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
                     <dt>Consumer Debt-Free Timeline</dt>
-                    <dd>
-                      {formatStrategyComparisonTimeline(
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardSnowball,
                         "consumer"
                       )}
@@ -1438,8 +1754,8 @@ export default function HomePage() {
                   </div>
                   <div className="strategy-comparison-row">
                     <dt>Total Debt-Free Timeline</dt>
-                    <dd>
-                      {formatStrategyComparisonTimeline(
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardSnowball,
                         "total"
                       )}
@@ -1459,9 +1775,69 @@ export default function HomePage() {
                     <dd className="subtle">—</dd>
                   </div>
                 </dl>
-                <p className="strategy-comparison-foot subtle">
-                  No banking or HELOC vehicle in this column
+                <div className="strategy-comparison-card-footer">
+                  <div
+                    className="strategy-comparison-card-footer-note-placeholder"
+                    aria-hidden="true"
+                  />
+                  <p className="strategy-comparison-foot subtle">
+                    No banking or HELOC vehicle in this column
+                  </p>
+                </div>
+              </div>
+              <div
+                className={`strategy-comparison-card${
+                  form.acceleration_method === ACCELERATION_METHODS.STANDARD
+                    ? " strategy-comparison-card--current"
+                    : ""
+                }`}
+              >
+                <h4 className="strategy-comparison-card-title">Avalanche</h4>
+                <p className="strategy-comparison-card-sub subtle">
+                  Avalanche · Standard acceleration
                 </p>
+                <dl className="strategy-comparison-dl">
+                  <div className="strategy-comparison-row">
+                    <dt>Consumer Debt-Free Timeline</dt>
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
+                        strategyComparisonProjections.standardAvalanche,
+                        "consumer"
+                      )}
+                    </dd>
+                  </div>
+                  <div className="strategy-comparison-row">
+                    <dt>Total Debt-Free Timeline</dt>
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
+                        strategyComparisonProjections.standardAvalanche,
+                        "total"
+                      )}
+                    </dd>
+                  </div>
+                  <div className="strategy-comparison-row">
+                    <dt>Interest saved</dt>
+                    <dd>
+                      {toCurrency(
+                        strategyComparisonProjections.standardAvalanche
+                          .interestSavedVsMinimum
+                      )}
+                    </dd>
+                  </div>
+                  <div className="strategy-comparison-row">
+                    <dt>Ending balance</dt>
+                    <dd className="subtle">—</dd>
+                  </div>
+                </dl>
+                <div className="strategy-comparison-card-footer">
+                  <div
+                    className="strategy-comparison-card-footer-note-placeholder"
+                    aria-hidden="true"
+                  />
+                  <p className="strategy-comparison-foot subtle">
+                    No banking or HELOC vehicle in this column
+                  </p>
+                </div>
               </div>
               <div
                 className={`strategy-comparison-card${
@@ -1476,18 +1852,11 @@ export default function HomePage() {
                 <p className="strategy-comparison-card-sub subtle">
                   {payoffLabel(form.payoff_method)} · policy loan model
                 </p>
-                {strategyComparisonProjections.banking
-                  .policyContributionExceedsAppliedStrategy ? (
-                  <p className="strategy-comparison-inline-note subtle">
-                    Contribution exceeds applied strategy—Banking projection not run for
-                    this column.
-                  </p>
-                ) : null}
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
                     <dt>Consumer Debt-Free Timeline</dt>
-                    <dd>
-                      {formatStrategyComparisonTimeline(
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.banking,
                         "consumer"
                       )}
@@ -1495,8 +1864,8 @@ export default function HomePage() {
                   </div>
                   <div className="strategy-comparison-row">
                     <dt>Total Debt-Free Timeline</dt>
-                    <dd>
-                      {formatStrategyComparisonTimeline(
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.banking,
                         "total"
                       )}
@@ -1527,9 +1896,23 @@ export default function HomePage() {
                     </dd>
                   </div>
                 </dl>
-                <p className="strategy-comparison-foot subtle">
-                  Ending Banking Strategy net (cash value − policy loan)
-                </p>
+                <div className="strategy-comparison-card-footer">
+                  {strategyComparisonProjections.banking
+                    .policyContributionExceedsAppliedStrategy ? (
+                    <p className="strategy-comparison-inline-note subtle">
+                      Contribution exceeds applied strategy—Banking projection not run for
+                      this column.
+                    </p>
+                  ) : (
+                    <div
+                      className="strategy-comparison-card-footer-note-placeholder"
+                      aria-hidden="true"
+                    />
+                  )}
+                  <p className="strategy-comparison-foot subtle">
+                    Ending Banking Strategy net (cash value − policy loan)
+                  </p>
+                </div>
               </div>
               <div
                 className={`strategy-comparison-card${
@@ -1545,8 +1928,8 @@ export default function HomePage() {
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
                     <dt>Consumer Debt-Free Timeline</dt>
-                    <dd>
-                      {formatStrategyComparisonTimeline(
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.heloc,
                         "consumer"
                       )}
@@ -1554,8 +1937,8 @@ export default function HomePage() {
                   </div>
                   <div className="strategy-comparison-row">
                     <dt>Total Debt-Free Timeline</dt>
-                    <dd>
-                      {formatStrategyComparisonTimeline(
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.heloc,
                         "total"
                       )}
@@ -1578,9 +1961,15 @@ export default function HomePage() {
                     </dd>
                   </div>
                 </dl>
-                <p className="strategy-comparison-foot subtle">
-                  Ending HELOC balance (modeled line)
-                </p>
+                <div className="strategy-comparison-card-footer">
+                  <div
+                    className="strategy-comparison-card-footer-note-placeholder"
+                    aria-hidden="true"
+                  />
+                  <p className="strategy-comparison-foot subtle">
+                    Ending HELOC balance (modeled line)
+                  </p>
+                </div>
               </div>
             </div>
           </div>

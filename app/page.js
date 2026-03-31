@@ -1098,8 +1098,8 @@ export default function HomePage() {
                 <Image
                   src="/logo.png"
                   alt="True Freedom Financial"
-                  height={210}
-                  width={210}
+                  height={240}
+                  width={240}
                   style={{ objectFit: "contain" }}
                   priority
                 />

@@ -1053,7 +1053,7 @@ export default function HomePage() {
               </p>
               <div style={{ marginTop: 18 }}>
                 <Link
-                  href={STRATEGY_CALL_URL || "https://cal.com"}
+                  href="https://calendly.com/debsaisolutions/30min"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

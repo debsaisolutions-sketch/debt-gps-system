@@ -1006,77 +1006,104 @@ export default function HomePage() {
   return (
     <main className="page dashboard">
       <header className="hero hero-dashboard">
-        <div className="hero-inner" style={{ maxWidth: 760 }}>
-          <p className="hero-eyebrow">Financial Strategy Dashboard</p>
+        <div className="hero-inner" style={{ maxWidth: "none" }}>
           <div
             style={{
               display: "flex",
               flexDirection: "row",
-              alignItems: "flex-start",
-              justifyContent: "flex-start",
-              gap: 16,
-              marginBottom: "12px",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 32,
             }}
           >
-            <h1 style={{ margin: 0, flex: "1 1 auto", minWidth: 0 }}>
-              Debt GPS System
-            </h1>
-            <Link
-              href="/"
+            <div style={{ flex: 1, maxWidth: "760px" }}>
+              <p className="hero-eyebrow">Financial Strategy Dashboard</p>
+              <h1 style={{ margin: 0, minWidth: 0 }}>
+                Debt GPS System
+              </h1>
+              <p
+                style={{
+                  margin: "0 0 20px",
+                  fontSize: "clamp(1.02rem, 2.1vw, 1.125rem)",
+                  lineHeight: 1.55,
+                  opacity: 0.96,
+                  maxWidth: "680px",
+                  fontWeight: 550,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Help clients eliminate debt faster, compare payoff strategies, and see how
+                capital-building approaches like Banking Strategy and HELOC can change the
+                outcome.
+              </p>
+              <p
+                className="hero-lead"
+                style={{
+                  margin: "0 0 6px",
+                  fontSize: "0.98rem",
+                  lineHeight: 1.6,
+                  opacity: 0.88,
+                  maxWidth: "640px",
+                }}
+              >
+                A dedicated modeling workspace: set debt order, acceleration rules, and
+                monthly cash-flow behavior, then watch projections respond in real time.
+                When you are ready to continue, open a saved scenario to pick up where you
+                left off.
+              </p>
+              <div style={{ marginTop: 18 }}>
+                <Link
+                  href={STRATEGY_CALL_URL || "https://cal.com"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-block",
+                    background: "#111827",
+                    color: "#ffffff",
+                    padding: "10px 16px",
+                    borderRadius: 10,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                    fontSize: 14
+                  }}
+                >
+                  Book Your Free Strategy Call
+                </Link>
+              </div>
+              <div className="top-actions">
+                <Link className="button-link ghost" href="/scenarios">
+                  Saved scenarios
+                </Link>
+              </div>
+            </div>
+            <div
               style={{
-                flexShrink: 0,
-                display: "inline-flex",
+                width: "220px",
+                display: "flex",
                 alignItems: "center",
-                lineHeight: 0,
+                justifyContent: "flex-end",
               }}
-              aria-label="True Freedom Financial home"
             >
-              <div style={{ marginTop: 6 }}>
+              <Link
+                href="/"
+                style={{
+                  flexShrink: 0,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  lineHeight: 0,
+                }}
+                aria-label="True Freedom Financial home"
+              >
                 <Image
                   src="/logo.png"
                   alt="True Freedom Financial"
-                  height={64}
-                  width={64}
+                  height={110}
+                  width={110}
                   style={{ objectFit: "contain" }}
                   priority
                 />
-              </div>
-            </Link>
-          </div>
-          <p
-            style={{
-              margin: "0 0 20px",
-              fontSize: "clamp(1.02rem, 2.1vw, 1.125rem)",
-              lineHeight: 1.55,
-              opacity: 0.96,
-              maxWidth: "680px",
-              fontWeight: 550,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            Help clients eliminate debt faster, compare payoff strategies, and see how
-            capital-building approaches like Banking Strategy and HELOC can change the
-            outcome.
-          </p>
-          <p
-            className="hero-lead"
-            style={{
-              margin: "0 0 6px",
-              fontSize: "0.98rem",
-              lineHeight: 1.6,
-              opacity: 0.88,
-              maxWidth: "640px",
-            }}
-          >
-            A dedicated modeling workspace: set debt order, acceleration rules, and
-            monthly cash-flow behavior, then watch projections respond in real time.
-            When you are ready to continue, open a saved scenario to pick up where you
-            left off.
-          </p>
-          <div className="top-actions">
-            <Link className="button-link ghost" href="/scenarios">
-              Saved scenarios
-            </Link>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

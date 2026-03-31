@@ -1007,7 +1007,19 @@ export default function HomePage() {
       <header className="hero hero-dashboard">
         <div className="hero-inner">
           <p className="hero-eyebrow">Strategy dashboard</p>
-          <h1>Debt &amp; capital strategy dashboard</h1>
+          <h1>Debt GPS System</h1>
+          <p
+            style={{
+              margin: "0 0 16px",
+              fontSize: "1.05rem",
+              lineHeight: 1.5,
+              opacity: 0.92,
+              maxWidth: "640px",
+              fontWeight: 500,
+            }}
+          >
+            Eliminate debt faster. Build capital at the same time.
+          </p>
           <p className="hero-lead">
             Choose how debts are ordered and how you accelerate payoff—Banking
             Strategy / HELOC draws and freed minimums roll forward automatically each

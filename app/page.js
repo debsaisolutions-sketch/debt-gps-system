@@ -320,13 +320,32 @@ const supabase =
 const STRATEGY_CALL_URL =
   process.env.NEXT_PUBLIC_STRATEGY_CALL_URL ?? "";
 
+function normalizeSnapshotDebtNumber(v) {
+  if (v === "" || v == null) return "";
+  const n = Number(v);
+  return Number.isFinite(n) ? n : "";
+}
+
+/** Old app default first row; clear only when it still looks like the template (empty name). */
+function stripLegacyTemplateDebtRow(d) {
+  const name = d.name != null ? String(d.name).trim() : "";
+  if (name !== "") return d;
+  const b = Number(d.balance);
+  const r = Number(d.rate);
+  const mp = Number(d.minPayment);
+  if (b === 50000 && r === 18 && mp === 500) {
+    return { ...d, balance: "", rate: "", minPayment: "" };
+  }
+  return d;
+}
+
 function newDebtRow(id) {
   return {
     id,
     name: "",
-    balance: 50000,
-    rate: 18,
-    minPayment: 500
+    balance: "",
+    rate: "",
+    minPayment: ""
   };
 }
 
@@ -337,7 +356,15 @@ function buildDefaultForm() {
     notes: "",
     monthly_income: 10000,
     monthly_expenses: 6500,
-    debts: [newDebtRow("1")],
+    debts: [
+      {
+        id: "1",
+        name: "",
+        balance: "",
+        rate: "",
+        minPayment: ""
+      }
+    ],
     payoff_method: PAYOFF_METHODS.SNOWBALL,
     acceleration_method: ACCELERATION_METHODS.BANKING,
     use_capital_vehicle: true,
@@ -361,9 +388,9 @@ function newBlankDebtRow(id) {
   return {
     id,
     name: "",
-    balance: 0,
-    rate: 0,
-    minPayment: 0
+    balance: "",
+    rate: "",
+    minPayment: ""
   };
 }
 
@@ -407,13 +434,15 @@ function normalizeFormSnapshot(raw) {
   const debtsIn = Array.isArray(raw.debts) ? raw.debts : base.debts;
   const debts =
     debtsIn.length > 0
-      ? debtsIn.map((d, i) => ({
-          id: String(d.id ?? `d-${i}-${Date.now()}`),
-          name: d.name != null ? String(d.name) : "",
-          balance: Number(d.balance) || 0,
-          rate: Number(d.rate) || 0,
-          minPayment: Number(d.minPayment) || 0
-        }))
+      ? debtsIn
+          .map((d, i) => ({
+            id: String(d.id ?? `d-${i}-${Date.now()}`),
+            name: d.name != null ? String(d.name) : "",
+            balance: normalizeSnapshotDebtNumber(d.balance),
+            rate: normalizeSnapshotDebtNumber(d.rate),
+            minPayment: normalizeSnapshotDebtNumber(d.minPayment)
+          }))
+          .map(stripLegacyTemplateDebtRow)
       : [newDebtRow(`d-${Date.now()}`)];
 
   return {
@@ -559,7 +588,7 @@ function accelerationLabel(m) {
 }
 
 export default function HomePage() {
-  const [form, setForm] = useState(buildDefaultForm);
+  const [form, setForm] = useState(() => buildDefaultForm());
   const [saveStatus, setSaveStatus] = useState("");
   const [localScenarios, setLocalScenarios] = useState([]);
   const [loadScenarioSelect, setLoadScenarioSelect] = useState("");
@@ -569,7 +598,11 @@ export default function HomePage() {
   useEffect(() => {
     setLocalScenarios(readScenarioList());
     const last = readLastSession();
-    if (last) setForm(normalizeFormSnapshot(last));
+    if (last) {
+      setForm(normalizeFormSnapshot(last));
+    } else {
+      setForm(buildDefaultForm());
+    }
     setSessionReady(true);
   }, []);
 
@@ -1004,7 +1037,7 @@ export default function HomePage() {
         d.id === id
           ? {
               ...d,
-              [field]: field === "name" ? raw : Number(raw) || 0
+              [field]: raw
             }
           : d
       )
@@ -1443,8 +1476,9 @@ export default function HomePage() {
                   <input
                     type="number"
                     min={0}
-                    value={d.balance}
+                    value={d.balance || ""}
                     onChange={(e) => updateDebt(d.id, "balance", e.target.value)}
+                    placeholder="e.g. 15000"
                   />
                 </div>
                 <div className="field">
@@ -1453,8 +1487,9 @@ export default function HomePage() {
                     type="number"
                     step="0.1"
                     min={0}
-                    value={d.rate}
+                    value={d.rate || ""}
                     onChange={(e) => updateDebt(d.id, "rate", e.target.value)}
+                    placeholder="e.g. 18.99"
                   />
                 </div>
                 <div className="field">
@@ -1462,8 +1497,9 @@ export default function HomePage() {
                   <input
                     type="number"
                     min={0}
-                    value={d.minPayment}
+                    value={d.minPayment || ""}
                     onChange={(e) => updateDebt(d.id, "minPayment", e.target.value)}
+                    placeholder="e.g. 300"
                   />
                 </div>
                 <button

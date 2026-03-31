@@ -1012,9 +1012,9 @@ export default function HomePage() {
             style={{
               display: "flex",
               flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 20,
+              alignItems: "flex-start",
+              justifyContent: "flex-start",
+              gap: 16,
               marginBottom: "12px",
             }}
           >
@@ -1031,14 +1031,16 @@ export default function HomePage() {
               }}
               aria-label="True Freedom Financial home"
             >
-              <Image
-                src="/logo.png"
-                alt="True Freedom Financial"
-                height={40}
-                width={40}
-                style={{ objectFit: "contain" }}
-                priority
-              />
+              <div style={{ marginTop: 6 }}>
+                <Image
+                  src="/logo.png"
+                  alt="True Freedom Financial"
+                  height={64}
+                  width={64}
+                  style={{ objectFit: "contain" }}
+                  priority
+                />
+              </div>
             </Link>
           </div>
           <p

@@ -1005,25 +1005,38 @@ export default function HomePage() {
   return (
     <main className="page dashboard">
       <header className="hero hero-dashboard">
-        <div className="hero-inner">
-          <p className="hero-eyebrow">Strategy dashboard</p>
-          <h1>Debt GPS System</h1>
+        <div className="hero-inner" style={{ maxWidth: 760 }}>
+          <p className="hero-eyebrow">Financial Strategy Dashboard</p>
+          <h1 style={{ marginBottom: "12px" }}>Debt GPS System</h1>
           <p
             style={{
-              margin: "0 0 16px",
-              fontSize: "1.05rem",
-              lineHeight: 1.5,
-              opacity: 0.92,
-              maxWidth: "640px",
-              fontWeight: 500,
+              margin: "0 0 20px",
+              fontSize: "clamp(1.02rem, 2.1vw, 1.125rem)",
+              lineHeight: 1.55,
+              opacity: 0.96,
+              maxWidth: "680px",
+              fontWeight: 550,
+              letterSpacing: "-0.01em",
             }}
           >
-            Eliminate debt faster. Build capital at the same time.
+            Help clients eliminate debt faster, compare payoff strategies, and see how
+            capital-building approaches like Banking Strategy and HELOC can change the
+            outcome.
           </p>
-          <p className="hero-lead">
-            Choose how debts are ordered and how you accelerate payoff—Banking
-            Strategy / HELOC draws and freed minimums roll forward automatically each
-            month.
+          <p
+            className="hero-lead"
+            style={{
+              margin: "0 0 6px",
+              fontSize: "0.98rem",
+              lineHeight: 1.6,
+              opacity: 0.88,
+              maxWidth: "640px",
+            }}
+          >
+            A dedicated modeling workspace: set debt order, acceleration rules, and
+            monthly cash-flow behavior, then watch projections respond in real time.
+            When you are ready to continue, open a saved scenario to pick up where you
+            left off.
           </p>
           <div className="top-actions">
             <Link className="button-link ghost" href="/scenarios">

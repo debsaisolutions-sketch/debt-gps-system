@@ -642,23 +642,26 @@ export default function HomePage() {
     return () => window.clearTimeout(t);
   }, [form, sessionReady]);
 
-  /** Monthly Strategy Budget field (`amount_toward_debt_strategy`): auto-fill income − expenses when blank or zero. */
+  /** Monthly Strategy Budget (`amount_toward_debt_strategy`); auto-fill when empty only. */
   useEffect(() => {
-    if (!sessionReady) return;
-    const income = Number(form.monthly_income) || 0;
-    const expenses = Number(form.monthly_expenses) || 0;
+    const income = Number(form.monthly_income);
+    const expenses = Number(form.monthly_expenses);
+
+    if (!Number.isFinite(income) || !Number.isFinite(expenses)) return;
+
     const calculated = income - expenses;
-    const sb = form.amount_toward_debt_strategy;
+
     if (
       calculated >= 0 &&
-      (sb === "" || sb == null || Number(sb) === 0)
+      (form.amount_toward_debt_strategy === "" ||
+        form.amount_toward_debt_strategy == null)
     ) {
       setForm((prev) => ({
         ...prev,
-        amount_toward_debt_strategy: String(calculated)
+        amount_toward_debt_strategy: calculated
       }));
     }
-  }, [form.monthly_income, form.monthly_expenses, sessionReady]);
+  }, [form.monthly_income, form.monthly_expenses]);
 
   const aggregated = useMemo(() => aggregateDebts(form.debts), [form.debts]);
 

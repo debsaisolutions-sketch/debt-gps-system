@@ -642,8 +642,9 @@ export default function HomePage() {
     return () => window.clearTimeout(t);
   }, [form, sessionReady]);
 
-  /** Monthly Strategy Budget (`amount_toward_debt_strategy`); auto-fill when empty only. */
   useEffect(() => {
+    if (!form.monthly_income || !form.monthly_expenses) return;
+
     const income = Number(form.monthly_income);
     const expenses = Number(form.monthly_expenses);
 
@@ -653,8 +654,8 @@ export default function HomePage() {
 
     if (
       calculated >= 0 &&
-      (form.amount_toward_debt_strategy === "" ||
-        form.amount_toward_debt_strategy == null)
+      (!form.amount_toward_debt_strategy ||
+        Number(form.amount_toward_debt_strategy) === 0)
     ) {
       setForm((prev) => ({
         ...prev,

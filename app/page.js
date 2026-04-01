@@ -1384,14 +1384,14 @@ export default function HomePage() {
 
           <div className="button-row button-row-save-reset step1-scenario-actions">
             <button type="button" className="primary" onClick={saveScenario}>
-              Save scenario
+              Save my plan
             </button>
             <button
               type="button"
               className="button-reset-test"
               onClick={handleResetTestScenario}
             >
-              Reset Test Scenario
+              Start over
             </button>
           </div>
           {statusText ? (

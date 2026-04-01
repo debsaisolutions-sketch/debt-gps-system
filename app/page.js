@@ -644,6 +644,18 @@ export default function HomePage() {
 
   const aggregated = useMemo(() => aggregateDebts(form.debts), [form.debts]);
 
+  const hasMeaningfulInputs = useMemo(() => {
+    if (aggregated.total <= 0) return false;
+
+    const inc = Number(form.monthly_income) || 0;
+    const expRaw = form.monthly_expenses;
+
+    // allow results as soon as debt exists
+    if (inc === 0 && (expRaw === "" || expRaw == null)) return false;
+
+    return true;
+  }, [aggregated.total, form.monthly_income, form.monthly_expenses]);
+
   const cashAllocationPreview = useMemo(
     () =>
       computeDebtCashAllocation(
@@ -1382,13 +1394,17 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="button-row button-row-save-reset step1-scenario-actions">
-            <button type="button" className="primary" onClick={saveScenario}>
+          <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={saveScenario}
+            >
               Save my plan
             </button>
             <button
               type="button"
-              className="button-reset-test"
+              className="secondary-button"
               onClick={handleResetTestScenario}
             >
               Start over
@@ -1978,6 +1994,8 @@ export default function HomePage() {
         <section className="card step-card results-card" aria-labelledby="step2-heading">
           <div className="step-badge secondary">Step 2</div>
           <h2 id="step2-heading">Projected results</h2>
+          {hasMeaningfulInputs ? (
+          <>
           {policyContributionExceedsAppliedStrategy ? (
             <div className="inline-warn" role="alert">
               Banking Strategy contribution cannot exceed the amount applied toward
@@ -2874,6 +2892,37 @@ export default function HomePage() {
               : ""}
             ).
           </p>
+          </>
+          ) : (
+            <div
+              role="status"
+              aria-live="polite"
+              style={{
+                margin: "6px 0 0",
+                padding: "20px 22px 22px",
+                background: "var(--card)",
+                border: "1px solid #e8ecf4",
+                borderRadius: 14,
+                boxShadow:
+                  "0 1px 3px rgba(15, 23, 42, 0.05), 0 6px 20px rgba(15, 23, 42, 0.05)"
+              }}
+            >
+              <h3
+                className="subsection-title"
+                style={{ marginTop: 0, marginBottom: 10 }}
+              >
+                Your results will appear here
+              </h3>
+              <p className="help tight" style={{ marginBottom: 12 }}>
+                Enter your debts and monthly numbers on the left to see your payoff
+                timeline, interest savings, and strongest strategy path.
+              </p>
+              <p className="help tight" style={{ marginBottom: 0 }}>
+                Once you enter your numbers, we&apos;ll compare payoff options and show
+                your best next step.
+              </p>
+            </div>
+          )}
         </section>
       </div>
     </main>

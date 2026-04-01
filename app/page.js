@@ -1394,22 +1394,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
-            <button
-              type="button"
-              className="primary-button"
-              onClick={saveScenario}
-            >
-              Save my plan
-            </button>
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={handleResetTestScenario}
-            >
-              Start over
-            </button>
-          </div>
           {statusText ? (
             <div
               className={`status ${
@@ -1989,6 +1973,23 @@ export default function HomePage() {
               extend the horizon under Advanced settings.
             </div>
           ) : null}
+
+          <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={saveScenario}
+            >
+              Save my plan
+            </button>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleResetTestScenario}
+            >
+              Start over
+            </button>
+          </div>
         </section>
 
         <section className="card step-card results-card" aria-labelledby="step2-heading">

@@ -354,8 +354,8 @@ function buildDefaultForm() {
     client_name: "",
     email: "",
     notes: "",
-    monthly_income: 10000,
-    monthly_expenses: 6500,
+    monthly_income: "",
+    monthly_expenses: "",
     debts: [
       {
         id: "1",
@@ -450,8 +450,14 @@ function normalizeFormSnapshot(raw) {
     client_name: raw.client_name != null ? String(raw.client_name) : base.client_name,
     email: raw.email != null ? String(raw.email) : base.email,
     notes: raw.notes != null ? String(raw.notes) : base.notes,
-    monthly_income: Number(raw.monthly_income) || base.monthly_income,
-    monthly_expenses: Number(raw.monthly_expenses) || base.monthly_expenses,
+    monthly_income:
+      raw.monthly_income === "" || raw.monthly_income == null
+        ? ""
+        : Number(raw.monthly_income) || 0,
+    monthly_expenses:
+      raw.monthly_expenses === "" || raw.monthly_expenses == null
+        ? ""
+        : Number(raw.monthly_expenses) || 0,
     debts,
     payoff_method:
       raw.payoff_method === PAYOFF_METHODS.AVALANCHE
@@ -623,8 +629,8 @@ export default function HomePage() {
   const cashAllocationPreview = useMemo(
     () =>
       computeDebtCashAllocation(
-        form.monthly_income,
-        form.monthly_expenses,
+        Number(form.monthly_income) || 0,
+        Number(form.monthly_expenses) || 0,
         aggregated.totalMin,
         form.amount_toward_debt_strategy
       ),
@@ -647,8 +653,8 @@ export default function HomePage() {
       payoffMethod: form.payoff_method,
       accelerationMethod: form.acceleration_method,
       aggregated,
-      monthlyIncome: form.monthly_income,
-      monthlyExpenses: form.monthly_expenses,
+      monthlyIncome: Number(form.monthly_income) || 0,
+      monthlyExpenses: Number(form.monthly_expenses) || 0,
       advancedProjectionYears,
       useCapitalVehicle: form.use_capital_vehicle,
       monthlyPolicyContribution: form.monthly_policy_contribution,
@@ -712,8 +718,8 @@ export default function HomePage() {
     const shared = {
       debts: form.debts,
       aggregated,
-      monthlyIncome: form.monthly_income,
-      monthlyExpenses: form.monthly_expenses,
+      monthlyIncome: Number(form.monthly_income) || 0,
+      monthlyExpenses: Number(form.monthly_expenses) || 0,
       advancedProjectionYears,
       useCapitalVehicle: form.use_capital_vehicle,
       monthlyPolicyContribution: form.monthly_policy_contribution,
@@ -1018,6 +1024,8 @@ export default function HomePage() {
         "client_name",
         "email",
         "notes",
+        "monthly_income",
+        "monthly_expenses",
         "payoff_method",
         "acceleration_method",
         "advanced_projection_years",
@@ -1386,9 +1394,9 @@ export default function HomePage() {
             <div className="field">
               <label>Client name</label>
               <input
-                value={form.client_name}
+                value={form.client_name || ""}
                 onChange={(e) => updateField("client_name", e.target.value)}
-                placeholder="Jane Smith"
+                placeholder="e.g. Jane Smith"
                 autoComplete="name"
               />
             </div>
@@ -1396,9 +1404,9 @@ export default function HomePage() {
               <label>Email</label>
               <input
                 type="email"
-                value={form.email}
+                value={form.email || ""}
                 onChange={(e) => updateField("email", e.target.value)}
-                placeholder="jane@email.com"
+                placeholder="e.g. jane@email.com"
                 autoComplete="email"
               />
             </div>
@@ -1407,8 +1415,9 @@ export default function HomePage() {
               <input
                 type="number"
                 min={0}
-                value={form.monthly_income}
+                value={form.monthly_income || ""}
                 onChange={(e) => updateField("monthly_income", e.target.value)}
+                placeholder="e.g. 4000"
               />
             </div>
             <div className="field">
@@ -1416,8 +1425,9 @@ export default function HomePage() {
               <input
                 type="number"
                 min={0}
-                value={form.monthly_expenses}
+                value={form.monthly_expenses || ""}
                 onChange={(e) => updateField("monthly_expenses", e.target.value)}
+                placeholder="e.g. 1500"
               />
             </div>
             <div className="field full">

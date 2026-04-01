@@ -642,6 +642,24 @@ export default function HomePage() {
     return () => window.clearTimeout(t);
   }, [form, sessionReady]);
 
+  /** Monthly Strategy Budget field (`amount_toward_debt_strategy`): auto-fill income − expenses when blank or zero. */
+  useEffect(() => {
+    if (!sessionReady) return;
+    const income = Number(form.monthly_income) || 0;
+    const expenses = Number(form.monthly_expenses) || 0;
+    const calculated = income - expenses;
+    const sb = form.amount_toward_debt_strategy;
+    if (
+      calculated >= 0 &&
+      (sb === "" || sb == null || Number(sb) === 0)
+    ) {
+      setForm((prev) => ({
+        ...prev,
+        amount_toward_debt_strategy: String(calculated)
+      }));
+    }
+  }, [form.monthly_income, form.monthly_expenses, sessionReady]);
+
   const aggregated = useMemo(() => aggregateDebts(form.debts), [form.debts]);
 
   const hasMeaningfulInputs = useMemo(() => {

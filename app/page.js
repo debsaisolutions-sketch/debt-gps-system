@@ -456,12 +456,14 @@ function normalizeFormSnapshot(raw) {
   const clientNorm =
     raw.client_name != null ? String(raw.client_name) : base.client_name;
   const emailNorm = raw.email != null ? String(raw.email) : base.email;
-  /** Legacy default income/expense pair from older builds; show blank Step 1 fields. */
+  /** Known template/example pairs from older builds or placeholders saved into session. */
+  const legacyBlankIncomeExpense =
+    (monthlyIncomeNorm === 10000 && monthlyExpensesNorm === 6500) ||
+    (monthlyIncomeNorm === 4000 && monthlyExpensesNorm === 1500);
   if (
     String(clientNorm).trim() === "" &&
     String(emailNorm).trim() === "" &&
-    monthlyIncomeNorm === 10000 &&
-    monthlyExpensesNorm === 6500
+    legacyBlankIncomeExpense
   ) {
     monthlyIncomeNorm = "";
     monthlyExpensesNorm = "";
@@ -1433,7 +1435,7 @@ export default function HomePage() {
                 min={0}
                 value={form.monthly_income || ""}
                 onChange={(e) => updateField("monthly_income", e.target.value)}
-                placeholder="e.g. 4000"
+                placeholder="Enter your monthly income"
                 autoComplete="off"
               />
             </div>
@@ -1444,7 +1446,7 @@ export default function HomePage() {
                 min={0}
                 value={form.monthly_expenses || ""}
                 onChange={(e) => updateField("monthly_expenses", e.target.value)}
-                placeholder="e.g. 1500"
+                placeholder="Enter living expenses (no debt payments)"
                 autoComplete="off"
               />
             </div>

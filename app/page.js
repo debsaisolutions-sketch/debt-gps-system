@@ -445,19 +445,35 @@ function normalizeFormSnapshot(raw) {
           .map(stripLegacyTemplateDebtRow)
       : [newDebtRow(`d-${Date.now()}`)];
 
+  let monthlyIncomeNorm =
+    raw.monthly_income === "" || raw.monthly_income == null
+      ? ""
+      : Number(raw.monthly_income) || 0;
+  let monthlyExpensesNorm =
+    raw.monthly_expenses === "" || raw.monthly_expenses == null
+      ? ""
+      : Number(raw.monthly_expenses) || 0;
+  const clientNorm =
+    raw.client_name != null ? String(raw.client_name) : base.client_name;
+  const emailNorm = raw.email != null ? String(raw.email) : base.email;
+  /** Legacy default income/expense pair from older builds; show blank Step 1 fields. */
+  if (
+    String(clientNorm).trim() === "" &&
+    String(emailNorm).trim() === "" &&
+    monthlyIncomeNorm === 10000 &&
+    monthlyExpensesNorm === 6500
+  ) {
+    monthlyIncomeNorm = "";
+    monthlyExpensesNorm = "";
+  }
+
   return {
     ...base,
-    client_name: raw.client_name != null ? String(raw.client_name) : base.client_name,
-    email: raw.email != null ? String(raw.email) : base.email,
+    client_name: clientNorm,
+    email: emailNorm,
     notes: raw.notes != null ? String(raw.notes) : base.notes,
-    monthly_income:
-      raw.monthly_income === "" || raw.monthly_income == null
-        ? ""
-        : Number(raw.monthly_income) || 0,
-    monthly_expenses:
-      raw.monthly_expenses === "" || raw.monthly_expenses == null
-        ? ""
-        : Number(raw.monthly_expenses) || 0,
+    monthly_income: monthlyIncomeNorm,
+    monthly_expenses: monthlyExpensesNorm,
     debts,
     payoff_method:
       raw.payoff_method === PAYOFF_METHODS.AVALANCHE
@@ -1397,7 +1413,7 @@ export default function HomePage() {
                 value={form.client_name || ""}
                 onChange={(e) => updateField("client_name", e.target.value)}
                 placeholder="e.g. Jane Smith"
-                autoComplete="name"
+                autoComplete="off"
               />
             </div>
             <div className="field">
@@ -1407,7 +1423,7 @@ export default function HomePage() {
                 value={form.email || ""}
                 onChange={(e) => updateField("email", e.target.value)}
                 placeholder="e.g. jane@email.com"
-                autoComplete="email"
+                autoComplete="off"
               />
             </div>
             <div className="field">
@@ -1418,6 +1434,7 @@ export default function HomePage() {
                 value={form.monthly_income || ""}
                 onChange={(e) => updateField("monthly_income", e.target.value)}
                 placeholder="e.g. 4000"
+                autoComplete="off"
               />
             </div>
             <div className="field">
@@ -1428,6 +1445,7 @@ export default function HomePage() {
                 value={form.monthly_expenses || ""}
                 onChange={(e) => updateField("monthly_expenses", e.target.value)}
                 placeholder="e.g. 1500"
+                autoComplete="off"
               />
             </div>
             <div className="field full">

@@ -416,8 +416,8 @@ function buildTestResetForm() {
     client_name: "",
     email: "",
     notes: "",
-    monthly_income: defaults.monthly_income,
-    monthly_expenses: defaults.monthly_expenses,
+    monthly_income: "",
+    monthly_expenses: "",
     debts: [newBlankDebtRow(`d-${Date.now()}`)],
     payoff_method: PAYOFF_METHODS.SNOWBALL,
     acceleration_method: ACCELERATION_METHODS.STANDARD,
@@ -642,28 +642,6 @@ export default function HomePage() {
     return () => window.clearTimeout(t);
   }, [form, sessionReady]);
 
-  useEffect(() => {
-    if (!form.monthly_income || !form.monthly_expenses) return;
-
-    const income = Number(form.monthly_income);
-    const expenses = Number(form.monthly_expenses);
-
-    if (!Number.isFinite(income) || !Number.isFinite(expenses)) return;
-
-    const calculated = income - expenses;
-
-    if (
-      calculated >= 0 &&
-      (!form.amount_toward_debt_strategy ||
-        Number(form.amount_toward_debt_strategy) === 0)
-    ) {
-      setForm((prev) => ({
-        ...prev,
-        amount_toward_debt_strategy: calculated
-      }));
-    }
-  }, [form.monthly_income, form.monthly_expenses]);
-
   const aggregated = useMemo(() => aggregateDebts(form.debts), [form.debts]);
 
   const hasMeaningfulInputs = useMemo(() => {
@@ -807,12 +785,12 @@ export default function HomePage() {
       }),
       banking: computeLayeredProjection({
         ...shared,
-        payoffMethod: form.payoff_method,
+        payoffMethod: PAYOFF_METHODS.SNOWBALL,
         accelerationMethod: ACCELERATION_METHODS.BANKING
       }),
       heloc: computeLayeredProjection({
         ...shared,
-        payoffMethod: form.payoff_method,
+        payoffMethod: PAYOFF_METHODS.SNOWBALL,
         accelerationMethod: ACCELERATION_METHODS.HELOC
       })
     };
@@ -1070,24 +1048,54 @@ export default function HomePage() {
   ]);
 
   const updateField = useCallback((name, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [name]: [
-        "client_name",
-        "email",
-        "notes",
-        "monthly_income",
-        "monthly_expenses",
-        "payoff_method",
-        "acceleration_method",
-        "advanced_projection_years",
-        "amount_toward_debt_strategy"
-      ].includes(name)
-        ? value
-        : name === "use_capital_vehicle"
-          ? Boolean(value)
-          : Number(value)
-    }));
+    setForm((prev) => {
+      const next = {
+        ...prev,
+        [name]: [
+          "client_name",
+          "email",
+          "notes",
+          "monthly_income",
+          "monthly_expenses",
+          "payoff_method",
+          "acceleration_method",
+          "advanced_projection_years",
+          "amount_toward_debt_strategy"
+        ].includes(name)
+          ? value
+          : name === "use_capital_vehicle"
+            ? Boolean(value)
+            : Number(value)
+      };
+
+      if (name !== "monthly_income" && name !== "monthly_expenses") {
+        return next;
+      }
+
+      if (!next.monthly_income || !next.monthly_expenses) {
+        next.amount_toward_debt_strategy = "";
+        return next;
+      }
+
+      const incomeRaw = String(next.monthly_income ?? "").trim();
+      const expensesRaw = String(next.monthly_expenses ?? "").trim();
+
+      if (incomeRaw === "" || expensesRaw === "") {
+        return { ...next, amount_toward_debt_strategy: "" };
+      }
+
+      const income = Number(incomeRaw);
+      const expenses = Number(expensesRaw);
+      if (!Number.isFinite(income) || !Number.isFinite(expenses)) {
+        return next;
+      }
+
+      const calculated = income - expenses;
+      return {
+        ...next,
+        amount_toward_debt_strategy: calculated >= 0 ? calculated : 0
+      };
+    });
   }, []);
 
   const updateDebt = useCallback((id, field, raw) => {
@@ -1207,6 +1215,7 @@ export default function HomePage() {
   }
 
   const handleResetTestScenario = useCallback(() => {
+    console.log("RESET CLICKED");
     if (
       typeof window !== "undefined" &&
       !window.confirm(
@@ -1215,7 +1224,8 @@ export default function HomePage() {
     ) {
       return;
     }
-    const next = buildTestResetForm();
+    const next = { ...buildTestResetForm(), amount_toward_debt_strategy: "" };
+    console.log("RESET NEXT", next);
     setForm(next);
     setLoadScenarioSelect("");
     setDeleteScenarioId("");
@@ -1472,27 +1482,6 @@ export default function HomePage() {
                 autoComplete="off"
               />
             </div>
-            <div className="field full">
-              <label>Monthly Strategy Budget (Flexible)</label>
-              <p className="help tight">
-                This is the amount you choose to apply toward your strategy each month.
-                It can be adjusted anytime based on your situation.
-              </p>
-              <p className="help tight">
-                {isBankingAcceleration
-                  ? "Used to fund your policy and support the Banking Strategy. Debt payoff occurs through policy loans and redirected payments — not direct extra payments."
-                  : "Used as extra payment above minimums for Snowball or Avalanche payoff."}
-              </p>
-              <input
-                type="number"
-                min={0}
-                placeholder={`Leave blank to use full amount (${toCurrency(cashAllocationPreview.availableForStrategy)})`}
-                value={form.amount_toward_debt_strategy}
-                onChange={(e) =>
-                  updateField("amount_toward_debt_strategy", e.target.value)
-                }
-              />
-            </div>
           </div>
 
           {appliedExceedsAvailableForStrategy ? (
@@ -1572,6 +1561,31 @@ export default function HomePage() {
           <button type="button" className="button-link quiet" onClick={addDebt}>
             + Add debt
           </button>
+
+          <div className="field full">
+            <label>Monthly Strategy Budget (Flexible)</label>
+            <p className="help tight">
+              This is the amount you choose to apply toward your strategy each month.
+              It can be adjusted anytime based on your situation.
+            </p>
+            <p className="help tight">
+              {isBankingAcceleration
+                ? "Used to fund your policy and support the Banking Strategy. Debt payoff occurs through policy loans and redirected payments — not direct extra payments."
+                : "Used as extra payment above minimums for Snowball or Avalanche payoff."}
+            </p>
+            <input
+              type="number"
+              min={0}
+              placeholder={`Leave blank to use full amount (${toCurrency(cashAllocationPreview.availableForStrategy)})`}
+              value={form.amount_toward_debt_strategy}
+              onChange={(e) =>
+                updateField("amount_toward_debt_strategy", e.target.value)
+              }
+            />
+            <div style={{ fontSize: 12, color: "red", marginTop: 6 }}>
+              income: {JSON.stringify(form.monthly_income)} | expenses: {JSON.stringify(form.monthly_expenses)} | strategy: {JSON.stringify(form.amount_toward_debt_strategy)}
+            </div>
+          </div>
 
           <div
             className="standard-payoff-compare-panel"
@@ -2017,8 +2031,6 @@ export default function HomePage() {
         <section className="card step-card results-card" aria-labelledby="step2-heading">
           <div className="step-badge secondary">Step 2</div>
           <h2 id="step2-heading">Projected results</h2>
-          {hasMeaningfulInputs ? (
-          <>
           {policyContributionExceedsAppliedStrategy ? (
             <div className="inline-warn" role="alert">
               Banking Strategy contribution cannot exceed the amount applied toward
@@ -2172,6 +2184,8 @@ export default function HomePage() {
             )}
           </div>
 
+          {hasMeaningfulInputs ? (
+          <>
           <div
             className="strategy-comparison-section"
             aria-label="Strategy comparison using your current inputs"
@@ -2310,7 +2324,7 @@ export default function HomePage() {
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
-                    <dt>Consumer Debt-Free Timeline</dt>
+                    <dt>Debt-Free From Creditors</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.banking,
@@ -2319,7 +2333,7 @@ export default function HomePage() {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Total Debt-Free Timeline</dt>
+                    <dt>Fully Repaid (Including Policy Loan)</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.banking,
@@ -2327,6 +2341,12 @@ export default function HomePage() {
                       )}
                     </dd>
                   </div>
+                </dl>
+                <p className="help tight subtle" style={{ margin: "0 0 10px" }}>
+                  Creditors are eliminated first. Remaining time reflects paying yourself
+                  back.
+                </p>
+                <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
                     <dt>Interest saved</dt>
                     <dd>
@@ -2340,7 +2360,7 @@ export default function HomePage() {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Ending balance</dt>
+                    <dt>Ending Policy Value / Equity</dt>
                     <dd>
                       {strategyComparisonProjections.banking
                         .policyContributionExceedsAppliedStrategy

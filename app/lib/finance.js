@@ -333,7 +333,8 @@ export function selectedStrategyProjection({
   helocInterestPct,
   helocCreditLimit,
   maxMonthlyHelocDraw,
-  startingHelocBalance
+  startingHelocBalance,
+  amountTowardDebtStrategyRaw = ""
 }) {
   void maxMonthlyHelocDraw;
   const totalMonths = Math.max(
@@ -572,53 +573,72 @@ export function selectedStrategyProjection({
     };
 
     /*
-     * HELOC acceleration (velocity banking — not a debt multiplier):
-     * a) Income reduces HELOC; b) living expenses draw on the line (capped by limit). Interest ran earlier.
-     * c) Contractual minimums use income − living expenses (cash pool) first; HELOC only for shortfall.
-     * d) Extra strategy slice applies to consumer principal from cash only (no HELOC partial paydown).
-     * e) One strategic HELOC draw only for a full payoff of the current target when available credit
-     *    covers the entire remaining balance (no partial line draws for principal).
-     * f) Unused strategy dollars pay HELOC principal; g) cleared-debt minimums stack as HELOC paydown.
-     *
-     * After consumer debt is gone: do not run (income → zero line) then (expenses → refill up to
-     * min(expenses, credit limit)). A small limit makes that refill a fixed balance (e.g. $50) every
-     * month, so freed minimums never finish the HELOC. Instead apply net cash flow (income − expenses)
-     * as principal change — same as unlimited-limit velocity (−income + expenses) without the limit cap.
+     * HELOC (simplified): month-start HELOC interest already applied above.
+     * Borrow only when availableCredit (limit − balance) >= full payoff-target balance — no partial draws.
+     * Contractual minimums: if monthlyCashAvailable covers total minimums, pay from cash only; otherwise
+     * draw only the shortfall onto the HELOC (capped by credit limit), add to cash, then pay minimums —
+     * no extra principal / aggressive cash sweeps.
+     * Repay line with strategy budget (raw amountTowardDebtStrategyRaw only) plus freed minimums from
+     * debts cleared in prior months.
      */
     let extraRemaining = extraDebtCap;
     if (helocPaysConsumer) {
-      const consumerGoneAtStart = !accounts.some((d) => d.balance > EPS);
-      if (consumerGoneAtStart) {
-        helocBal = clampBalance(helocBal - monthlyCashAvailable);
-        if (helocLimit > EPS) {
-          helocBal = Math.min(helocLimit, helocBal);
-        }
-      } else {
-        helocBal = Math.max(0, helocBal - income);
-        const roomAfterIncome = Math.max(0, helocLimit - helocBal);
-        helocBal = Math.min(helocLimit, helocBal + Math.min(expenses, roomAfterIncome));
-      }
+      const strategyBudget = amountTowardDebtStrategyRaw;
 
-      const availCredit = () => Math.max(0, helocLimit - helocBal);
+      let availableCredit = Math.max(0, helocLimit - helocBal);
 
       const actHeloc = accounts.filter((d) => d.balance > EPS);
       if (month === 1 && actHeloc.length > 0) {
         const t0 = pickPayoffTarget(actHeloc, payoffMethod);
+        const nextDebtBalance0 = t0?.balance ?? 0;
         helocPayoffTriggerMonth1 = {
           month: 1,
           targetId: t0?.id ?? null,
           targetName: t0?.name ?? "",
-          amountNeededToEliminate: t0?.balance ?? 0,
+          amountNeededToEliminate: nextDebtBalance0,
           helocBalance: helocBal,
           helocCreditLimit: helocLimit,
-          availableCredit: availCredit(),
-          canEliminateTargetNow: !!(t0 && availCredit() >= t0.balance - EPS)
+          availableCredit,
+          canEliminateTargetNow: !!(
+            t0 &&
+            nextDebtBalance0 > EPS &&
+            availableCredit + EPS >= nextDebtBalance0
+          )
         };
       }
 
-      cash = monthlyCashAvailable;
+      const tBorrow =
+        actHeloc.length > 0 ? pickPayoffTarget(actHeloc, payoffMethod) : null;
+      const nextDebtBalance =
+        tBorrow && tBorrow.balance > EPS ? tBorrow.balance : 0;
+      availableCredit = Math.max(0, helocLimit - helocBal);
+      if (
+        tBorrow &&
+        nextDebtBalance > EPS &&
+        availableCredit + EPS >= nextDebtBalance
+      ) {
+        helocBal = Math.min(helocLimit, helocBal + nextDebtBalance);
+        tBorrow.balance = 0;
+        totalPaymentsToConsumerDebt += nextDebtBalance;
+        totalPaidThisMonth += nextDebtBalance;
+      }
 
+      cash = monthlyCashAvailable;
       const activeForMinH = sortForMinimumPriority(accounts, payoffMethod);
+      let totalMinimums = 0;
+      for (const d of activeForMinH) {
+        if (d.balance <= EPS) continue;
+        totalMinimums += Math.min(d.balance, d.minPayment);
+      }
+      if (totalMinimums > EPS && cash + EPS < totalMinimums) {
+        const shortfall = totalMinimums - cash;
+        const room = Math.max(0, helocLimit - helocBal);
+        const draw = Math.min(shortfall, room);
+        if (draw > EPS) {
+          helocBal = Math.min(helocLimit, helocBal + draw);
+          cash += draw;
+        }
+      }
       for (const d of activeForMinH) {
         if (d.balance <= EPS) continue;
         const need = Math.min(d.balance, d.minPayment);
@@ -629,52 +649,19 @@ export function selectedStrategyProjection({
           totalPaymentsToConsumerDebt += fromCash;
           totalPaidThisMonth += fromCash;
         }
-        const needHeloc = need - fromCash;
-        if (needHeloc > EPS) {
-          const room = Math.max(0, helocLimit - helocBal);
-          const fromHeloc = Math.min(needHeloc, room);
-          if (fromHeloc > EPS) {
-            helocBal = Math.min(helocLimit, helocBal + fromHeloc);
-            d.balance = clampBalance(d.balance - fromHeloc);
-            totalPaymentsToConsumerDebt += fromHeloc;
-            totalPaidThisMonth += fromHeloc;
-          }
-        }
       }
+
+      let freedMinimums = 0;
+      for (const d of accounts) {
+        if (clearedConsumerDebtIds.has(d.id)) freedMinimums += d.minPayment;
+      }
+      const paymentToHeloc =
+        Math.max(0, Number(strategyBudget) || 0) + freedMinimums;
+      const helocBeforeRepay = helocBal;
+      helocBal = clampBalance(Math.max(0, helocBal - paymentToHeloc));
+      totalPaidThisMonth += helocBeforeRepay - helocBal;
 
       extraRemaining = extraDebtCap;
-      while (cash > EPS && extraRemaining > EPS) {
-        const active = accounts.filter((d) => d.balance > EPS);
-        if (active.length === 0) break;
-        const target = pickPayoffTarget(active, payoffMethod);
-        if (!target) break;
-        const pay = Math.min(target.balance, cash, extraRemaining);
-        if (pay <= EPS) break;
-        target.balance = clampBalance(target.balance - pay);
-        cash -= pay;
-        totalPaymentsToConsumerDebt += pay;
-        totalPaidThisMonth += pay;
-        extraRemaining -= pay;
-      }
-
-      const actStrat = accounts.filter((d) => d.balance > EPS);
-      if (actStrat.length > 0 && availCredit() > EPS) {
-        const t = pickPayoffTarget(actStrat, payoffMethod);
-        if (t && t.balance > EPS && availCredit() >= t.balance - EPS) {
-          const L = t.balance;
-          helocBal = Math.min(helocLimit, helocBal + L);
-          t.balance = 0;
-          totalPaymentsToConsumerDebt += L;
-          totalPaidThisMonth += L;
-        }
-      }
-
-      if (extraRemaining > EPS) {
-        const reduc = Math.min(helocBal, extraRemaining);
-        helocBal = clampBalance(helocBal - reduc);
-        totalPaidThisMonth += reduc;
-      }
-
       cash = 0;
     }
 
@@ -733,18 +720,6 @@ export function selectedStrategyProjection({
     const consumerGone = !accounts.some((d) => d.balance > EPS);
     if (consumerGone && consumerDebtFreeMonth === null) {
       consumerDebtFreeMonth = month;
-    }
-
-    if (helocPaysConsumer) {
-      let freedHeloc = 0;
-      for (const d of accounts) {
-        if (clearedConsumerDebtIds.has(d.id)) freedHeloc += d.minPayment;
-      }
-      if (freedHeloc > EPS) {
-        const reduc = Math.min(helocBal, freedHeloc);
-        helocBal = clampBalance(helocBal - reduc);
-        totalPaidThisMonth += reduc;
-      }
     }
 
     if (isBanking) {
@@ -968,7 +943,8 @@ export function computeLayeredProjection(params) {
       helocInterestPct: helocInterestRate,
       helocCreditLimit,
       maxMonthlyHelocDraw,
-      startingHelocBalance
+      startingHelocBalance,
+      amountTowardDebtStrategyRaw
     });
 
   let selected;

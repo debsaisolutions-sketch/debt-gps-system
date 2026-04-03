@@ -843,6 +843,12 @@ export default function HomePage() {
   const debtFreeMonth = schedule.debtFreeMonth;
   const finalPolicy = endingNetPolicyEquity;
 
+  const strategy = Number(form.amount_toward_debt_strategy);
+  const shouldShowError =
+    Number.isFinite(strategy) &&
+    strategy > 0 &&
+    Number(form.monthly_policy_contribution) > strategy;
+
   const capYearsLabel = Math.round(projectionMaxMonths / 12);
   const bankingActive =
     form.acceleration_method === ACCELERATION_METHODS.BANKING &&
@@ -1880,7 +1886,7 @@ export default function HomePage() {
                   />
                 </div>
               </div>
-              {bankingActive && policyContributionExceedsAppliedStrategy ? (
+              {bankingActive && shouldShowError ? (
                 <div className="inline-warn" role="alert">
                   Banking Strategy contribution cannot exceed the amount applied
                   toward strategy.
@@ -2031,7 +2037,7 @@ export default function HomePage() {
         <section className="card step-card results-card" aria-labelledby="step2-heading">
           <div className="step-badge secondary">Step 2</div>
           <h2 id="step2-heading">Projected results</h2>
-          {policyContributionExceedsAppliedStrategy ? (
+          {shouldShowError ? (
             <div className="inline-warn" role="alert">
               Banking Strategy contribution cannot exceed the amount applied toward
               strategy.

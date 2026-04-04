@@ -2985,7 +2985,6 @@ const hasMeaningfulInputs = useMemo(() => {
   Debt Payoff Order, payoff timeline, interest savings, and Banking or HELOC
   details based on your selections.
 </p>
-          )}
         </section>
       </div>
     </main>

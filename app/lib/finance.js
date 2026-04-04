@@ -120,7 +120,7 @@ export function computeDebtCashAllocation(
   if (raw !== "") {
     const n = Number(raw);
     if (Number.isFinite(n) && n >= 0) {
-      appliedExceedsAvailableForStrategy = n > availableForStrategy + EPS;
+      appliedExceedsAvailableForStrategy = n > availableForStrategy
       appliedTowardStrategy = Math.min(n, availableForStrategy);
     }
   }

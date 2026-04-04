@@ -2971,20 +2971,20 @@ const hasMeaningfulInputs = useMemo(() => {
               }}
             >
               <h3
-                className="subsection-title"
-                style={{ marginTop: 0, marginBottom: 10 }}
-              >
-                Your results will appear here
-              </h3>
-              <p className="help tight" style={{ marginBottom: 12 }}>
-                Enter your debts and monthly numbers on the left to see your payoff
-                timeline, interest savings, and strongest strategy path.
-              </p>
-              <p className="help tight" style={{ marginBottom: 0 }}>
-                Once you enter your numbers, we&apos;ll compare payoff options and show
-                your best next step.
-              </p>
-            </div>
+  className="subsection-title"
+  style={{ marginTop: 0, marginBottom: 10 }}
+>
+  Your personalized results will appear here
+</h3>
+<p className="help tight" style={{ marginBottom: 12 }}>
+  Enter your income, living expenses, and debts on the left to unlock your
+  payoff comparison and recommended strategy.
+</p>
+<p className="help tight" style={{ marginBottom: 0 }}>
+  Once your numbers are entered, this panel will show Strategy Comparison,
+  Debt Payoff Order, payoff timeline, interest savings, and Banking or HELOC
+  details based on your selections.
+</p>
           )}
         </section>
       </div>

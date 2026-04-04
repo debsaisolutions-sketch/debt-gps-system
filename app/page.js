@@ -2974,16 +2974,28 @@ const hasMeaningfulInputs = useMemo(() => {
                 className="subsection-title"
                 style={{ marginTop: 0, marginBottom: 10 }}
               >
-                Your results will appear here
+                {aggregated.total > 0
+                  ? "Add income and expenses to unlock projections"
+                  : "Your results will appear here"}
               </h3>
-              <p className="help tight" style={{ marginBottom: 12 }}>
-                Enter your debts and monthly numbers on the left to see your payoff
-                timeline, interest savings, and strongest strategy path.
-              </p>
-              <p className="help tight" style={{ marginBottom: 0 }}>
-                Once you enter your numbers, we&apos;ll compare payoff options and show
-                your best next step.
-              </p>
+              {aggregated.total > 0 ? (
+                <p className="help tight" style={{ marginBottom: 0 }}>
+                  You already have debt balances in Step 1. Enter monthly income and
+                  living expenses so the model can allocate cash flow and show strategy
+                  comparison, timelines, and month-by-month projections here.
+                </p>
+              ) : (
+                <>
+                  <p className="help tight" style={{ marginBottom: 12 }}>
+                    Enter your debts and monthly numbers on the left to see your payoff
+                    timeline, interest savings, and strongest strategy path.
+                  </p>
+                  <p className="help tight" style={{ marginBottom: 0 }}>
+                    Once you enter your numbers, we&apos;ll compare payoff options and
+                    show your best next step.
+                  </p>
+                </>
+              )}
             </div>
           )}
         </section>

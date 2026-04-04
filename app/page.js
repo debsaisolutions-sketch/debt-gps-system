@@ -2190,8 +2190,8 @@ const hasMeaningfulInputs = useMemo(() => {
             )}
           </div>
 
-          {true ? (
-          <>
+          {hasMeaningfulInputs ? (
+          <>    
           <div
             className="strategy-comparison-section"
             aria-label="Strategy comparison using your current inputs"

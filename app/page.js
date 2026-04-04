@@ -2212,15 +2212,13 @@ export default function HomePage() {
                     : ""
                 }`}
               >
-                <h4 className="strategy-comparison-card-title">
-                  Snowball (Standard)
-                </h4>
+                <h4 className="strategy-comparison-card-title">Snowball</h4>
                 <p className="strategy-comparison-card-sub subtle">
                   Snowball · Standard acceleration
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
-                    <dt>Consumer Debt-Free Timeline</dt>
+                    <dt>Debt-Free From Creditors</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardSnowball,
@@ -2229,7 +2227,7 @@ export default function HomePage() {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Total Debt-Free Timeline</dt>
+                    <dt>Fully Repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardSnowball,
@@ -2274,7 +2272,7 @@ export default function HomePage() {
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
-                    <dt>Consumer Debt-Free Timeline</dt>
+                    <dt>Debt-Free From Creditors</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardAvalanche,
@@ -2283,7 +2281,7 @@ export default function HomePage() {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Total Debt-Free Timeline</dt>
+                    <dt>Fully Repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardAvalanche,
@@ -2317,13 +2315,82 @@ export default function HomePage() {
               </div>
               <div
                 className={`strategy-comparison-card${
+                  form.acceleration_method === ACCELERATION_METHODS.HELOC
+                    ? " strategy-comparison-card--current"
+                    : ""
+                }`}
+              >
+                <h4 className="strategy-comparison-card-title">HELOC</h4>
+                <p className="strategy-comparison-card-sub subtle">
+                  {payoffLabel(form.payoff_method)} · HELOC acceleration
+                </p>
+                <dl className="strategy-comparison-dl">
+                  <div className="strategy-comparison-row">
+                    <dt>Debt-Free From Creditors</dt>
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
+                        strategyComparisonProjections.heloc,
+                        "consumer"
+                      )}
+                    </dd>
+                  </div>
+                  <div className="strategy-comparison-row">
+                    <dt>Fully Repaid (Including HELOC)</dt>
+                    <dd className="strategy-comparison-dd--timeline">
+                      {renderStrategyComparisonTimelineInCards(
+                        strategyComparisonProjections.heloc,
+                        "total"
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="help tight subtle" style={{ margin: "0 0 6px" }}>
+                  Remaining time reflects repayment of borrowed funds using your
+                  available cash flow.
+                </p>
+                <p className="help tight subtle" style={{ margin: "0 0 10px" }}>
+                  Uses your monthly cash flow and freed payments to repay the line.
+                </p>
+                <dl className="strategy-comparison-dl">
+                  <div className="strategy-comparison-row">
+                    <dt>Interest saved</dt>
+                    <dd>
+                      {toCurrency(
+                        strategyComparisonProjections.heloc.interestSavedVsMinimum
+                      )}
+                    </dd>
+                  </div>
+                  <div className="strategy-comparison-row">
+                    <dt>Ending balance</dt>
+                    <dd>
+                      {toCurrency(
+                        strategyComparisonProjections.heloc.endingHelocBalance
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="strategy-comparison-card-footer">
+                  <div
+                    className="strategy-comparison-card-footer-note-placeholder"
+                    aria-hidden="true"
+                  />
+                  <p className="strategy-comparison-foot subtle">
+                    Ending HELOC balance (modeled line)
+                  </p>
+                </div>
+              </div>
+              <div
+                className={`strategy-comparison-card strategy-comparison-card--recommended${
                   form.acceleration_method === ACCELERATION_METHODS.BANKING
                     ? " strategy-comparison-card--current"
                     : ""
                 }`}
               >
                 <h4 className="strategy-comparison-card-title">
-                  Banking Strategy
+                  Banking Strategy{" "}
+                  <span className="strategy-comparison-recommended-badge">
+                    ⭐ Recommended
+                  </span>
                 </h4>
                 <p className="strategy-comparison-card-sub subtle">
                   {payoffLabel(form.payoff_method)} · policy loan model
@@ -2348,9 +2415,13 @@ export default function HomePage() {
                     </dd>
                   </div>
                 </dl>
+                <p className="help tight subtle" style={{ margin: "0 0 6px" }}>
+                  Remaining time reflects repayment of your policy loan while your capital
+                  continues to grow.
+                </p>
                 <p className="help tight subtle" style={{ margin: "0 0 10px" }}>
-                  Creditors are eliminated first. Remaining time reflects paying yourself
-                  back.
+                  You are continuing to build capital instead of applying every
+                  available dollar directly to payoff.
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
@@ -2393,63 +2464,6 @@ export default function HomePage() {
                   )}
                   <p className="strategy-comparison-foot subtle">
                     Ending Banking Strategy net (cash value − policy loan)
-                  </p>
-                </div>
-              </div>
-              <div
-                className={`strategy-comparison-card${
-                  form.acceleration_method === ACCELERATION_METHODS.HELOC
-                    ? " strategy-comparison-card--current"
-                    : ""
-                }`}
-              >
-                <h4 className="strategy-comparison-card-title">HELOC</h4>
-                <p className="strategy-comparison-card-sub subtle">
-                  {payoffLabel(form.payoff_method)} · HELOC acceleration
-                </p>
-                <dl className="strategy-comparison-dl">
-                  <div className="strategy-comparison-row">
-                    <dt>Consumer Debt-Free Timeline</dt>
-                    <dd className="strategy-comparison-dd--timeline">
-                      {renderStrategyComparisonTimelineInCards(
-                        strategyComparisonProjections.heloc,
-                        "consumer"
-                      )}
-                    </dd>
-                  </div>
-                  <div className="strategy-comparison-row">
-                    <dt>Total Debt-Free Timeline</dt>
-                    <dd className="strategy-comparison-dd--timeline">
-                      {renderStrategyComparisonTimelineInCards(
-                        strategyComparisonProjections.heloc,
-                        "total"
-                      )}
-                    </dd>
-                  </div>
-                  <div className="strategy-comparison-row">
-                    <dt>Interest saved</dt>
-                    <dd>
-                      {toCurrency(
-                        strategyComparisonProjections.heloc.interestSavedVsMinimum
-                      )}
-                    </dd>
-                  </div>
-                  <div className="strategy-comparison-row">
-                    <dt>Ending balance</dt>
-                    <dd>
-                      {toCurrency(
-                        strategyComparisonProjections.heloc.endingHelocBalance
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="strategy-comparison-card-footer">
-                  <div
-                    className="strategy-comparison-card-footer-note-placeholder"
-                    aria-hidden="true"
-                  />
-                  <p className="strategy-comparison-foot subtle">
-                    Ending HELOC balance (modeled line)
                   </p>
                 </div>
               </div>

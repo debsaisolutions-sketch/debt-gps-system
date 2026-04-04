@@ -644,17 +644,7 @@ export default function HomePage() {
 
   const aggregated = useMemo(() => aggregateDebts(form.debts), [form.debts]);
 
-  const hasMeaningfulInputs = useMemo(() => {
-    if (aggregated.total <= 0) return false;
-
-    const inc = Number(form.monthly_income) || 0;
-    const expRaw = form.monthly_expenses;
-
-    // allow results as soon as debt exists
-    if (inc === 0 && (expRaw === "" || expRaw == null)) return false;
-
-    return true;
-  }, [aggregated.total, form.monthly_income, form.monthly_expenses]);
+  const hasMeaningfulInputs = true;
 
   const cashAllocationPreview = useMemo(
     () =>

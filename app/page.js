@@ -2190,7 +2190,7 @@ const hasMeaningfulInputs = useMemo(() => {
             )}
           </div>
 
-          {hasMeaningfulInputs ? (
+          {true ? (
           <>
           <div
             className="strategy-comparison-section"

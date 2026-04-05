@@ -618,6 +618,8 @@ export default function HomePage() {
   const [loadScenarioSelect, setLoadScenarioSelect] = useState("");
   const [deleteScenarioId, setDeleteScenarioId] = useState("");
   const [sessionReady, setSessionReady] = useState(false);
+  /** Step 2: simulated month for Debt Payoff Order / Paid Off Debts timeline (0 = start). */
+  const [payoffTimelineCurrentMonth, setPayoffTimelineCurrentMonth] = useState(0);
 
   useEffect(() => {
     setLocalScenarios(readScenarioList());
@@ -837,8 +839,38 @@ const hasMeaningfulInputs = useMemo(() => {
     cumulativePolicyLoanPrincipalPaid,
     helocPayoffTriggerMonth1,
     helocStateLatest,
-    totalHelocInterestPaid
+    totalHelocInterestPaid,
+    consumerDebtPayoffMonthById
   } = projection;
+
+  const maxPayoffMonthFromProjection = useMemo(() => {
+    const m = consumerDebtPayoffMonthById;
+    if (!m || typeof m !== "object") return 0;
+    let max = 0;
+    for (const k of Object.keys(m)) {
+      const v = m[k];
+      if (typeof v === "number" && Number.isFinite(v) && v > max) max = v;
+    }
+    return Math.max(0, Math.floor(max));
+  }, [consumerDebtPayoffMonthById]);
+
+  const payoffTimelineNextDebtId = useMemo(() => {
+    const map = consumerDebtPayoffMonthById;
+    const month = payoffTimelineCurrentMonth;
+    for (const d of debtPayoffOrder) {
+      const pm = map?.[d.id];
+      const paidThrough = pm != null && pm <= month;
+      if (!paidThrough) return d.id;
+    }
+    return null;
+  }, [debtPayoffOrder, consumerDebtPayoffMonthById, payoffTimelineCurrentMonth]);
+
+  useEffect(() => {
+    setPayoffTimelineCurrentMonth((mc) =>
+      Math.max(0, Math.min(mc, maxPayoffMonthFromProjection))
+    );
+  }, [maxPayoffMonthFromProjection]);
+
   const rows = schedule.rows;
   const debtFreeMonth = schedule.debtFreeMonth;
   const finalPolicy = endingNetPolicyEquity;
@@ -918,141 +950,142 @@ const hasMeaningfulInputs = useMemo(() => {
 
   const scenarioSummary = `${payoffLabel(form.payoff_method)} · ${accelerationLabel(form.acceleration_method)}`;
 
-  const bestPathForward = useMemo(() => {
-    const effPay =
-      form.payoff_method === PAYOFF_METHODS.FASTEST_ROUTE &&
-      projection.effectivePayoffMethod
-        ? projection.effectivePayoffMethod
-        : form.payoff_method;
-
-    const isStd = form.acceleration_method === ACCELERATION_METHODS.STANDARD;
-    const standardMinimumPath = isStd && appliedTowardStrategy === 0;
-
-    let recommended = "";
-    if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
-      recommended = "Banking Strategy";
-    } else if (form.acceleration_method === ACCELERATION_METHODS.HELOC) {
-      recommended = "HELOC Strategy";
-    } else if (standardMinimumPath) {
-      recommended = "Minimum Payment";
-    } else if (effPay === PAYOFF_METHODS.AVALANCHE) {
-      recommended = "Accelerated Avalanche";
-    } else {
-      recommended = "Accelerated Snowball";
-    }
-
-    const sb = strategyComparisonProjections.standardSnowball;
-    const av = strategyComparisonProjections.standardAvalanche;
-    const bankProj = strategyComparisonProjections.banking;
-
-    const consumerMo = (p) =>
-      p.policyContributionExceedsAppliedStrategy ? null : p.consumerDebtFreeMonth;
-
-    const fasterStandardLabel = () => {
-      const msb = consumerMo(sb);
-      const mav = consumerMo(av);
-      if (msb == null && mav == null) return "Accelerated Snowball";
-      if (msb == null) return "Accelerated Avalanche";
-      if (mav == null) return "Accelerated Snowball";
-      return msb <= mav ? "Accelerated Snowball" : "Accelerated Avalanche";
+  /** Ranks strategy-comparison scenarios by modeled consumer debt-free month, then interest saved, then total debt-free month. */
+  const step2RecommendationRanking = useMemo(() => {
+    const scenarioLabels = {
+      standardSnowball: "Snowball (Standard)",
+      standardAvalanche: "Avalanche (Standard)",
+      banking: "Banking Strategy",
+      heloc: "HELOC"
     };
 
-    let backup = "";
-    if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
-      backup = fasterStandardLabel();
-    } else if (form.acceleration_method === ACCELERATION_METHODS.HELOC) {
-      backup = "Accelerated Avalanche";
-    } else if (standardMinimumPath) {
-      backup = "Accelerated Snowball";
-    } else if (isStd) {
-      const bankingRuns = !bankProj.policyContributionExceedsAppliedStrategy;
-      if (bankingRuns && aggregated.total > 0) {
-        backup = "Banking Strategy";
-      } else if (effPay === PAYOFF_METHODS.AVALANCHE) {
-        backup = "Accelerated Snowball";
-      } else {
-        backup = "Accelerated Avalanche";
+    const scp = strategyComparisonProjections;
+    const scenarios = [
+      { id: "standardSnowball", projection: scp.standardSnowball },
+      { id: "standardAvalanche", projection: scp.standardAvalanche },
+      { id: "banking", projection: scp.banking },
+      { id: "heloc", projection: scp.heloc }
+    ];
+
+    const isValid = (s) => {
+      if (aggregated.total <= 0) return false;
+      if (
+        s.id === "banking" &&
+        s.projection.policyContributionExceedsAppliedStrategy
+      ) {
+        return false;
       }
+      if (s.id === "heloc" && !hasHelocLimit) return false;
+      return true;
+    };
+
+    const sortKey = (p) => {
+      const c = p.consumerDebtFreeMonth;
+      const t = p.schedule?.debtFreeMonth;
+      const interest = Number(p.interestSavedVsMinimum) || 0;
+      const consumerM =
+        c != null && Number.isFinite(c) ? c : Number.POSITIVE_INFINITY;
+      const totalM =
+        t != null && Number.isFinite(t) ? t : Number.POSITIVE_INFINITY;
+      return [consumerM, -interest, totalM];
+    };
+
+    const compare = (a, b) => {
+      const ka = sortKey(a.projection);
+      const kb = sortKey(b.projection);
+      for (let i = 0; i < 3; i++) {
+        if (ka[i] !== kb[i]) return ka[i] - kb[i];
+      }
+      return 0;
+    };
+
+    const valid = scenarios.filter(isValid);
+    const ranked = [...valid].sort(compare);
+
+    const standardOnly = scenarios.filter(
+      (s) =>
+        isValid(s) &&
+        (s.id === "standardSnowball" || s.id === "standardAvalanche")
+    );
+    const rankedStd = [...standardOnly].sort(compare);
+
+    const bankingScenario = scenarios.find((s) => s.id === "banking");
+    const bankingValid = !!(bankingScenario && isValid(bankingScenario));
+
+    let bestOverall;
+    let nextBestOverall;
+    if (bankingValid) {
+      bestOverall = bankingScenario;
+      nextBestOverall = ranked.find((s) => s.id !== "banking") ?? null;
     } else {
-      backup = fasterStandardLabel();
+      bestOverall = ranked[0] ?? null;
+      nextBestOverall = ranked[1] ?? null;
     }
 
-    const bullets = [];
+    return {
+      scenarioLabels,
+      bestOverall,
+      nextBestOverall,
+      bestStandardAccelerated: rankedStd[0] ?? null,
+      labelFor: (id) => scenarioLabels[id] ?? id
+    };
+  }, [strategyComparisonProjections, aggregated.total, hasHelocLimit]);
 
-    if (!policyContributionExceedsAppliedStrategy) {
-      const tl = formatDebtFreeMonths(timelineDebtFreeMonth);
-      if (tl) {
-        bullets.push(
-          `Faster debt payoff trajectory on this path: ${tl} to the primary modeled milestone.`
-        );
-      }
+  const selectedComparisonScenarioKey = useMemo(() => {
+    if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
+      return "banking";
     }
-
-    if (!policyContributionExceedsAppliedStrategy && interestSavedVsMinimum > 0) {
-      bullets.push(
-        `Interest savings vs minimum-only through your modeled consumer payoff: ${toCurrency(interestSavedVsMinimum)}.`
-      );
+    if (form.acceleration_method === ACCELERATION_METHODS.HELOC) {
+      return "heloc";
     }
-
-    if (
-      form.acceleration_method === ACCELERATION_METHODS.BANKING &&
-      bankingActive &&
-      !policyContributionExceedsAppliedStrategy
-    ) {
-      bullets.push(
-        `Capital-building angle: modeled Banking Strategy net (cash value − loan) ends around ${toCurrency(endingNetPolicyEquity)}.`
-      );
+    if (form.payoff_method === PAYOFF_METHODS.AVALANCHE) {
+      return "standardAvalanche";
     }
-
-    if (isStd && !standardMinimumPath) {
-      bullets.push(
-        "Works without needing a policy first—an excellent foundation if you explore Banking Strategy later."
-      );
+    if (form.payoff_method === PAYOFF_METHODS.SNOWBALL) {
+      return "standardSnowball";
     }
-
-    if (
-      form.acceleration_method === ACCELERATION_METHODS.HELOC &&
-      !policyContributionExceedsAppliedStrategy
-    ) {
-      bullets.push(
-        `HELOC path uses your line as a hub; modeled HELOC interest totals ${toCurrency(totalHelocInterestPaid ?? 0)}—weigh that against payoff speed in the cards below.`
-      );
+    if (form.payoff_method === PAYOFF_METHODS.FASTEST_ROUTE) {
+      return projection.effectivePayoffMethod === PAYOFF_METHODS.AVALANCHE
+        ? "standardAvalanche"
+        : "standardSnowball";
     }
-
-    if (standardMinimumPath) {
-      bullets.push(
-        "Minimums keep payments predictable; even a modest strategy budget can materially shorten the curve."
-      );
-    }
-
-    let trimmed = bullets.slice(0, 4);
-    if (trimmed.length === 0) {
-      trimmed = [
-        "Every comparison below reuses your Step 1 inputs so you can judge paths side by side without retyping.",
-        "Tweak payoff order or acceleration anytime—this summary updates with your selections."
-      ];
-    } else if (trimmed.length === 1) {
-      trimmed.push(
-        "Use the strategy comparison cards to sanity-check this path against alternatives with the same assumptions."
-      );
-    }
-    trimmed = trimmed.slice(0, 4);
-
-    return { recommended, backup, bullets: trimmed };
+    return "standardSnowball";
   }, [
-    form.payoff_method,
     form.acceleration_method,
-    appliedTowardStrategy,
-    projection.effectivePayoffMethod,
-    strategyComparisonProjections,
-    aggregated.total,
-    policyContributionExceedsAppliedStrategy,
-    interestSavedVsMinimum,
-    timelineDebtFreeMonth,
-    bankingActive,
-    endingNetPolicyEquity,
-    totalHelocInterestPaid
+    form.payoff_method,
+    projection.effectivePayoffMethod
   ]);
+
+  const currentSelectionStatusMessage = useMemo(() => {
+    const { bestOverall, nextBestOverall } = step2RecommendationRanking;
+    const sel = selectedComparisonScenarioKey;
+
+    if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
+      return "You are currently viewing the recommended long-term strategy.";
+    }
+    if (bestOverall && sel === bestOverall.id) {
+      return "You are currently viewing the recommended path for this comparison.";
+    }
+    if (nextBestOverall && sel === nextBestOverall.id) {
+      return "You are currently viewing the strongest alternative option.";
+    }
+    return "You are viewing another payoff path (for example Standard acceleration or HELOC). It can still work well—it is simply not ranked #1 or #2 for your numbers in this model.";
+  }, [
+    form.acceleration_method,
+    step2RecommendationRanking,
+    selectedComparisonScenarioKey
+  ]);
+
+  const formatRankingScenarioMetrics = (p) => {
+    if (!p) return "—";
+    const capY = Math.round(p.projectionMaxMonths / 12);
+    const consumerLine =
+      formatDebtFreeMonths(p.consumerDebtFreeMonth) ??
+      (p.hitProjectionCap
+        ? `Not cleared within ${capY}-yr cap (consumer)`
+        : "—");
+    return `${consumerLine} · Interest saved ${toCurrency(p.interestSavedVsMinimum ?? 0)}`;
+  };
 
   const updateField = useCallback((name, value) => {
     setForm((prev) => {
@@ -2098,183 +2131,219 @@ const hasMeaningfulInputs = useMemo(() => {
             <p style={{ fontSize: "0.85rem", color: "#6B7280", marginBottom: 12 }}>
               Based on your current income, expenses, and debt structure
             </p>
-            <p className="help tight" style={{ marginBottom: 18 }}>
-              Here&apos;s your fastest path to eliminate debt—a clear read on where your
-              plan is pointed before you compare options below.
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               <div>
-                <div
+                <h4
                   style={{
-                    fontSize: "0.72rem",
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
                     fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "var(--muted)",
-                    marginBottom: 6
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
                   }}
                 >
-                  Recommended Strategy
-                </div>
+                  Best Path Forward
+                </h4>
+                <p className="help tight" style={{ marginBottom: 8 }}>
+                  {step2RecommendationRanking.bestOverall?.id === "banking" ? (
+                    <>
+                      Banking Strategy is positioned here as your best path forward when
+                      the projection is valid: it targets debt payoff while helping you
+                      build capital so you are less likely to stay trapped in the debt
+                      cycle.
+                    </>
+                  ) : (
+                    <>
+                      Based on ranked results among valid scenarios, this path shows the
+                      strongest mix of modeled consumer debt-free timing and interest
+                      saved vs. minimums—see metrics below.
+                    </>
+                  )}
+                </p>
+                {step2RecommendationRanking.bestOverall ? (
+                  <>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "1.05rem",
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        letterSpacing: "-0.02em",
+                        lineHeight: 1.3
+                      }}
+                    >
+                      {step2RecommendationRanking.labelFor(
+                        step2RecommendationRanking.bestOverall.id
+                      )}
+                    </p>
+                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
+                      {formatRankingScenarioMetrics(
+                        step2RecommendationRanking.bestOverall.projection
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
+                    —
+                  </p>
+                )}
+              </div>
+              <div
+                style={{
+                  paddingTop: 12,
+                  borderTop: "1px solid var(--line)"
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
+                  }}
+                >
+                  Next Best Option
+                </h4>
+                <p className="help tight" style={{ marginBottom: 8 }}>
+                  Second-ranked among valid scenarios on this page (after Best Path
+                  Forward). Use it when the top pick is unavailable, not a fit, or you
+                  want a clear runner-up from the same inputs and comparison run.
+                </p>
+                {step2RecommendationRanking.nextBestOverall ? (
+                  <>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "1.05rem",
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        letterSpacing: "-0.02em",
+                        lineHeight: 1.3
+                      }}
+                    >
+                      {step2RecommendationRanking.labelFor(
+                        step2RecommendationRanking.nextBestOverall.id
+                      )}
+                    </p>
+                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
+                      {formatRankingScenarioMetrics(
+                        step2RecommendationRanking.nextBestOverall.projection
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
+                    —
+                  </p>
+                )}
+              </div>
+              <div
+                style={{
+                  paddingTop: 12,
+                  borderTop: "1px solid var(--line)"
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
+                  }}
+                >
+                  Current Selected Scenario
+                </h4>
+                <p className="help tight" style={{ marginBottom: 8 }}>
+                  This section reflects the strategy currently selected in your
+                  comparison view.
+                </p>
                 <p
                   style={{
-                    margin: 0,
-                    fontSize: "1.1rem",
+                    margin: "0 0 6px",
+                    fontSize: "1.05rem",
                     fontWeight: 700,
                     color: "var(--text)",
                     letterSpacing: "-0.02em",
                     lineHeight: 1.3
                   }}
                 >
-                  {bestPathForward.recommended}
+                  {step2RecommendationRanking.labelFor(
+                    selectedComparisonScenarioKey
+                  )}
                 </p>
-                <p
-                  className="help tight"
-                  style={{
-                    marginTop: 12,
-                    marginBottom: 0,
-                    fontSize: "0.9rem",
-                    lineHeight: 1.5,
-                    color: "var(--text)"
-                  }}
-                >
-                  This gives you the best balance of speed, savings, and control based
-                  on your numbers.
+                <p className="help tight" style={{ margin: 0, fontSize: "0.86rem" }}>
+                  {currentSelectionStatusMessage}
                 </p>
               </div>
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                  gap: "16px 20px",
-                  paddingTop: 4,
+                  paddingTop: 12,
                   borderTop: "1px solid var(--line)"
                 }}
               >
-                <div>
-                  <div
-                    style={{
-                      fontSize: "0.72rem",
-                      fontWeight: 700,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                      color: "var(--muted)",
-                      marginBottom: 6
-                    }}
-                  >
-                    Timeline
-                  </div>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "1.05rem",
-                      fontWeight: 700,
-                      color: "var(--text)",
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1.3
-                    }}
-                  >
-                    {formatDebtFreeMonths(timelineDebtFreeMonth) ??
-                      debtTimelineCapOrDash}
-                  </p>
-                </div>
-                <div>
-                  <div
-                    style={{
-                      fontSize: "0.72rem",
-                      fontWeight: 700,
-                      letterSpacing: "0.1em",
-                      textTransform: "uppercase",
-                      color: "var(--muted)",
-                      marginBottom: 6
-                    }}
-                  >
-                    Interest saved
-                  </div>
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "1.05rem",
-                      fontWeight: 700,
-                      color: "var(--accent-2)",
-                      letterSpacing: "-0.02em",
-                      lineHeight: 1.3
-                    }}
-                  >
-                    {toCurrency(interestSavedVsMinimum)}
-                  </p>
-                  <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.78rem" }}>
-                    vs. minimum-only through your modeled consumer payoff
-                  </p>
-                </div>
-              </div>
-              <div>
-                <div
+                <h4
                   style={{
-                    fontSize: "0.72rem",
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
                     fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "var(--muted)",
-                    marginBottom: 8
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
                   }}
                 >
-                  Why this path wins
-                </div>
-                <ul
-                  style={{
-                    margin: 0,
-                    paddingLeft: 20,
-                    color: "var(--text)",
-                    fontSize: "0.9rem",
-                    lineHeight: 1.55
-                  }}
-                >
-                  <li style={{ marginBottom: 8 }}>
-                    {interestSavedVsMinimum > 0 ? (
-                      <>
-                        This strategy saves you the most interest in this model—about{" "}
-                        <strong>{toCurrency(interestSavedVsMinimum)}</strong> vs.
-                        sticking to minimums through the consumer payoff window.
-                      </>
-                    ) : (
-                      <>
-                        This strategy lines up payoff order and acceleration with the
-                        path you selected—tighten inputs anytime to sharpen the curve.
-                      </>
-                    )}
-                  </li>
-                  <li style={{ marginBottom: 8 }}>
-                    This keeps your monthly cash flow working efficiently: income covers
-                    living expenses and contractual minimums first, then your strategy
-                    budget drives the payoff engine you chose.
-                  </li>
-                  <li style={{ marginBottom: 0 }}>
-                    Here&apos;s your fastest path to eliminate debt at a glance; the
-                    strategy comparison below lets you stress-test alternatives with the
-                    same assumptions.
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    fontWeight: 700,
-                    letterSpacing: "0.1em",
-                    textTransform: "uppercase",
-                    color: "var(--muted)",
-                    marginBottom: 6
-                  }}
-                >
-                  Backup Path
-                </div>
-                <p style={{ margin: 0, fontSize: "0.92rem", lineHeight: 1.5, color: "var(--text)" }}>
-                  If priorities change, a strong alternate to model next is{" "}
-                  <strong>{bestPathForward.backup}</strong>—same numbers, different
-                  mechanics. Not every strategy fits every situation. The goal is to
-                  identify the best next step for where you are right now.
-                </p>
+                  Best Standard Accelerated Route
+                </h4>
+                {step2RecommendationRanking.bestStandardAccelerated ? (
+                  <>
+                    <p className="help tight" style={{ marginBottom: 8 }}>
+                      {step2RecommendationRanking.bestStandardAccelerated.id ===
+                      "standardAvalanche" ? (
+                        <>
+                          On these debts, Avalanche (Standard) is modeled to save more
+                          interest by attacking higher-rate balances first. Snowball
+                          (Standard) often clears the smallest balance first, so your
+                          first &quot;win&quot; can arrive sooner and feel more visible.
+                        </>
+                      ) : (
+                        <>
+                          On these debts, Snowball (Standard) is modeled to clear your
+                          smallest balance first—good for early momentum. Avalanche
+                          (Standard) prioritizes rate, which often trims total interest
+                          if you stay disciplined through the sequence.
+                        </>
+                      )}
+                    </p>
+                    <p className="help tight" style={{ marginBottom: 8 }}>
+                      Both are strong Standard options—the better fit is whether you
+                      want the lowest modeled interest cost (Avalanche lean) or faster
+                      early payoffs on small balances (Snowball lean).
+                    </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "1.05rem",
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        letterSpacing: "-0.02em",
+                        lineHeight: 1.3
+                      }}
+                    >
+                      {step2RecommendationRanking.labelFor(
+                        step2RecommendationRanking.bestStandardAccelerated.id
+                      )}
+                    </p>
+                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
+                      {formatRankingScenarioMetrics(
+                        step2RecommendationRanking.bestStandardAccelerated.projection
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
+                    —
+                  </p>
+                )}
               </div>
             </div>
             {form.acceleration_method !== ACCELERATION_METHODS.BANKING ? (
@@ -2605,68 +2674,252 @@ const hasMeaningfulInputs = useMemo(() => {
             {debtPayoffOrder.length === 0 ? (
               <p className="subtle">No debts entered.</p>
             ) : (
-              <div className="table-wrap payoff-order-table-wrap">
-                <table className="payoff-order-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Debt</th>
-                      <th>Balance</th>
-                      <th>APR</th>
-                      <th>Min payment</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {debtPayoffOrder.map((d) => (
-                      <tr
-                        key={d.id}
-                        className={d.cleared ? "payoff-order-row-paid" : ""}
-                      >
-                        <td>{d.order}</td>
-                        <td>{d.name?.trim() ? d.name : `Debt ${d.order}`}</td>
-                        <td>{toCurrency(d.balance)}</td>
-                        <td>{d.rate.toFixed(2)}%</td>
-                        <td>
-                          {toCurrency(d.minPayment)}
-                          {/* Display-only enhancement: show strategy budget info under Monthly Strategy Budget input */}
-                          {d.isStrategyBudgetRow && (
-                            <>
-                              <div
-                                style={{
-                                  fontSize: "13px",
-                                  color: "#6B7280",
-                                  marginTop: 7,
-                                }}
-                              >
-                                Available for strategy: {toCurrency(availableForStrategy)}<br />
-                                <span style={{ fontSize: "12px" }}>
-                                  (income − expenses − minimum payments)
-                                </span>
-                              </div>
-                              {appliedExceedsAvailableForStrategy && (
-                                <div
-                                  style={{
-                                    color: "#b91c1c",
-                                    fontSize: "13px",
-                                    marginTop: 5,
-                                    lineHeight: 1.4,
-                                  }}
-                                >
-                                  You’re trying to use {toCurrency(amountTowardDebtStrategyRaw || 0)} but only {toCurrency(availableForStrategy)} is available after required minimum payments.
-                                </div>
-                              )}
-                            </>
-                          )}
-                        </td>
-                        <td>{d.cleared ? "Paid" : "Open"}</td>
+              <>
+                <div
+                  className="payoff-timeline-controls"
+                  style={{
+                    marginBottom: 14,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1px solid var(--line)",
+                    background: "rgba(15, 23, 42, 0.03)"
+                  }}
+                >
+                  <p className="help tight subtle" style={{ margin: "0 0 10px" }}>
+                    Current Month moves the payoff timeline forward using modeled payoff
+                    months from your selected strategy (month 0 = before any debt is paid off
+                    in the projection).
+                  </p>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: 10
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        fontSize: "0.9rem",
+                        color: "var(--text)"
+                      }}
+                    >
+                      Current Month
+                    </span>
+                    <span className="help tight subtle" style={{ margin: 0 }}>
+                      {payoffTimelineCurrentMonth} / {maxPayoffMonthFromProjection}
+                    </span>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                      disabled={payoffTimelineCurrentMonth <= 0}
+                      onClick={() =>
+                        setPayoffTimelineCurrentMonth((m) => Math.max(0, m - 1))
+                      }
+                      aria-label="Previous month"
+                    >
+                      −
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary-button"
+                      style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                      disabled={
+                        payoffTimelineCurrentMonth >= maxPayoffMonthFromProjection
+                      }
+                      onClick={() =>
+                        setPayoffTimelineCurrentMonth((m) =>
+                          Math.min(maxPayoffMonthFromProjection, m + 1)
+                        )
+                      }
+                      aria-label="Next month"
+                    >
+                      +
+                    </button>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={Math.max(0, maxPayoffMonthFromProjection)}
+                    step={1}
+                    value={payoffTimelineCurrentMonth}
+                    onChange={(e) =>
+                      setPayoffTimelineCurrentMonth(Number(e.target.value))
+                    }
+                    aria-valuemin={0}
+                    aria-valuemax={maxPayoffMonthFromProjection}
+                    aria-valuenow={payoffTimelineCurrentMonth}
+                    aria-label="Simulated month for debt payoff order"
+                    style={{ width: "100%", maxWidth: 360, marginTop: 10 }}
+                  />
+                </div>
+                <div className="table-wrap payoff-order-table-wrap">
+                  <table className="payoff-order-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Debt</th>
+                        <th>Balance</th>
+                        <th>APR</th>
+                        <th>Min payment</th>
+                        <th>Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {debtPayoffOrder.map((d) => {
+                        const payoffMonthForRow = consumerDebtPayoffMonthById?.[d.id];
+                        const timelinePaidOff =
+                          payoffMonthForRow != null &&
+                          payoffMonthForRow <= payoffTimelineCurrentMonth;
+                        return (
+                          <tr
+                            key={d.id}
+                            className={timelinePaidOff ? "payoff-order-row-paid" : ""}
+                          >
+                            <td>{d.order}</td>
+                            <td>{d.name?.trim() ? d.name : `Debt ${d.order}`}</td>
+                            <td>{toCurrency(d.balance)}</td>
+                            <td>{d.rate.toFixed(2)}%</td>
+                            <td>
+                              {toCurrency(d.minPayment)}
+                              {/* Display-only enhancement: show strategy budget info under Monthly Strategy Budget input */}
+                              {d.isStrategyBudgetRow && (
+                                <>
+                                  <div
+                                    style={{
+                                      fontSize: "13px",
+                                      color: "#6B7280",
+                                      marginTop: 7,
+                                    }}
+                                  >
+                                    Available for strategy:{" "}
+                                    {toCurrency(availableForStrategy)}
+                                    <br />
+                                    <span style={{ fontSize: "12px" }}>
+                                      (income − expenses − minimum payments)
+                                    </span>
+                                  </div>
+                                  {appliedExceedsAvailableForStrategy && (
+                                    <div
+                                      style={{
+                                        color: "#b91c1c",
+                                        fontSize: "13px",
+                                        marginTop: 5,
+                                        lineHeight: 1.4,
+                                      }}
+                                    >
+                                      You’re trying to use{" "}
+                                      {toCurrency(amountTowardDebtStrategyRaw || 0)} but
+                                      only {toCurrency(availableForStrategy)} is available
+                                      after required minimum payments.
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                            </td>
+                            <td>
+                              {timelinePaidOff
+                                ? "Paid Off"
+                                : payoffTimelineNextDebtId === d.id
+                                  ? "Next"
+                                  : "Open"}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
+
+          {debtPayoffOrder.some(
+            (d) =>
+              consumerDebtPayoffMonthById?.[d.id] != null &&
+              consumerDebtPayoffMonthById[d.id] <= payoffTimelineCurrentMonth
+          ) ? (
+            <div
+              className="paid-off-debts-panel"
+              style={{
+                marginTop: 18,
+                padding: "16px 18px 18px",
+                borderRadius: 14,
+                background: "rgba(15, 23, 42, 0.045)",
+                border: "1px solid #e8ecf4",
+                boxShadow: "0 1px 2px rgba(15, 23, 42, 0.04)"
+              }}
+            >
+              <h3
+                className="subsection-title payoff-order-title"
+                style={{ marginTop: 0, marginBottom: 8 }}
+              >
+                Paid Off Debts
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {debtPayoffOrder
+                  .filter(
+                    (d) =>
+                      consumerDebtPayoffMonthById?.[d.id] != null &&
+                      consumerDebtPayoffMonthById[d.id] <= payoffTimelineCurrentMonth
+                  )
+                  .map((d) => (
+                    <div
+                      key={d.id}
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: 10,
+                        background: "rgba(255, 255, 255, 0.72)",
+                        border: "1px solid var(--line)",
+                        opacity: 0.95
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: "0.95rem",
+                          marginBottom: 4,
+                          color: "var(--text)"
+                        }}
+                      >
+                        {d.name?.trim() ? d.name : `Debt ${d.order}`}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.88rem",
+                          fontWeight: 600,
+                          color: "var(--muted)",
+                          marginBottom: 8
+                        }}
+                      >
+                        Paid Off ✔
+                      </div>
+                      <p
+                        className="help tight subtle"
+                        style={{ margin: "0 0 6px", fontSize: "0.8rem" }}
+                      >
+                        Modeled payoff: month {consumerDebtPayoffMonthById[d.id]}
+                      </p>
+                      <p
+                        className="help tight subtle"
+                        style={{ margin: "0 0 8px", fontSize: "0.82rem" }}
+                      >
+                        Freed minimum payment: {toCurrency(d.minPayment)}/month
+                      </p>
+                      <p className="help tight" style={{ margin: 0, fontSize: "0.84rem" }}>
+                        {bankingActive
+                          ? `${toCurrency(d.minPayment)}/month freed and redirected to policy loan repayment`
+                          : helocAcceleration
+                            ? `${toCurrency(d.minPayment)}/month freed and redirected to HELOC payoff`
+                            : `${toCurrency(d.minPayment)}/month freed and redirected to your next debt`}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ) : null}
 
           {bankingActive && !policyContributionExceedsAppliedStrategy ? (
             <div className="banking-transparency-panel">

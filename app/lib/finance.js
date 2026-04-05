@@ -384,7 +384,8 @@ export function selectedStrategyProjection({
       bankingStateLatest: null,
       cumulativePolicyLoanPrincipalPaid: 0,
       helocPayoffTriggerMonth1: null,
-      helocStateLatest: null
+      helocStateLatest: null,
+      consumerDebtPayoffMonthById: {}
     };
   }
 
@@ -449,6 +450,8 @@ export function selectedStrategyProjection({
    * debt is cleared.
    */
   const clearedConsumerDebtIds = new Set();
+  /** First simulation month (1-based) each consumer debt hits $0; UI only, does not affect payoff math. */
+  const consumerDebtPayoffMonthById = Object.create(null);
   let bankingRiskScoreMonths = 0;
   let monthsWithConsumerDebtWhileBanking = 0;
   /** Full policy-loan principal paid in simulation (operating pool after mins/extra, includes recycled freed minimums). */
@@ -768,6 +771,7 @@ export function selectedStrategyProjection({
     for (const d of accounts) {
       if (d.balance <= EPS && !clearedConsumerDebtIds.has(d.id)) {
         clearedConsumerDebtIds.add(d.id);
+        consumerDebtPayoffMonthById[d.id] = month;
       }
     }
 
@@ -922,7 +926,8 @@ export function selectedStrategyProjection({
     bankingStateLatest,
     cumulativePolicyLoanPrincipalPaid,
     helocPayoffTriggerMonth1,
-    helocStateLatest
+    helocStateLatest,
+    consumerDebtPayoffMonthById
   };
 }
 
@@ -1031,7 +1036,8 @@ export function computeLayeredProjection(params) {
       bankingStateLatest: null,
       cumulativePolicyLoanPrincipalPaid: 0,
       helocPayoffTriggerMonth1: null,
-      helocStateLatest: null
+      helocStateLatest: null,
+      consumerDebtPayoffMonthById: {}
     };
     effectivePayoffMethod = null;
   } else if (payoffMethod === PAYOFF_METHODS.FASTEST_ROUTE) {
@@ -1124,7 +1130,9 @@ export function computeLayeredProjection(params) {
       selected.cumulativePolicyLoanPrincipalPaid ?? 0,
     helocPayoffTriggerMonth1: selected.helocPayoffTriggerMonth1 ?? null,
     helocStateLatest: selected.helocStateLatest ?? null,
-    effectivePayoffMethod
+    effectivePayoffMethod,
+    consumerDebtPayoffMonthById:
+      selected.consumerDebtPayoffMonthById ?? Object.create(null)
   };
 }
 

@@ -2095,9 +2095,12 @@ const hasMeaningfulInputs = useMemo(() => {
             >
               Your Best Path Forward
             </h3>
+            <p style={{ fontSize: "0.85rem", color: "#6B7280", marginBottom: 12 }}>
+              Based on your current income, expenses, and debt structure
+            </p>
             <p className="help tight" style={{ marginBottom: 18 }}>
-              Based on your numbers, here is the strongest strategy path to help you
-              eliminate debt faster and improve long-term financial control.
+              Here&apos;s your fastest path to eliminate debt—a clear read on where your
+              plan is pointed before you compare options below.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
@@ -2125,6 +2128,85 @@ const hasMeaningfulInputs = useMemo(() => {
                 >
                   {bestPathForward.recommended}
                 </p>
+                <p
+                  className="help tight"
+                  style={{
+                    marginTop: 12,
+                    marginBottom: 0,
+                    fontSize: "0.9rem",
+                    lineHeight: 1.5,
+                    color: "var(--text)"
+                  }}
+                >
+                  This gives you the best balance of speed, savings, and control based
+                  on your numbers.
+                </p>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                  gap: "16px 20px",
+                  paddingTop: 4,
+                  borderTop: "1px solid var(--line)"
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--muted)",
+                      marginBottom: 6
+                    }}
+                  >
+                    Timeline
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "1.05rem",
+                      fontWeight: 700,
+                      color: "var(--text)",
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1.3
+                    }}
+                  >
+                    {formatDebtFreeMonths(timelineDebtFreeMonth) ??
+                      debtTimelineCapOrDash}
+                  </p>
+                </div>
+                <div>
+                  <div
+                    style={{
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.1em",
+                      textTransform: "uppercase",
+                      color: "var(--muted)",
+                      marginBottom: 6
+                    }}
+                  >
+                    Interest saved
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "1.05rem",
+                      fontWeight: 700,
+                      color: "var(--accent-2)",
+                      letterSpacing: "-0.02em",
+                      lineHeight: 1.3
+                    }}
+                  >
+                    {toCurrency(interestSavedVsMinimum)}
+                  </p>
+                  <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.78rem" }}>
+                    vs. minimum-only through your modeled consumer payoff
+                  </p>
+                </div>
               </div>
               <div>
                 <div
@@ -2137,7 +2219,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     marginBottom: 8
                   }}
                 >
-                  Why This Fits
+                  Why this path wins
                 </div>
                 <ul
                   style={{
@@ -2148,11 +2230,30 @@ const hasMeaningfulInputs = useMemo(() => {
                     lineHeight: 1.55
                   }}
                 >
-                  {bestPathForward.bullets.map((line, i) => (
-                    <li key={i} style={{ marginBottom: 6 }}>
-                      {line}
-                    </li>
-                  ))}
+                  <li style={{ marginBottom: 8 }}>
+                    {interestSavedVsMinimum > 0 ? (
+                      <>
+                        This strategy saves you the most interest in this model—about{" "}
+                        <strong>{toCurrency(interestSavedVsMinimum)}</strong> vs.
+                        sticking to minimums through the consumer payoff window.
+                      </>
+                    ) : (
+                      <>
+                        This strategy lines up payoff order and acceleration with the
+                        path you selected—tighten inputs anytime to sharpen the curve.
+                      </>
+                    )}
+                  </li>
+                  <li style={{ marginBottom: 8 }}>
+                    This keeps your monthly cash flow working efficiently: income covers
+                    living expenses and contractual minimums first, then your strategy
+                    budget drives the payoff engine you chose.
+                  </li>
+                  <li style={{ marginBottom: 0 }}>
+                    Here&apos;s your fastest path to eliminate debt at a glance; the
+                    strategy comparison below lets you stress-test alternatives with the
+                    same assumptions.
+                  </li>
                 </ul>
               </div>
               <div>

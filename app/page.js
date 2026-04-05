@@ -1031,6 +1031,56 @@ const hasMeaningfulInputs = useMemo(() => {
     };
   }, [strategyComparisonProjections, aggregated.total, hasHelocLimit]);
 
+  const strategyComparisonRankBadge = useMemo(() => {
+    const { bestOverall, nextBestOverall } = step2RecommendationRanking;
+    const forId = (id) => {
+      if (bestOverall?.id === id) return { text: "Best", tone: "best" };
+      if (nextBestOverall?.id === id) return { text: "Next Best", tone: "next" };
+      return null;
+    };
+    return {
+      standardSnowball: forId("standardSnowball"),
+      standardAvalanche: forId("standardAvalanche"),
+      heloc: forId("heloc"),
+      banking: forId("banking")
+    };
+  }, [step2RecommendationRanking]);
+
+  const strategyComparisonRankBadgeSx = {
+    base: {
+      display: "inline-block",
+      marginLeft: 6,
+      padding: "2px 7px",
+      borderRadius: 6,
+      fontSize: "0.62rem",
+      fontWeight: 700,
+      letterSpacing: "0.03em",
+      textTransform: "uppercase",
+      whiteSpace: "nowrap",
+      verticalAlign: "0.12em",
+      lineHeight: 1.2
+    },
+    best: { background: "rgba(29, 107, 196, 0.12)", color: "var(--accent)" },
+    next: { background: "rgba(100, 116, 139, 0.16)", color: "#475569" }
+  };
+
+  const renderStrategyComparisonRankBadge = (scenarioKey) => {
+    const b = strategyComparisonRankBadge[scenarioKey];
+    if (!b) return null;
+    return (
+      <span
+        style={{
+          ...strategyComparisonRankBadgeSx.base,
+          ...(b.tone === "best"
+            ? strategyComparisonRankBadgeSx.best
+            : strategyComparisonRankBadgeSx.next)
+        }}
+      >
+        {b.text}
+      </span>
+    );
+  };
+
   const selectedComparisonScenarioKey = useMemo(() => {
     if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
       return "banking";
@@ -2144,44 +2194,154 @@ const hasMeaningfulInputs = useMemo(() => {
                 >
                   Best Path Forward
                 </h4>
-                <p className="help tight" style={{ marginBottom: 8 }}>
-                  {step2RecommendationRanking.bestOverall?.id === "banking" ? (
-                    <>
-                      Banking Strategy is positioned here as your best path forward when
-                      the projection is valid: it targets debt payoff while helping you
-                      build capital so you are less likely to stay trapped in the debt
-                      cycle.
-                    </>
-                  ) : (
-                    <>
-                      Based on ranked results among valid scenarios, this path shows the
-                      strongest mix of modeled consumer debt-free timing and interest
-                      saved vs. minimums—see metrics below.
-                    </>
-                  )}
-                </p>
                 {step2RecommendationRanking.bestOverall ? (
-                  <>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "1.05rem",
-                        fontWeight: 700,
-                        color: "var(--text)",
-                        letterSpacing: "-0.02em",
-                        lineHeight: 1.3
-                      }}
-                    >
-                      {step2RecommendationRanking.labelFor(
-                        step2RecommendationRanking.bestOverall.id
-                      )}
-                    </p>
-                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
-                      {formatRankingScenarioMetrics(
-                        step2RecommendationRanking.bestOverall.projection
-                      )}
-                    </p>
-                  </>
+                  (() => {
+                    const best = step2RecommendationRanking.bestOverall;
+                    const p = best.projection;
+                    const capY = Math.round(p.projectionMaxMonths / 12);
+                    const consumerM = p.consumerDebtFreeMonth;
+                    const totalM = p.schedule?.debtFreeMonth;
+                    const consumerLine =
+                      consumerM != null && Number.isFinite(consumerM)
+                        ? `${consumerM} months`
+                        : p.hitProjectionCap
+                          ? `Not within ${capY}-year projection cap`
+                          : "—";
+                    const totalLine =
+                      totalM != null && Number.isFinite(totalM)
+                        ? `${totalM} months`
+                        : p.hitProjectionCap
+                          ? `Not within ${capY}-year projection cap`
+                          : "—";
+                    const interestSaved = toCurrency(p.interestSavedVsMinimum ?? 0);
+                    const summaryById =
+                      best.id === "banking"
+                        ? "This is the fastest and most efficient path based on your numbers—and it pairs paying off creditors with building long-term capital you can borrow against."
+                        : best.id === "heloc"
+                          ? "This is the fastest and most efficient path based on your numbers, using your HELOC as modeled in this comparison."
+                          : "This is the fastest and most efficient path based on your numbers among the Standard acceleration options ranked here.";
+                    return (
+                      <>
+                        <p
+                          style={{
+                            margin: "0 0 10px",
+                            fontSize: "1.05rem",
+                            fontWeight: 700,
+                            color: "var(--text)",
+                            letterSpacing: "-0.02em",
+                            lineHeight: 1.35
+                          }}
+                        >
+                          <span className="subtle" style={{ fontWeight: 600, fontSize: "0.88rem" }}>
+                            Best Path Forward:{" "}
+                          </span>
+                          {step2RecommendationRanking.labelFor(best.id)}
+                        </p>
+                        <dl
+                          style={{
+                            margin: "0 0 12px",
+                            padding: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 8
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "minmax(0, 1fr) auto",
+                              gap: "4px 16px",
+                              alignItems: "baseline",
+                              fontSize: "0.88rem"
+                            }}
+                          >
+                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                              Debt-free from creditors
+                            </dt>
+                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
+                              {consumerLine}
+                            </dd>
+                          </div>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "minmax(0, 1fr) auto",
+                              gap: "4px 16px",
+                              alignItems: "baseline",
+                              fontSize: "0.88rem"
+                            }}
+                          >
+                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                              Fully repaid (full plan)
+                            </dt>
+                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
+                              {totalLine}
+                            </dd>
+                          </div>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "minmax(0, 1fr) auto",
+                              gap: "4px 16px",
+                              alignItems: "baseline",
+                              fontSize: "0.88rem"
+                            }}
+                          >
+                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                              Interest saved vs. minimums
+                            </dt>
+                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--accent)" }}>
+                              {interestSaved}
+                            </dd>
+                          </div>
+                          {best.id === "banking" &&
+                          !p.policyContributionExceedsAppliedStrategy ? (
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "minmax(0, 1fr) auto",
+                                gap: "4px 16px",
+                                alignItems: "baseline",
+                                fontSize: "0.88rem"
+                              }}
+                            >
+                              <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                                Modeled ending net (cash value − loan)
+                              </dt>
+                              <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
+                                {toCurrency(p.endingNetPolicyEquity ?? 0)}
+                              </dd>
+                            </div>
+                          ) : null}
+                        </dl>
+                        <p
+                          className="help tight"
+                          style={{
+                            margin: "0 0 10px",
+                            fontSize: "0.9rem",
+                            lineHeight: 1.45,
+                            color: "var(--text)"
+                          }}
+                        >
+                          {summaryById}
+                        </p>
+                        {step2RecommendationRanking.nextBestOverall ? (
+                          <p
+                            className="help tight subtle"
+                            style={{ margin: 0, fontSize: "0.86rem", lineHeight: 1.45 }}
+                          >
+                            If this option is not available to you, the next best path is{" "}
+                            <strong>
+                              {step2RecommendationRanking.labelFor(
+                                step2RecommendationRanking.nextBestOverall.id
+                              )}
+                            </strong>
+                            .
+                          </p>
+                        ) : null}
+                      </>
+                    );
+                  })()
                 ) : (
                   <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
                     —
@@ -2390,13 +2550,16 @@ const hasMeaningfulInputs = useMemo(() => {
                     : ""
                 }`}
               >
-                <h4 className="strategy-comparison-card-title">Snowball</h4>
+                <h4 className="strategy-comparison-card-title">
+                  Snowball
+                  {renderStrategyComparisonRankBadge("standardSnowball")}
+                </h4>
                 <p className="strategy-comparison-card-sub subtle">
                   Snowball · Standard acceleration
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
-                    <dt>Debt-Free From Creditors</dt>
+                    <dt>Debt-free from creditors</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardSnowball,
@@ -2405,7 +2568,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Fully Repaid</dt>
+                    <dt>Fully repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardSnowball,
@@ -2423,7 +2586,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Ending balance</dt>
+                    <dt>Ending net</dt>
                     <dd className="subtle">—</dd>
                   </div>
                 </dl>
@@ -2444,13 +2607,16 @@ const hasMeaningfulInputs = useMemo(() => {
                     : ""
                 }`}
               >
-                <h4 className="strategy-comparison-card-title">Avalanche</h4>
+                <h4 className="strategy-comparison-card-title">
+                  Avalanche
+                  {renderStrategyComparisonRankBadge("standardAvalanche")}
+                </h4>
                 <p className="strategy-comparison-card-sub subtle">
                   Avalanche · Standard acceleration
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
-                    <dt>Debt-Free From Creditors</dt>
+                    <dt>Debt-free from creditors</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardAvalanche,
@@ -2459,7 +2625,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Fully Repaid</dt>
+                    <dt>Fully repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.standardAvalanche,
@@ -2477,7 +2643,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Ending balance</dt>
+                    <dt>Ending net</dt>
                     <dd className="subtle">—</dd>
                   </div>
                 </dl>
@@ -2498,7 +2664,10 @@ const hasMeaningfulInputs = useMemo(() => {
                     : ""
                 }`}
               >
-                <h4 className="strategy-comparison-card-title">HELOC</h4>
+                <h4 className="strategy-comparison-card-title">
+                  HELOC
+                  {renderStrategyComparisonRankBadge("heloc")}
+                </h4>
                 <p className="strategy-comparison-card-sub subtle">
                   {payoffLabel(form.payoff_method)} · HELOC acceleration
                 </p>
@@ -2510,7 +2679,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   <>
                     <dl className="strategy-comparison-dl">
                       <div className="strategy-comparison-row">
-                        <dt>Debt-Free From Creditors</dt>
+                        <dt>Debt-free from creditors</dt>
                         <dd className="strategy-comparison-dd--timeline">
                           {renderStrategyComparisonTimelineInCards(
                             strategyComparisonProjections.heloc,
@@ -2519,7 +2688,7 @@ const hasMeaningfulInputs = useMemo(() => {
                         </dd>
                       </div>
                       <div className="strategy-comparison-row">
-                        <dt>Fully Repaid (Including HELOC)</dt>
+                        <dt>Fully repaid</dt>
                         <dd className="strategy-comparison-dd--timeline">
                           {renderStrategyComparisonTimelineInCards(
                             strategyComparisonProjections.heloc,
@@ -2546,7 +2715,7 @@ const hasMeaningfulInputs = useMemo(() => {
                         </dd>
                       </div>
                       <div className="strategy-comparison-row">
-                        <dt>Ending balance</dt>
+                        <dt>Ending net (HELOC line)</dt>
                         <dd>
                           {toCurrency(
                             strategyComparisonProjections.heloc.endingHelocBalance
@@ -2567,24 +2736,26 @@ const hasMeaningfulInputs = useMemo(() => {
                 )}
               </div>
               <div
-                className={`strategy-comparison-card strategy-comparison-card--recommended${
+                className={`strategy-comparison-card${
+                  step2RecommendationRanking.bestOverall?.id === "banking"
+                    ? " strategy-comparison-card--recommended"
+                    : ""
+                }${
                   form.acceleration_method === ACCELERATION_METHODS.BANKING
                     ? " strategy-comparison-card--current"
                     : ""
                 }`}
               >
                 <h4 className="strategy-comparison-card-title">
-                  Banking Strategy{" "}
-                  <span className="strategy-comparison-recommended-badge">
-                    ⭐ Recommended
-                  </span>
+                  Banking Strategy
+                  {renderStrategyComparisonRankBadge("banking")}
                 </h4>
                 <p className="strategy-comparison-card-sub subtle">
                   {payoffLabel(form.payoff_method)} · policy loan model
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div className="strategy-comparison-row">
-                    <dt>Debt-Free From Creditors</dt>
+                    <dt>Debt-free from creditors</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.banking,
@@ -2593,7 +2764,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Fully Repaid (Including Policy Loan)</dt>
+                    <dt>Fully repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
                         strategyComparisonProjections.banking,
@@ -2624,7 +2795,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     </dd>
                   </div>
                   <div className="strategy-comparison-row">
-                    <dt>Ending Policy Value / Equity</dt>
+                    <dt>Ending net (policy)</dt>
                     <dd>
                       {strategyComparisonProjections.banking
                         .policyContributionExceedsAppliedStrategy
@@ -2755,6 +2926,78 @@ const hasMeaningfulInputs = useMemo(() => {
                     style={{ width: "100%", maxWidth: 360, marginTop: 10 }}
                   />
                 </div>
+                <div
+                  className="payoff-what-next-panel"
+                  style={{
+                    marginBottom: 14,
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    border: "1px solid var(--line)",
+                    background: "rgba(15, 23, 42, 0.03)"
+                  }}
+                >
+                  <h4
+                    className="subsection-title payoff-order-title"
+                    style={{
+                      marginTop: 0,
+                      marginBottom: 10,
+                      fontSize: "0.95rem"
+                    }}
+                  >
+                    What happens next
+                  </h4>
+                  {(() => {
+                    const paidThroughTimeline = (debt) => {
+                      const pm = consumerDebtPayoffMonthById?.[debt.id];
+                      return pm != null && pm <= payoffTimelineCurrentMonth;
+                    };
+                    const nextDebt = payoffTimelineNextDebtId
+                      ? debtPayoffOrder.find((d) => d.id === payoffTimelineNextDebtId)
+                      : null;
+                    if (!nextDebt) {
+                      return (
+                        <p className="help tight" style={{ margin: 0 }}>
+                          All listed debts are paid off by the selected month.
+                        </p>
+                      );
+                    }
+                    const nextLabel = nextDebt.name?.trim()
+                      ? nextDebt.name
+                      : `Debt ${nextDebt.order}`;
+                    const nextPayMonth = consumerDebtPayoffMonthById?.[nextDebt.id];
+                    const nextIdx = debtPayoffOrder.findIndex(
+                      (d) => d.id === nextDebt.id
+                    );
+                    const followingDebt =
+                      nextIdx >= 0
+                        ? debtPayoffOrder
+                            .slice(nextIdx + 1)
+                            .find((d) => !paidThroughTimeline(d))
+                        : null;
+                    const followingLabel = followingDebt
+                      ? followingDebt.name?.trim()
+                        ? followingDebt.name
+                        : `Debt ${followingDebt.order}`
+                      : null;
+                    return (
+                      <>
+                        <p className="help tight" style={{ margin: "0 0 8px" }}>
+                          Your next focus is {nextLabel} ({toCurrency(nextDebt.balance)}).
+                        </p>
+                        {nextPayMonth != null ? (
+                          <p className="help tight" style={{ margin: "0 0 8px" }}>
+                            It is modeled to be paid off in Month {nextPayMonth}.
+                          </p>
+                        ) : null}
+                        {followingLabel ? (
+                          <p className="help tight subtle" style={{ margin: 0 }}>
+                            After that, {followingLabel} becomes your next target.
+                          </p>
+                        ) : null}
+                      </>
+                    );
+                  })()}
+                </div>
                 <div className="table-wrap payoff-order-table-wrap">
                   <table className="payoff-order-table">
                     <thead>
@@ -2773,6 +3016,19 @@ const hasMeaningfulInputs = useMemo(() => {
                         const timelinePaidOff =
                           payoffMonthForRow != null &&
                           payoffMonthForRow <= payoffTimelineCurrentMonth;
+                        const mainStatus = timelinePaidOff
+                          ? "Paid Off"
+                          : payoffTimelineNextDebtId === d.id
+                            ? "Next"
+                            : "Open";
+                        const statusHelper =
+                          payoffMonthForRow != null
+                            ? timelinePaidOff
+                              ? `Modeled payoff: Month ${payoffMonthForRow}`
+                              : payoffTimelineNextDebtId === d.id
+                                ? `Targeted payoff: Month ${payoffMonthForRow}`
+                                : `Projected payoff: Month ${payoffMonthForRow}`
+                            : null;
                         return (
                           <tr
                             key={d.id}
@@ -2820,11 +3076,20 @@ const hasMeaningfulInputs = useMemo(() => {
                               )}
                             </td>
                             <td>
-                              {timelinePaidOff
-                                ? "Paid Off"
-                                : payoffTimelineNextDebtId === d.id
-                                  ? "Next"
-                                  : "Open"}
+                              <div>{mainStatus}</div>
+                              {statusHelper ? (
+                                <div
+                                  className="help tight subtle"
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    marginTop: 4,
+                                    lineHeight: 1.35,
+                                    color: "var(--muted)"
+                                  }}
+                                >
+                                  {statusHelper}
+                                </div>
+                              ) : null}
                             </td>
                           </tr>
                         );

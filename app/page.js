@@ -857,6 +857,7 @@ const hasMeaningfulInputs = useMemo(() => {
     form.acceleration_method === ACCELERATION_METHODS.BANKING;
   const helocAcceleration =
     form.acceleration_method === ACCELERATION_METHODS.HELOC;
+  const hasHelocLimit = Number(form.heloc_credit_limit) > 0;
   const timelineDebtFreeMonth =
     bankingActive && consumerDebtFreeMonth != null
       ? consumerDebtFreeMonth
@@ -2331,60 +2332,69 @@ const hasMeaningfulInputs = useMemo(() => {
                 <p className="strategy-comparison-card-sub subtle">
                   {payoffLabel(form.payoff_method)} · HELOC acceleration
                 </p>
-                <dl className="strategy-comparison-dl">
-                  <div className="strategy-comparison-row">
-                    <dt>Debt-Free From Creditors</dt>
-                    <dd className="strategy-comparison-dd--timeline">
-                      {renderStrategyComparisonTimelineInCards(
-                        strategyComparisonProjections.heloc,
-                        "consumer"
-                      )}
-                    </dd>
+                {helocAcceleration && !hasHelocLimit ? (
+                  <div className="help tight" style={{ marginTop: 10 }}>
+                    Enter your HELOC credit limit to see accurate projections.
                   </div>
-                  <div className="strategy-comparison-row">
-                    <dt>Fully Repaid (Including HELOC)</dt>
-                    <dd className="strategy-comparison-dd--timeline">
-                      {renderStrategyComparisonTimelineInCards(
-                        strategyComparisonProjections.heloc,
-                        "total"
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-                <p className="help tight subtle" style={{ margin: "0 0 6px" }}>
-                  Remaining time reflects repayment of borrowed funds using your
-                  available cash flow.
-                </p>
-                <p className="help tight subtle" style={{ margin: "0 0 10px" }}>
-                  Uses your monthly cash flow and freed payments to repay the line.
-                </p>
-                <dl className="strategy-comparison-dl">
-                  <div className="strategy-comparison-row">
-                    <dt>Interest saved</dt>
-                    <dd>
-                      {toCurrency(
-                        strategyComparisonProjections.heloc.interestSavedVsMinimum
-                      )}
-                    </dd>
-                  </div>
-                  <div className="strategy-comparison-row">
-                    <dt>Ending balance</dt>
-                    <dd>
-                      {toCurrency(
-                        strategyComparisonProjections.heloc.endingHelocBalance
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="strategy-comparison-card-footer">
-                  <div
-                    className="strategy-comparison-card-footer-note-placeholder"
-                    aria-hidden="true"
-                  />
-                  <p className="strategy-comparison-foot subtle">
-                    Ending HELOC balance (modeled line)
-                  </p>
-                </div>
+                ) : (
+                  <>
+                    <dl className="strategy-comparison-dl">
+                      <div className="strategy-comparison-row">
+                        <dt>Debt-Free From Creditors</dt>
+                        <dd className="strategy-comparison-dd--timeline">
+                          {renderStrategyComparisonTimelineInCards(
+                            strategyComparisonProjections.heloc,
+                            "consumer"
+                          )}
+                        </dd>
+                      </div>
+                      <div className="strategy-comparison-row">
+                        <dt>Fully Repaid (Including HELOC)</dt>
+                        <dd className="strategy-comparison-dd--timeline">
+                          {renderStrategyComparisonTimelineInCards(
+                            strategyComparisonProjections.heloc,
+                            "total"
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                    <p className="help tight subtle" style={{ margin: "0 0 6px" }}>
+                      Remaining time reflects repayment of borrowed funds using your
+                      available cash flow.
+                    </p>
+                    <p className="help tight subtle" style={{ margin: "0 0 10px" }}>
+                      Uses your monthly cash flow and freed payments to repay the line.
+                    </p>
+                    <dl className="strategy-comparison-dl">
+                      <div className="strategy-comparison-row">
+                        <dt>Interest saved</dt>
+                        <dd>
+                          {toCurrency(
+                            strategyComparisonProjections.heloc
+                              .interestSavedVsMinimum
+                          )}
+                        </dd>
+                      </div>
+                      <div className="strategy-comparison-row">
+                        <dt>Ending balance</dt>
+                        <dd>
+                          {toCurrency(
+                            strategyComparisonProjections.heloc.endingHelocBalance
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div className="strategy-comparison-card-footer">
+                      <div
+                        className="strategy-comparison-card-footer-note-placeholder"
+                        aria-hidden="true"
+                      />
+                      <p className="strategy-comparison-foot subtle">
+                        Ending HELOC balance (modeled line)
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
               <div
                 className={`strategy-comparison-card strategy-comparison-card--recommended${
@@ -2657,6 +2667,12 @@ const hasMeaningfulInputs = useMemo(() => {
           {helocAcceleration ? (
             <div className="banking-transparency-panel heloc-transparency-panel">
               <h3 className="subsection-title">HELOC (engine view)</h3>
+              {!hasHelocLimit ? (
+                <div className="help tight" style={{ marginTop: 10 }}>
+                  Enter your HELOC credit limit to see accurate projections.
+                </div>
+              ) : (
+                <>
               <p className="help tight">
                 After month-start HELOC interest, income and living expenses move the
                 line. Minimums and extra principal use surplus cash first; the trigger
@@ -2749,6 +2765,8 @@ const hasMeaningfulInputs = useMemo(() => {
                   )}
                 </div>
               </div>
+                </>
+              )}
             </div>
           ) : null}
 
@@ -2779,16 +2797,26 @@ const hasMeaningfulInputs = useMemo(() => {
                   </p>
                 </>
               ) : helocAcceleration ? (
-                <>
-                  <div className="label">Total HELOC interest (projected)</div>
-                  <div className="value">
-                    {toCurrency(totalHelocInterestPaid ?? 0)}
-                  </div>
-                  <p className="stat-hint">
-                    Accrued on the modeled HELOC balance through the simulated
-                    months
-                  </p>
-                </>
+                !hasHelocLimit ? (
+                  <>
+                    <div className="label">Total HELOC interest (projected)</div>
+                    <div className="value">—</div>
+                    <div className="help tight" style={{ marginTop: 10 }}>
+                      Enter your HELOC credit limit to see accurate projections.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="label">Total HELOC interest (projected)</div>
+                    <div className="value">
+                      {toCurrency(totalHelocInterestPaid ?? 0)}
+                    </div>
+                    <p className="stat-hint">
+                      Accrued on the modeled HELOC balance through the simulated
+                      months
+                    </p>
+                  </>
+                )
               ) : (
                 <>
                   <div className="label">Capital vehicle contribution</div>
@@ -2852,7 +2880,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   </span>
                 </div>
               </>
-            ) : helocAcceleration ? (
+            ) : helocAcceleration && hasHelocLimit ? (
               <>
                 <div className="summary-item">
                   <span className="summary-label">
@@ -2910,7 +2938,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   : "—"}
               </span>
             </div>
-            {helocAcceleration || bankingActive ? (
+            {(bankingActive || (helocAcceleration && hasHelocLimit)) ? (
               <div className="summary-item">
                 <span className="summary-label">
                   {helocAcceleration
@@ -2944,55 +2972,63 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          <h3 className="subsection-title chart-heading">Balance projection</h3>
-          <ProjectionChart
-            rows={rows}
-            showPolicy={showPolicySeries}
-            debtLineLabel={chartDebtLineLabel}
-            ariaLabel={chartAriaLabel}
-          />
+          {helocAcceleration && !hasHelocLimit ? (
+            <div className="help tight" style={{ marginTop: 10 }}>
+              Enter your HELOC credit limit to see accurate projections.
+            </div>
+          ) : (
+            <>
+              <h3 className="subsection-title chart-heading">Balance projection</h3>
+              <ProjectionChart
+                rows={rows}
+                showPolicy={showPolicySeries}
+                debtLineLabel={chartDebtLineLabel}
+                ariaLabel={chartAriaLabel}
+              />
 
-          <h3 className="subsection-title">Month-by-month</h3>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Month</th>
-                  <th>
-                    {helocAcceleration
-                      ? "Total balance (consumer + HELOC)"
-                      : "Consumer debt"}
-                  </th>
-                  {helocAcceleration ? <th>HELOC balance</th> : null}
-                  {bankingActive ? <th>Banking Strategy (net)</th> : null}
-                  <th>Payments</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.slice(0, 24).map((row) => (
-                  <tr key={row.month}>
-                    <td>{row.month}</td>
-                    <td>{toCurrency(row.debtBalance)}</td>
-                    {helocAcceleration ? (
-                      <td>{toCurrency(row.helocBalance ?? 0)}</td>
-                    ) : null}
-                    {bankingActive ? (
-                      <td>{toCurrency(row.policyValue)}</td>
-                    ) : null}
-                    <td>{toCurrency(row.totalDebtPayment)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="small footnote-table">
-            First 24 months shown. Chart spans all {simulationMonths} simulated months
-            (through payoff or a {capYearsLabel}-year cap
-            {form.advanced_projection_years?.trim()
-              ? ", per Advanced settings"
-              : ""}
-            ).
-          </p>
+              <h3 className="subsection-title">Month-by-month</h3>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Month</th>
+                      <th>
+                        {helocAcceleration
+                          ? "Total balance (consumer + HELOC)"
+                          : "Consumer debt"}
+                      </th>
+                      {helocAcceleration ? <th>HELOC balance</th> : null}
+                      {bankingActive ? <th>Banking Strategy (net)</th> : null}
+                      <th>Payments</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.slice(0, 24).map((row) => (
+                      <tr key={row.month}>
+                        <td>{row.month}</td>
+                        <td>{toCurrency(row.debtBalance)}</td>
+                        {helocAcceleration ? (
+                          <td>{toCurrency(row.helocBalance ?? 0)}</td>
+                        ) : null}
+                        {bankingActive ? (
+                          <td>{toCurrency(row.policyValue)}</td>
+                        ) : null}
+                        <td>{toCurrency(row.totalDebtPayment)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="small footnote-table">
+                First 24 months shown. Chart spans all {simulationMonths} simulated
+                months (through payoff or a {capYearsLabel}-year cap
+                {form.advanced_projection_years?.trim()
+                  ? ", per Advanced settings"
+                  : ""}
+                ).
+              </p>
+            </>
+          )}
           </>
           ) : (
             <div

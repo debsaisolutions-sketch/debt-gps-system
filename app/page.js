@@ -1588,10 +1588,16 @@ const hasMeaningfulInputs = useMemo(() => {
                 updateField("amount_toward_debt_strategy", e.target.value)
               }
             />
-            <div style={{ fontSize: 12, color: "red", marginTop: 6 }}>
-              income: {JSON.stringify(form.monthly_income)} | expenses: {JSON.stringify(form.monthly_expenses)} | strategy: {JSON.stringify(form.amount_toward_debt_strategy)}
-            </div>
-          </div>
+            <div style={{ fontSize: 13, color: "#6B7280", marginTop: 6 }}>
+  Available for strategy: {toCurrency(availableForStrategy)}
+  <div>(income - expenses - minimum payments)</div>
+</div>
+
+{appliedExceedsAvailableForStrategy && (
+  <div style={{ fontSize: 13, color: "#DC2626", marginTop: 6 }}>
+    You’re trying to use {toCurrency(Number(form.amount_toward_debt_strategy) || 0)} but only {toCurrency(availableForStrategy)} is available after required minimum payments.
+  </div>
+)}
 
           <div
             className="standard-payoff-compare-panel"
@@ -2509,7 +2515,38 @@ const hasMeaningfulInputs = useMemo(() => {
                         <td>{d.name?.trim() ? d.name : `Debt ${d.order}`}</td>
                         <td>{toCurrency(d.balance)}</td>
                         <td>{d.rate.toFixed(2)}%</td>
-                        <td>{toCurrency(d.minPayment)}</td>
+                        <td>
+                          {toCurrency(d.minPayment)}
+                          {/* Display-only enhancement: show strategy budget info under Monthly Strategy Budget input */}
+                          {d.isStrategyBudgetRow && (
+                            <>
+                              <div
+                                style={{
+                                  fontSize: "13px",
+                                  color: "#6B7280",
+                                  marginTop: 7,
+                                }}
+                              >
+                                Available for strategy: {toCurrency(availableForStrategy)}<br />
+                                <span style={{ fontSize: "12px" }}>
+                                  (income − expenses − minimum payments)
+                                </span>
+                              </div>
+                              {appliedExceedsAvailableForStrategy && (
+                                <div
+                                  style={{
+                                    color: "#b91c1c",
+                                    fontSize: "13px",
+                                    marginTop: 5,
+                                    lineHeight: 1.4,
+                                  }}
+                                >
+                                  You’re trying to use {toCurrency(amountTowardDebtStrategyRaw || 0)} but only {toCurrency(availableForStrategy)} is available after required minimum payments.
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </td>
                         <td>{d.cleared ? "Paid" : "Open"}</td>
                       </tr>
                     ))}

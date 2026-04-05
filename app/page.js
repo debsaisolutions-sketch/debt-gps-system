@@ -2036,9 +2036,10 @@ const hasMeaningfulInputs = useMemo(() => {
               onClick={handleResetTestScenario}
             >
               Start over
-            </button>
-          </div>
-        </section>
+              </button>
+</div>
+</div>
+</section>
 
         <section className="card step-card results-card" aria-labelledby="step2-heading">
           <div className="step-badge secondary">Step 2</div>

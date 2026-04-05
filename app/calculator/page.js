@@ -290,7 +290,8 @@ export function MonthTable({ columns, rows, className = "", style = {}, ...props
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { redirect, useSearchParams } from "next/navigation";
+import { useMemo, useState, useCallback, useEffect, Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
 import {
   aggregateDebts,
@@ -611,7 +612,8 @@ function accelerationLabel(m) {
   return "Standard";
 }
 
-export default function HomePage() {
+function HomePage() {
+  const searchParams = useSearchParams();
   const [form, setForm] = useState(() => buildDefaultForm());
   const [saveStatus, setSaveStatus] = useState("");
   const [localScenarios, setLocalScenarios] = useState([]);
@@ -1331,6 +1333,10 @@ const hasMeaningfulInputs = useMemo(() => {
 
   const statusType = saveStatus.split("|")[0];
   const statusText = saveStatus.split("|")[1] || "";
+
+  if (searchParams.get("access") !== "paid") {
+    redirect("/");
+  }
 
   return (
     <main className="page dashboard">
@@ -3694,5 +3700,13 @@ const hasMeaningfulInputs = useMemo(() => {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function CalculatorPage() {
+  return (
+    <Suspense fallback={null}>
+      <HomePage />
+    </Suspense>
   );
 }

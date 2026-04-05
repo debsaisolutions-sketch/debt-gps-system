@@ -128,7 +128,7 @@ export default function LandingPage() {
             >
               <Link
                 className="primary-button"
-                href="/calculator"
+                href="https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800"
                 style={{
                   padding: "15px 28px",
                   fontSize: "1rem",
@@ -621,7 +621,7 @@ export default function LandingPage() {
         >
           <Link
             className="primary-button"
-            href="/calculator"
+            href="https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800"
             style={{
               padding: "15px 28px",
               fontSize: "1rem",

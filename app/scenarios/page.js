@@ -53,7 +53,9 @@ export default function ScenariosPage() {
           Debt GPS system.
         </p>
         <div className="top-actions">
-          <Link className="button-link ghost" href="/calculator">Back to Strategy Tool</Link>
+          <Link className="button-link ghost" href="/calculator?access=paid">
+            Back to Strategy Tool
+          </Link>
         </div>
       </section>
 

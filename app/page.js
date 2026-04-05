@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
+const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800";
 
 export const metadata = {
   title: "Debt GPS System — Know What to Pay Next",
@@ -128,7 +129,7 @@ export default function LandingPage() {
             >
               <Link
                 className="primary-button"
-                href="https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800"
+                href={STRIPE_CHECKOUT_URL}
                 style={{
                   padding: "15px 28px",
                   fontSize: "1rem",
@@ -200,7 +201,7 @@ export default function LandingPage() {
                 >
                   Timeline preview
                 </span>
-                <Link href="/calculator" style={{ lineHeight: 0 }} aria-label="Debt GPS System">
+                <Link href="/" style={{ lineHeight: 0 }} aria-label="Debt GPS System home">
                   <Image
                     src="/logo.png"
                     alt=""
@@ -607,8 +608,8 @@ export default function LandingPage() {
             color: "rgba(248, 250, 252, 0.88)"
           }}
         >
-          Open the calculator with your real numbers. No signup required to explore
-          scenarios and the payoff timeline.
+          Start with checkout—then use your access link to open the calculator with your
+          real numbers and explore scenarios and the payoff timeline.
         </p>
         <div
           style={{
@@ -621,7 +622,7 @@ export default function LandingPage() {
         >
           <Link
             className="primary-button"
-            href="https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800"
+            href={STRIPE_CHECKOUT_URL}
             style={{
               padding: "15px 28px",
               fontSize: "1rem",

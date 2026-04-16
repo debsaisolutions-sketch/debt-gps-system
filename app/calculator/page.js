@@ -2846,7 +2846,7 @@ const hasMeaningfulInputs = useMemo(() => {
               Unlock Your Fastest Payoff Plan (Early Access Pricing)
             </h4>
             <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
-              Early users lock in $47/month — price increasing to $97 soon.
+              Early users lock in $47/month — price increases to $97 soon.
             </p>
             <ul>
               <li>Unlock Banking + HELOC comparisons</li>
@@ -2857,6 +2857,17 @@ const hasMeaningfulInputs = useMemo(() => {
             <p className="help tight" style={{ margin: "0 0 12px" }}>
               You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
             </p>
+            {!isPremium ? (
+              <p className="help tight" style={{ margin: "0 0 12px", fontWeight: 500 }}>
+                You’re about{" "}
+                {Number.isFinite(
+                  strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
+                )
+                  ? strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
+                  : "--"}{" "}
+                months away from being debt free — unlock your fastest path now.
+              </p>
+            ) : null}
             <button
               type="button"
               className="primary-button"

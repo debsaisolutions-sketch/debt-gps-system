@@ -613,9 +613,11 @@ function accelerationLabel(m) {
 }
 
 function CalculatorPage() {
-  const isUnlocked = false;
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const isPremium = false;
   const handleUnlockClick = () => {
-    alert("Capture email here");
+    console.log(email);
+    setIsUnlocked(true);
   };
   const searchParams = useSearchParams();
   const [form, setForm] = useState(() => buildDefaultForm());
@@ -624,6 +626,7 @@ function CalculatorPage() {
   const [loadScenarioSelect, setLoadScenarioSelect] = useState("");
   const [deleteScenarioId, setDeleteScenarioId] = useState("");
   const [sessionReady, setSessionReady] = useState(false);
+  const [email, setEmail] = useState("");
   /** Step 2: simulated month for Debt Payoff Order / Paid Off Debts timeline (0 = start). */
   const [payoffTimelineCurrentMonth, setPayoffTimelineCurrentMonth] = useState(0);
 
@@ -1338,10 +1341,6 @@ const hasMeaningfulInputs = useMemo(() => {
   const statusType = saveStatus.split("|")[0];
   const statusText = saveStatus.split("|")[1] || "";
 
-  if (searchParams.get("access") !== "paid") {
-    redirect("/");
-  }
-
   return (
     <main className="page dashboard">
       <header className="hero hero-dashboard">
@@ -1870,6 +1869,8 @@ const hasMeaningfulInputs = useMemo(() => {
             >
               Standard (baseline)
             </button>
+            {isPremium ? (
+              <>
             <button
               type="button"
               className={
@@ -1896,9 +1897,11 @@ const hasMeaningfulInputs = useMemo(() => {
             >
               HELOC
             </button>
+              </>
+            ) : null}
           </div>
 
-          {form.acceleration_method === ACCELERATION_METHODS.BANKING ? (
+          {isPremium && form.acceleration_method === ACCELERATION_METHODS.BANKING ? (
             <div className="banking-panel">
               <h4 className="panel-title">Banking Strategy inputs</h4>
               <div className="field checkbox-field">
@@ -2010,7 +2013,7 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          {form.acceleration_method === ACCELERATION_METHODS.HELOC ? (
+          {isPremium && form.acceleration_method === ACCELERATION_METHODS.HELOC ? (
             <div className="heloc-panel">
               <h4 className="panel-title">HELOC acceleration</h4>
               <p className="help tight">
@@ -2065,6 +2068,7 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
+          {isPremium ? (
           <details className="advanced-details">
             <summary>Advanced settings</summary>
             <div className="advanced-details-body">
@@ -2090,6 +2094,7 @@ const hasMeaningfulInputs = useMemo(() => {
               </div>
             </div>
           </details>
+          ) : null}
 
           <div className="field full">
             <label>Notes</label>
@@ -2107,7 +2112,7 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          {hitProjectionCap && aggregated.total > 0 ? (
+          {isPremium && hitProjectionCap && aggregated.total > 0 ? (
             <div className="inline-warn" role="status">
               Balances were still outstanding after the {capYearsLabel}-year
               ceiling. Raise income, lower living expenses, increase paydowns/draws,
@@ -2160,7 +2165,7 @@ const hasMeaningfulInputs = useMemo(() => {
 
           <p className="help results-lead">
             <strong className="strategy-pill-label">{scenarioSummary}</strong>
-            {form.acceleration_method === ACCELERATION_METHODS.HELOC ? (
+            {isPremium && form.acceleration_method === ACCELERATION_METHODS.HELOC ? (
               <span className="subtle">
                 {" "}
                 · HELOC APR {Number(form.heloc_interest_rate) || 0}%
@@ -2538,20 +2543,20 @@ const hasMeaningfulInputs = useMemo(() => {
             )}
           </div>
 
-          {hasMeaningfulInputs ? (
+          {true ? (
           <>    
           {isUnlocked ? (
+          <>
           <div
             className="strategy-comparison-section"
             aria-label="Strategy comparison using your current inputs"
           >
             <h3 className="subsection-title">Strategy Comparison</h3>
             <p className="help tight strategy-comparison-lead">
-              Uses the same income, expenses, debts, and strategy budget as Step 1. Four
-              projections run in the background—you do not need to switch strategies.
-              Snowball (Standard) and Avalanche (Standard) use Standard acceleration with
-              fixed payoff order; Banking Strategy and HELOC use your selected payoff method (
-              {payoffLabel(form.payoff_method)}).
+              Uses the same income, expenses, debts, and strategy budget as Step 1. Two
+              standard projections run in the background—you do not need to switch
+              strategies. Snowball (Standard) and Avalanche (Standard) use Standard
+              acceleration with fixed payoff order.
             </p>
             <div className="strategy-comparison-grid">
               <div
@@ -2668,6 +2673,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   </p>
                 </div>
               </div>
+              {isPremium ? (
               <div
                 className={`strategy-comparison-card${
                   form.acceleration_method === ACCELERATION_METHODS.HELOC
@@ -2746,6 +2752,8 @@ const hasMeaningfulInputs = useMemo(() => {
                   </>
                 )}
               </div>
+              ) : null}
+              {isPremium ? (
               <div
                 className={`strategy-comparison-card${
                   step2RecommendationRanking.bestOverall?.id === "banking"
@@ -2836,8 +2844,38 @@ const hasMeaningfulInputs = useMemo(() => {
                   </p>
                 </div>
               </div>
+              ) : null}
             </div>
           </div>
+          <div
+            style={{
+              marginTop: 14,
+              border: "1px solid var(--line)",
+              borderRadius: 14,
+              padding: "18px",
+              background: "var(--card)"
+            }}
+          >
+            <h4 style={{ margin: "0 0 10px", color: "var(--text)" }}>
+              Want your fastest custom payoff plan?
+            </h4>
+            <ul style={{ margin: "0 0 14px", paddingLeft: 18 }}>
+              <li>Unlock Banking + HELOC comparisons</li>
+              <li>See full payoff order</li>
+              <li>See month-by-month payoff roadmap</li>
+            </ul>
+            <p className="help tight" style={{ margin: "0 0 12px" }}>
+              You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
+            </p>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}`, "_blank")}
+            >
+              Unlock Full Plan (See Your Exact Payoff Strategy)
+            </button>
+          </div>
+          </>
           ) : (
             <div
               className="strategy-comparison-section"
@@ -2868,18 +2906,34 @@ const hasMeaningfulInputs = useMemo(() => {
                 <p className="help tight" style={{ margin: 0 }}>
                   See how to cut your payoff time and interest
                 </p>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{
+                    width: "100%",
+                    marginTop: 12,
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    border: "1px solid var(--line)",
+                    background: "var(--bg)",
+                    color: "var(--text)"
+                  }}
+                />
                 <button
                   type="button"
                   onClick={handleUnlockClick}
                   className="primary-button"
                   style={{ marginTop: 14 }}
                 >
-                  Unlock Your Plan
+                  Unlock My Plan
                 </button>
               </div>
             </div>
           )}
 
+          {isPremium ? (
           <div className="payoff-order-panel">
             <h3 className="subsection-title payoff-order-title">Debt Payoff Order</h3>
             <p className="help tight">
@@ -3152,8 +3206,9 @@ const hasMeaningfulInputs = useMemo(() => {
               </>
             )}
           </div>
+          ) : null}
 
-          {debtPayoffOrder.some(
+          {isPremium && debtPayoffOrder.some(
             (d) =>
               consumerDebtPayoffMonthById?.[d.id] != null &&
               consumerDebtPayoffMonthById[d.id] <= payoffTimelineCurrentMonth
@@ -3238,7 +3293,7 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          {bankingActive && !policyContributionExceedsAppliedStrategy ? (
+          {isPremium && bankingActive && !policyContributionExceedsAppliedStrategy ? (
             <div className="banking-transparency-panel">
               <h3 className="subsection-title">Banking Strategy (engine view)</h3>
               <p className="help tight">
@@ -3609,7 +3664,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   : "—"}
               </span>
             </div>
-            {(bankingActive || (helocAcceleration && hasHelocLimit)) ? (
+            {isPremium && (bankingActive || (helocAcceleration && hasHelocLimit)) ? (
               <div className="summary-item">
                 <span className="summary-label">
                   {helocAcceleration
@@ -3625,7 +3680,7 @@ const hasMeaningfulInputs = useMemo(() => {
             ) : null}
           </div>
 
-          {form.acceleration_method === ACCELERATION_METHODS.BANKING ? (
+          {isPremium && form.acceleration_method === ACCELERATION_METHODS.BANKING ? (
             <div className="banking-cta">
               <p>
                 This strategy can be very powerful when structured correctly. If
@@ -3643,63 +3698,65 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          {helocAcceleration && !hasHelocLimit ? (
+          {isPremium ? (
+            helocAcceleration && !hasHelocLimit ? (
             <div className="help tight" style={{ marginTop: 10 }}>
               Enter your HELOC credit limit to see accurate projections.
             </div>
-          ) : (
-            <>
-              <h3 className="subsection-title chart-heading">Balance projection</h3>
-              <ProjectionChart
-                rows={rows}
-                showPolicy={showPolicySeries}
-                debtLineLabel={chartDebtLineLabel}
-                ariaLabel={chartAriaLabel}
-              />
+            ) : (
+              <>
+                <h3 className="subsection-title chart-heading">Balance projection</h3>
+                <ProjectionChart
+                  rows={rows}
+                  showPolicy={showPolicySeries}
+                  debtLineLabel={chartDebtLineLabel}
+                  ariaLabel={chartAriaLabel}
+                />
 
-              <h3 className="subsection-title">Month-by-month</h3>
-              <div className="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Month</th>
-                      <th>
-                        {helocAcceleration
-                          ? "Total balance (consumer + HELOC)"
-                          : "Consumer debt"}
-                      </th>
-                      {helocAcceleration ? <th>HELOC balance</th> : null}
-                      {bankingActive ? <th>Banking Strategy (net)</th> : null}
-                      <th>Payments</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.slice(0, 24).map((row) => (
-                      <tr key={row.month}>
-                        <td>{row.month}</td>
-                        <td>{toCurrency(row.debtBalance)}</td>
-                        {helocAcceleration ? (
-                          <td>{toCurrency(row.helocBalance ?? 0)}</td>
-                        ) : null}
-                        {bankingActive ? (
-                          <td>{toCurrency(row.policyValue)}</td>
-                        ) : null}
-                        <td>{toCurrency(row.totalDebtPayment)}</td>
+                <h3 className="subsection-title">Month-by-month</h3>
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Month</th>
+                        <th>
+                          {helocAcceleration
+                            ? "Total balance (consumer + HELOC)"
+                            : "Consumer debt"}
+                        </th>
+                        {helocAcceleration ? <th>HELOC balance</th> : null}
+                        {bankingActive ? <th>Banking Strategy (net)</th> : null}
+                        <th>Payments</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="small footnote-table">
-                First 24 months shown. Chart spans all {simulationMonths} simulated
-                months (through payoff or a {capYearsLabel}-year cap
-                {form.advanced_projection_years?.trim()
-                  ? ", per Advanced settings"
-                  : ""}
-                ).
-              </p>
-            </>
-          )}
+                    </thead>
+                    <tbody>
+                      {rows.slice(0, 24).map((row) => (
+                        <tr key={row.month}>
+                          <td>{row.month}</td>
+                          <td>{toCurrency(row.debtBalance)}</td>
+                          {helocAcceleration ? (
+                            <td>{toCurrency(row.helocBalance ?? 0)}</td>
+                          ) : null}
+                          {bankingActive ? (
+                            <td>{toCurrency(row.policyValue)}</td>
+                          ) : null}
+                          <td>{toCurrency(row.totalDebtPayment)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="small footnote-table">
+                  First 24 months shown. Chart spans all {simulationMonths} simulated
+                  months (through payoff or a {capYearsLabel}-year cap
+                  {form.advanced_projection_years?.trim()
+                    ? ", per Advanced settings"
+                    : ""}
+                  ).
+                </p>
+              </>
+            )
+          ) : null}
           </>
           ) : (
             <div

@@ -612,7 +612,11 @@ function accelerationLabel(m) {
   return "Standard";
 }
 
-function HomePage() {
+function CalculatorPage() {
+  const isUnlocked = false;
+  const handleUnlockClick = () => {
+    alert("Capture email here");
+  };
   const searchParams = useSearchParams();
   const [form, setForm] = useState(() => buildDefaultForm());
   const [saveStatus, setSaveStatus] = useState("");
@@ -2536,6 +2540,7 @@ const hasMeaningfulInputs = useMemo(() => {
 
           {hasMeaningfulInputs ? (
           <>    
+          {isUnlocked ? (
           <div
             className="strategy-comparison-section"
             aria-label="Strategy comparison using your current inputs"
@@ -2833,6 +2838,47 @@ const hasMeaningfulInputs = useMemo(() => {
               </div>
             </div>
           </div>
+          ) : (
+            <div
+              className="strategy-comparison-section"
+              aria-label="Strategy comparison locked"
+            >
+              <h3 className="subsection-title">Strategy Comparison</h3>
+              <div
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: 14,
+                  padding: "18px",
+                  background: "var(--card)"
+                }}
+              >
+                <div
+                  style={{
+                    height: 150,
+                    borderRadius: 10,
+                    background:
+                      "linear-gradient(90deg, rgba(148,163,184,0.28), rgba(148,163,184,0.14), rgba(148,163,184,0.28))",
+                    filter: "blur(1.5px)",
+                    marginBottom: 14
+                  }}
+                />
+                <p style={{ margin: "0 0 6px", fontWeight: 700, color: "var(--text)" }}>
+                  Unlock your custom payoff plan to see your results
+                </p>
+                <p className="help tight" style={{ margin: 0 }}>
+                  See how to cut your payoff time and interest
+                </p>
+                <button
+                  type="button"
+                  onClick={handleUnlockClick}
+                  className="primary-button"
+                  style={{ marginTop: 14 }}
+                >
+                  Unlock Your Plan
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="payoff-order-panel">
             <h3 className="subsection-title payoff-order-title">Debt Payoff Order</h3>
@@ -3703,10 +3749,10 @@ const hasMeaningfulInputs = useMemo(() => {
   );
 }
 
-export default function CalculatorPage() {
+export default function Page() {
   return (
     <Suspense fallback={null}>
-      <HomePage />
+      <CalculatorPage />
     </Suspense>
   );
 }

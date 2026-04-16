@@ -1,15 +1,11 @@
+'use client';
 import { Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import LoginBoxSimple from './LoginBoxSimple'
 
 const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
 const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800";
-
-export const metadata = {
-  title: "Debt GPS System — Know What to Pay Next",
-  description:
-    "See which debt gets paid next, when each balance disappears, and how your strategy plays out month by month."
-};
 
 const trustPoints = [
   "Compare 4 payoff strategies",
@@ -127,22 +123,6 @@ export default function LandingPage() {
                 alignItems: "center"
               }}
             >
-              <Link
-                className="primary-button"
-                href={STRIPE_CHECKOUT_URL}
-                style={{
-                  padding: "15px 28px",
-                  fontSize: "1rem",
-                  fontWeight: 700,
-                  borderRadius: 12,
-                  boxShadow: "0 6px 22px rgba(29, 107, 196, 0.5)",
-                  border: "none",
-                  minWidth: "168px",
-                  textAlign: "center"
-                }}
-              >
-                Start Your Plan
-              </Link>
               <a
                 className="secondary-button"
                 href={CALENDLY_URL}
@@ -620,6 +600,7 @@ export default function LandingPage() {
             alignItems: "center"
           }}
         >
+          <LoginBoxSimple />
           <Link
             className="primary-button"
             href={STRIPE_CHECKOUT_URL}

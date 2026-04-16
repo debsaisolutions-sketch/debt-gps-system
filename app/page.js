@@ -2,8 +2,6 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import LoginBoxSimple from './LoginBoxSimple'
-
 const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
 const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800";
 
@@ -600,10 +598,9 @@ export default function LandingPage() {
             alignItems: "center"
           }}
         >
-          <LoginBoxSimple />
           <Link
             className="primary-button"
-            href={STRIPE_CHECKOUT_URL}
+            href="/calculator"
             style={{
               padding: "15px 28px",
               fontSize: "1rem",

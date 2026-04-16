@@ -17,7 +17,7 @@ export default function LoginBox() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: `${window.location.origin}/calculator`,
       },
     })
 
@@ -46,5 +46,6 @@ export default function LoginBox() {
         {loading ? 'Sending...' : 'Login'}
       </button>
     </div>
+    </>
   )
 }

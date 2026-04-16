@@ -2864,6 +2864,29 @@ const hasMeaningfulInputs = useMemo(() => {
               ) : null}
             </div>
           </div>
+          {!isPremium ? (
+            <div
+              style={{
+                marginTop: 14,
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "1px dashed rgba(148, 163, 184, 0.45)",
+                background: "rgba(148, 163, 184, 0.07)"
+              }}
+            >
+              <p
+                className="help tight subtle"
+                style={{
+                  margin: 0,
+                  textAlign: "center",
+                  fontSize: "0.86rem",
+                  lineHeight: 1.45
+                }}
+              >
+                Your fastest strategy is hidden — unlock to see the exact payoff order.
+              </p>
+            </div>
+          ) : null}
           <div
             style={{
               marginTop: 14,

@@ -2917,8 +2917,14 @@ const hasMeaningfulInputs = useMemo(() => {
               className="primary-button"
               onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}`, "_blank")}
             >
-              Unlock Full Plan — Lock In $47
+              See My Full Payoff Plan — $47
             </button>
+            <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
+              One-time setup. No long-term commitment.
+            </p>
+            <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
+              Start now and lock in early access pricing before it increases.
+            </p>
           </div>
           </>
           ) : (
@@ -2946,10 +2952,13 @@ const hasMeaningfulInputs = useMemo(() => {
                   }}
                 />
                 <p style={{ margin: "0 0 6px", fontWeight: 700, color: "var(--text)" }}>
-                  Unlock your custom payoff plan to see your results
+                  Get your free payoff summary
                 </p>
                 <p className="help tight" style={{ margin: 0 }}>
-                  See how to cut your payoff time and interest
+                  Enter your email to save your progress and unlock your personalized payoff summary.
+                </p>
+                <p className="help tight" style={{ marginTop: 6 }}>
+                  See exactly how long it will take and what to do next.
                 </p>
                 <input
                   type="email"
@@ -2972,7 +2981,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   className="primary-button"
                   style={{ marginTop: 14 }}
                 >
-                  Unlock My Plan
+                  Get My Free Results
                 </button>
               </div>
             </div>

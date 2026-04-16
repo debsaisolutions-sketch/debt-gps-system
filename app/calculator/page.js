@@ -1671,13 +1671,22 @@ const hasMeaningfulInputs = useMemo(() => {
               Compare Your Payoff Options
             </h4>
             <p className="help tight standard-payoff-compare-lead">
-              See which payoff option gets you out of debt faster.
-              <br />
-              Then choose how you want to accelerate it.
-              <br />
-              Same numbers you entered above—timeline and interest saved for each
-              approach, side by side. Use the buttons below or choose Fastest Route next;
-              Step 2 updates immediately.
+              {isPremium ? (
+                <>
+                  See which payoff option gets you out of debt faster.
+                  <br />
+                  Then choose how you want to accelerate it.
+                  <br />
+                  Same numbers you entered above—timeline and interest saved for each
+                  approach, side by side. Use the buttons below or choose Fastest Route next;
+                  Step 2 updates immediately.
+                </>
+              ) : (
+                <>
+                  Pick how you want consumer debts ordered. Full timelines and interest
+                  comparisons appear in Step 2 after you continue.
+                </>
+              )}
             </p>
               <div className="standard-payoff-compare-grid">
                 <div
@@ -1693,26 +1702,28 @@ const hasMeaningfulInputs = useMemo(() => {
                   <p className="standard-payoff-compare-sub subtle">
                     Smallest balance first
                   </p>
-                  <dl className="standard-payoff-compare-dl">
-                    <div className="standard-payoff-compare-metric">
-                      <dt>Consumer Debt-Free Timeline</dt>
-                      <dd>
-                        {formatStrategyComparisonTimeline(
-                          strategyComparisonProjections.standardSnowball,
-                          "consumer"
-                        )}
-                      </dd>
-                    </div>
-                    <div className="standard-payoff-compare-metric">
-                      <dt>Interest saved</dt>
-                      <dd>
-                        {toCurrency(
-                          strategyComparisonProjections.standardSnowball
-                            .interestSavedVsMinimum
-                        )}
-                      </dd>
-                    </div>
-                  </dl>
+                  {isPremium ? (
+                    <dl className="standard-payoff-compare-dl">
+                      <div className="standard-payoff-compare-metric">
+                        <dt>Consumer Debt-Free Timeline</dt>
+                        <dd>
+                          {formatStrategyComparisonTimeline(
+                            strategyComparisonProjections.standardSnowball,
+                            "consumer"
+                          )}
+                        </dd>
+                      </div>
+                      <div className="standard-payoff-compare-metric">
+                        <dt>Interest saved</dt>
+                        <dd>
+                          {toCurrency(
+                            strategyComparisonProjections.standardSnowball
+                              .interestSavedVsMinimum
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  ) : null}
                   <button
                     type="button"
                     className="primary standard-payoff-compare-action"
@@ -1736,26 +1747,28 @@ const hasMeaningfulInputs = useMemo(() => {
                   <p className="standard-payoff-compare-sub subtle">
                     Highest APR first
                   </p>
-                  <dl className="standard-payoff-compare-dl">
-                    <div className="standard-payoff-compare-metric">
-                      <dt>Consumer Debt-Free Timeline</dt>
-                      <dd>
-                        {formatStrategyComparisonTimeline(
-                          strategyComparisonProjections.standardAvalanche,
-                          "consumer"
-                        )}
-                      </dd>
-                    </div>
-                    <div className="standard-payoff-compare-metric">
-                      <dt>Interest saved</dt>
-                      <dd>
-                        {toCurrency(
-                          strategyComparisonProjections.standardAvalanche
-                            .interestSavedVsMinimum
-                        )}
-                      </dd>
-                    </div>
-                  </dl>
+                  {isPremium ? (
+                    <dl className="standard-payoff-compare-dl">
+                      <div className="standard-payoff-compare-metric">
+                        <dt>Consumer Debt-Free Timeline</dt>
+                        <dd>
+                          {formatStrategyComparisonTimeline(
+                            strategyComparisonProjections.standardAvalanche,
+                            "consumer"
+                          )}
+                        </dd>
+                      </div>
+                      <div className="standard-payoff-compare-metric">
+                        <dt>Interest saved</dt>
+                        <dd>
+                          {toCurrency(
+                            strategyComparisonProjections.standardAvalanche
+                              .interestSavedVsMinimum
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  ) : null}
                   <button
                     type="button"
                     className="primary standard-payoff-compare-action"
@@ -2295,7 +2308,9 @@ const hasMeaningfulInputs = useMemo(() => {
                                 Modeled ending net (cash value − loan)
                               </dt>
                               <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
-                                {toCurrency(p.endingNetPolicyEquity ?? 0)}
+                                {isPremium
+                                  ? toCurrency(p.endingNetPolicyEquity ?? 0)
+                                  : "--"}
                               </dd>
                             </div>
                           ) : null}
@@ -2828,12 +2843,16 @@ const hasMeaningfulInputs = useMemo(() => {
             }}
           >
             <h4 style={{ margin: "0 0 10px", color: "var(--text)" }}>
-              Want your fastest custom payoff plan?
+              Unlock Your Fastest Payoff Plan (Early Access Pricing)
             </h4>
-            <ul style={{ margin: "0 0 14px", paddingLeft: 18 }}>
+            <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
+              Early users lock in $47/month — price increasing to $97 soon.
+            </p>
+            <ul>
               <li>Unlock Banking + HELOC comparisons</li>
-              <li>See full payoff order</li>
-              <li>See month-by-month payoff roadmap</li>
+              <li>See your exact payoff order (step-by-step)</li>
+              <li>Access full month-by-month payoff roadmap</li>
+              <li>See your true fastest strategy (not just standard methods)</li>
             </ul>
             <p className="help tight" style={{ margin: "0 0 12px" }}>
               You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
@@ -2843,7 +2862,7 @@ const hasMeaningfulInputs = useMemo(() => {
               className="primary-button"
               onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}`, "_blank")}
             >
-              Unlock Full Plan (See Your Exact Payoff Strategy)
+              Unlock Full Plan — Lock In $47
             </button>
           </div>
           </>
@@ -3397,15 +3416,27 @@ const hasMeaningfulInputs = useMemo(() => {
                       </dd>
                       <dt>Amount to eliminate target</dt>
                       <dd>
-                        {toCurrency(helocPayoffTriggerMonth1.amountNeededToEliminate)}
+                        {isPremium
+                          ? toCurrency(helocPayoffTriggerMonth1.amountNeededToEliminate)
+                          : "--"}
                       </dd>
                       <dt>HELOC balance</dt>
-                      <dd>{toCurrency(helocPayoffTriggerMonth1.helocBalance)}</dd>
+                      <dd>
+                        {isPremium
+                          ? toCurrency(helocPayoffTriggerMonth1.helocBalance)
+                          : "--"}
+                      </dd>
                       <dt>Credit limit</dt>
-                      <dd>{toCurrency(helocPayoffTriggerMonth1.helocCreditLimit)}</dd>
+                      <dd>
+                        {isPremium
+                          ? toCurrency(helocPayoffTriggerMonth1.helocCreditLimit)
+                          : "--"}
+                      </dd>
                       <dt>Available credit</dt>
                       <dd>
-                        {toCurrency(helocPayoffTriggerMonth1.availableCredit)}
+                        {isPremium
+                          ? toCurrency(helocPayoffTriggerMonth1.availableCredit)
+                          : "--"}
                       </dd>
                       <dt>Can HELOC wipe consumer target?</dt>
                       <dd>
@@ -3437,13 +3468,29 @@ const hasMeaningfulInputs = useMemo(() => {
                         )}
                       </dd>
                       <dt>Amount to eliminate target</dt>
-                      <dd>{toCurrency(helocStateLatest.amountNeededToEliminate)}</dd>
+                      <dd>
+                        {isPremium
+                          ? toCurrency(helocStateLatest.amountNeededToEliminate)
+                          : "--"}
+                      </dd>
                       <dt>HELOC balance</dt>
-                      <dd>{toCurrency(helocStateLatest.helocBalance)}</dd>
+                      <dd>
+                        {isPremium
+                          ? toCurrency(helocStateLatest.helocBalance)
+                          : "--"}
+                      </dd>
                       <dt>Credit limit</dt>
-                      <dd>{toCurrency(helocStateLatest.helocCreditLimit)}</dd>
+                      <dd>
+                        {isPremium
+                          ? toCurrency(helocStateLatest.helocCreditLimit)
+                          : "--"}
+                      </dd>
                       <dt>Available credit</dt>
-                      <dd>{toCurrency(helocStateLatest.availableCredit)}</dd>
+                      <dd>
+                        {isPremium
+                          ? toCurrency(helocStateLatest.availableCredit)
+                          : "--"}
+                      </dd>
                       <dt>Could wipe consumer target if drawn now?</dt>
                       <dd>
                         {helocStateLatest.canEliminateTargetNow ? (
@@ -3454,7 +3501,9 @@ const hasMeaningfulInputs = useMemo(() => {
                       </dd>
                       <dt>Freed minimums stacked (per month)</dt>
                       <dd>
-                        {toCurrency(helocStateLatest.freedMinimumsStackedPerMonth)}
+                        {isPremium
+                          ? toCurrency(helocStateLatest.freedMinimumsStackedPerMonth)
+                          : "--"}
                       </dd>
                     </dl>
                   ) : (
@@ -3488,7 +3537,9 @@ const hasMeaningfulInputs = useMemo(() => {
               {bankingActive ? (
                 <>
                   <div className="label">Banking Strategy contribution</div>
-                  <div className="value">{toCurrency(policyContrib)}</div>
+                  <div className="value">
+                    {isPremium ? toCurrency(policyContrib) : "--"}
+                  </div>
                   <p className="stat-hint">
                     From your monthly strategy budget
                   </p>
@@ -3506,7 +3557,9 @@ const hasMeaningfulInputs = useMemo(() => {
                   <>
                     <div className="label">Total HELOC interest (projected)</div>
                     <div className="value">
-                      {toCurrency(totalHelocInterestPaid ?? 0)}
+                      {isPremium
+                        ? toCurrency(totalHelocInterestPaid ?? 0)
+                        : "--"}
                     </div>
                     <p className="stat-hint">
                       Accrued on the modeled HELOC balance through the simulated
@@ -3533,7 +3586,9 @@ const hasMeaningfulInputs = useMemo(() => {
               <div className="value">
                 {policyContributionExceedsAppliedStrategy
                   ? "—"
-                  : toCurrency(budgetExtraDebtPayoff)}
+                  : isBankingAcceleration && !isPremium
+                    ? "--"
+                    : toCurrency(budgetExtraDebtPayoff)}
               </div>
               <p className="stat-hint">
                 {isBankingAcceleration

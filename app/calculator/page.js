@@ -306,9 +306,7 @@ import { toCurrency } from "../lib/format";
 import {
   appendScenario,
   deleteScenarioById,
-  readLastSession,
-  readScenarioList,
-  writeLastSession
+  readScenarioList
 } from "../lib/localScenarios";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -625,33 +623,13 @@ function CalculatorPage() {
   const [localScenarios, setLocalScenarios] = useState([]);
   const [loadScenarioSelect, setLoadScenarioSelect] = useState("");
   const [deleteScenarioId, setDeleteScenarioId] = useState("");
-  const [sessionReady, setSessionReady] = useState(false);
   const [email, setEmail] = useState("");
   /** Step 2: simulated month for Debt Payoff Order / Paid Off Debts timeline (0 = start). */
   const [payoffTimelineCurrentMonth, setPayoffTimelineCurrentMonth] = useState(0);
 
   useEffect(() => {
     setLocalScenarios(readScenarioList());
-    const last = readLastSession();
-    if (last) {
-      setForm(normalizeFormSnapshot(last));
-    } else {
-      setForm(buildDefaultForm());
-    }
-    setSessionReady(true);
   }, []);
-
-  useEffect(() => {
-    if (!sessionReady) return;
-    const t = window.setTimeout(() => {
-      try {
-        writeLastSession(form);
-      } catch {
-        /* ignore quota / private mode */
-      }
-    }, 500);
-    return () => window.clearTimeout(t);
-  }, [form, sessionReady]);
 
   const aggregated = useMemo(() => aggregateDebts(form.debts), [form.debts]);
 
@@ -1329,13 +1307,6 @@ const hasMeaningfulInputs = useMemo(() => {
     setLoadScenarioSelect("");
     setDeleteScenarioId("");
     setSaveStatus("success|Form reset — ready for a new test case.");
-    if (typeof window !== "undefined") {
-      try {
-        writeLastSession(next);
-      } catch {
-        /* ignore quota / private mode */
-      }
-    }
   }, []);
 
   const statusType = saveStatus.split("|")[0];
@@ -1989,7 +1960,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   />
                 </div>
               </div>
-              {bankingActive && shouldShowError ? (
+              {isPremium && bankingActive && shouldShowError ? (
                 <div className="inline-warn" role="alert">
                   Banking Strategy contribution cannot exceed the amount applied
                   toward strategy.
@@ -2143,7 +2114,7 @@ const hasMeaningfulInputs = useMemo(() => {
         <section className="card step-card results-card" aria-labelledby="step2-heading">
           <div className="step-badge secondary">Step 2</div>
           <h2 id="step2-heading">Projected results</h2>
-          {shouldShowError ? (
+          {isPremium && shouldShowError ? (
             <div className="inline-warn" role="alert">
               Banking Strategy contribution cannot exceed the amount applied toward
               strategy.

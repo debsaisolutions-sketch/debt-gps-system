@@ -1097,6 +1097,9 @@ const hasMeaningfulInputs = useMemo(() => {
     const { bestOverall, nextBestOverall } = step2RecommendationRanking;
     const sel = selectedComparisonScenarioKey;
 
+    if (!isPremium && (sel === "banking" || sel === "heloc")) {
+      return "Advanced strategy available after unlock.";
+    }
     if (form.acceleration_method === ACCELERATION_METHODS.BANKING) {
       return "You are currently viewing the recommended long-term strategy.";
     }
@@ -1106,15 +1109,26 @@ const hasMeaningfulInputs = useMemo(() => {
     if (nextBestOverall && sel === nextBestOverall.id) {
       return "You are currently viewing the strongest alternative option.";
     }
-    return "You are viewing another payoff path (for example Standard acceleration or HELOC). It can still work well—it is simply not ranked #1 or #2 for your numbers in this model.";
+    return isPremium
+      ? "You are viewing another payoff path (for example Standard acceleration or HELOC). It can still work well—it is simply not ranked #1 or #2 for your numbers in this model."
+      : "You are viewing another payoff path. It can still work well—it is simply not ranked #1 or #2 for your numbers in this model.";
   }, [
+    isPremium,
     form.acceleration_method,
     step2RecommendationRanking,
     selectedComparisonScenarioKey
   ]);
 
-  const formatRankingScenarioMetrics = (p) => {
+  const displayScenarioLabel = (id) =>
+    !isPremium && (id === "banking" || id === "heloc")
+      ? "Advanced strategy available after unlock"
+      : step2RecommendationRanking.labelFor(id);
+
+  const formatRankingScenarioMetrics = (scenarioId, p) => {
     if (!p) return "—";
+    if (!isPremium && (scenarioId === "banking" || scenarioId === "heloc")) {
+      return "--";
+    }
     const capY = Math.round(p.projectionMaxMonths / 12);
     const consumerLine =
       formatDebtFreeMonths(p.consumerDebtFreeMonth) ??
@@ -2148,7 +2162,13 @@ const hasMeaningfulInputs = useMemo(() => {
           ) : null}
 
           <p className="help results-lead">
-            <strong className="strategy-pill-label">{scenarioSummary}</strong>
+            <strong className="strategy-pill-label">
+              {!isPremium &&
+              (form.acceleration_method === ACCELERATION_METHODS.BANKING ||
+                form.acceleration_method === ACCELERATION_METHODS.HELOC)
+                ? `${payoffLabel(form.payoff_method)} · Advanced strategy available after unlock`
+                : scenarioSummary}
+            </strong>
             {isPremium && form.acceleration_method === ACCELERATION_METHODS.HELOC ? (
               <span className="subtle">
                 {" "}
@@ -2197,24 +2217,34 @@ const hasMeaningfulInputs = useMemo(() => {
                   (() => {
                     const best = step2RecommendationRanking.bestOverall;
                     const p = best.projection;
+                    const hideAdvancedMetricsForFree =
+                      !isPremium && (best.id === "banking" || best.id === "heloc");
                     const capY = Math.round(p.projectionMaxMonths / 12);
                     const consumerM = p.consumerDebtFreeMonth;
                     const totalM = p.schedule?.debtFreeMonth;
                     const consumerLine =
-                      consumerM != null && Number.isFinite(consumerM)
+                      hideAdvancedMetricsForFree
+                        ? "--"
+                        : consumerM != null && Number.isFinite(consumerM)
                         ? `${consumerM} months`
                         : p.hitProjectionCap
                           ? `Not within ${capY}-year projection cap`
                           : "—";
                     const totalLine =
-                      totalM != null && Number.isFinite(totalM)
+                      hideAdvancedMetricsForFree
+                        ? "--"
+                        : totalM != null && Number.isFinite(totalM)
                         ? `${totalM} months`
                         : p.hitProjectionCap
                           ? `Not within ${capY}-year projection cap`
                           : "—";
-                    const interestSaved = toCurrency(p.interestSavedVsMinimum ?? 0);
+                    const interestSaved = hideAdvancedMetricsForFree
+                      ? "--"
+                      : toCurrency(p.interestSavedVsMinimum ?? 0);
                     const summaryById =
-                      best.id === "banking"
+                      !isPremium && (best.id === "banking" || best.id === "heloc")
+                        ? "Advanced strategy available after unlock."
+                        : best.id === "banking"
                         ? "This is the fastest and most efficient path based on your numbers—and it pairs paying off creditors with building long-term capital you can borrow against."
                         : best.id === "heloc"
                           ? "This is the fastest and most efficient path based on your numbers, using your HELOC as modeled in this comparison."
@@ -2234,7 +2264,7 @@ const hasMeaningfulInputs = useMemo(() => {
                           <span className="subtle" style={{ fontWeight: 600, fontSize: "0.88rem" }}>
                             Best Path Forward:{" "}
                           </span>
-                          {step2RecommendationRanking.labelFor(best.id)}
+                          {displayScenarioLabel(best.id)}
                         </p>
                         <dl
                           style={{
@@ -2333,7 +2363,7 @@ const hasMeaningfulInputs = useMemo(() => {
                           >
                             If this option is not available to you, the next best path is{" "}
                             <strong>
-                              {step2RecommendationRanking.labelFor(
+                              {displayScenarioLabel(
                                 step2RecommendationRanking.nextBestOverall.id
                               )}
                             </strong>
@@ -2383,12 +2413,13 @@ const hasMeaningfulInputs = useMemo(() => {
                         lineHeight: 1.3
                       }}
                     >
-                      {step2RecommendationRanking.labelFor(
+                      {displayScenarioLabel(
                         step2RecommendationRanking.nextBestOverall.id
                       )}
                     </p>
                     <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
                       {formatRankingScenarioMetrics(
+                        step2RecommendationRanking.nextBestOverall.id,
                         step2RecommendationRanking.nextBestOverall.projection
                       )}
                     </p>
@@ -2430,7 +2461,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     lineHeight: 1.3
                   }}
                 >
-                  {step2RecommendationRanking.labelFor(
+                  {displayScenarioLabel(
                     selectedComparisonScenarioKey
                   )}
                 </p>
@@ -2490,12 +2521,13 @@ const hasMeaningfulInputs = useMemo(() => {
                         lineHeight: 1.3
                       }}
                     >
-                      {step2RecommendationRanking.labelFor(
+                      {displayScenarioLabel(
                         step2RecommendationRanking.bestStandardAccelerated.id
                       )}
                     </p>
                     <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
                       {formatRankingScenarioMetrics(
+                        step2RecommendationRanking.bestStandardAccelerated.id,
                         step2RecommendationRanking.bestStandardAccelerated.projection
                       )}
                     </p>
@@ -2512,19 +2544,18 @@ const hasMeaningfulInputs = useMemo(() => {
                 className="help tight"
                 style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
               >
-                Standard and HELOC paths can be powerful on their own—you are not
-                behind if Banking Strategy is not the right fit today. When you are
-                ready, the Banking column below shows how capital-building could layer
-                on with the same inputs.
+                {isPremium
+                  ? "Standard and HELOC paths can be powerful on their own—you are not behind if Banking Strategy is not the right fit today. When you are ready, the Banking column below shows how capital-building could layer on with the same inputs."
+                  : "Advanced strategy available after unlock."}
               </p>
             ) : (
               <p
                 className="help tight"
                 style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
               >
-                Banking Strategy can pair disciplined paydown with long-term capital
-                optionality; keep monitoring contributions and loan mechanics so the
-                model stays aligned with how you run the plan.
+                {isPremium
+                  ? "Banking Strategy can pair disciplined paydown with long-term capital optionality; keep monitoring contributions and loan mechanics so the model stays aligned with how you run the plan."
+                  : "Advanced strategy available after unlock."}
               </p>
             )}
           </div>
@@ -2868,6 +2899,19 @@ const hasMeaningfulInputs = useMemo(() => {
                 months away from being debt free — unlock your fastest path now.
               </p>
             ) : null}
+            <div style={{ margin: "0 0 12px", padding: "12px", border: "1px solid var(--line)", borderRadius: 10 }}>
+              <h5 style={{ margin: "0 0 8px", color: "var(--text)" }}>
+                See the plan most people miss
+              </h5>
+              <ul style={{ margin: "0 0 8px", paddingLeft: 18 }}>
+                <li>Cut years off your payoff timeline</li>
+                <li>See which debt to attack first</li>
+                <li>Unlock advanced strategy paths hidden in free view</li>
+              </ul>
+              <p className="help tight" style={{ margin: 0 }}>
+                Early users keep $47/month before pricing increases.
+              </p>
+            </div>
             <button
               type="button"
               className="primary-button"

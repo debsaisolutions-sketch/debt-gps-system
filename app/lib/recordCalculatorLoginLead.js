@@ -1,16 +1,16 @@
-const LEAD_WEBHOOK_SOURCE = "Debt GPS"
+const LEAD_GHL_SOURCE = "Debt GPS"
 
 /**
  * Fire-and-forget to internal API; failures only logged (does not affect login).
  * @param {string} userEmail normalized email
  */
-function postLeadConnectorWebhook(userEmail) {
-  void fetch("/api/lead-webhook", {
+function postLeadToGhl(userEmail) {
+  void fetch("/api/send-to-ghl", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       email: userEmail,
-      source: LEAD_WEBHOOK_SOURCE
+      source: LEAD_GHL_SOURCE
     })
   })
     .then(async (res) => {
@@ -22,11 +22,11 @@ function postLeadConnectorWebhook(userEmail) {
         } catch {
           /* ignore */
         }
-        console.warn("[leads] lead-webhook route failed", res.status, detail)
+        console.warn("[leads] send-to-ghl failed", res.status, detail)
       }
     })
     .catch((err) => {
-      console.warn("[leads] lead-webhook request failed", err)
+      console.warn("[leads] send-to-ghl request failed", err)
     })
 }
 
@@ -51,5 +51,5 @@ export async function recordCalculatorLoginLead(supabase, email) {
     return
   }
 
-  postLeadConnectorWebhook(trimmed)
+  postLeadToGhl(trimmed)
 }

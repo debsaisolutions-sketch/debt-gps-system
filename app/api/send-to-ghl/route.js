@@ -53,9 +53,9 @@ export async function POST(request) {
   }
 
   const payload = {
-    locationId,
+    locationId: locationId,
     email,
-    tags: ["debt-gps-lead"],
+    tags: ["Debt GPS"],
     source
   }
 

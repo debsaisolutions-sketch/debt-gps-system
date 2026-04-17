@@ -2,14 +2,15 @@ const LEAD_GHL_SOURCE = "Debt GPS"
 
 /**
  * Fire-and-forget to internal API; failures only logged (does not affect login).
- * @param {string} userEmail normalized email
+ * @param {string} normalizedEmail normalized email
  */
-function postLeadToGhl(userEmail) {
+function postLeadToGhl(normalizedEmail) {
+  console.log("[leads] posting to /api/send-to-ghl", normalizedEmail)
   void fetch("/api/send-to-ghl", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: userEmail,
+      email: normalizedEmail,
       source: LEAD_GHL_SOURCE
     })
   })
@@ -39,11 +40,11 @@ function postLeadToGhl(userEmail) {
  * @param {string} email
  */
 export async function recordCalculatorLoginLead(supabase, email) {
-  const trimmed = String(email).trim().toLowerCase()
-  if (!trimmed) return
+  const normalizedEmail = String(email).trim().toLowerCase()
+  if (!normalizedEmail) return
 
   const { error } = await supabase.rpc("try_insert_calculator_login_lead", {
-    p_email: trimmed
+    p_email: normalizedEmail
   })
 
   if (error) {
@@ -51,5 +52,5 @@ export async function recordCalculatorLoginLead(supabase, email) {
     return
   }
 
-  postLeadToGhl(trimmed)
+  postLeadToGhl(normalizedEmail)
 }

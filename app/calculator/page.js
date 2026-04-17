@@ -614,21 +614,20 @@ function CalculatorPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const isPremium = false;
   const handleUnlockClick = () => {
-    const enteredEmail = String(email ?? "").trim().toLowerCase();
-    console.log("[leads] sending email to GHL:", enteredEmail);
+    console.log("[leads] sending email to GHL:", email);
     fetch("/api/send-to-ghl", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        email: enteredEmail,
+        email,
         source: "Debt GPS"
       })
     })
-      .then((res) => {
+      .then(async (res) => {
         if (!res.ok) {
-          console.warn("[leads] send-to-ghl failed", res.status);
+          console.warn("[leads] send-to-ghl failed", res.status, await res.text());
         }
       })
       .catch((err) => {

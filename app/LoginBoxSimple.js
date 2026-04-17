@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { supabase } from './lib/supabaseClient'
+import { recordCalculatorLoginLead } from './lib/recordCalculatorLoginLead'
 
 export default function LoginBoxSimple() {
   const [email, setEmail] = useState('')
@@ -28,6 +29,8 @@ export default function LoginBoxSimple() {
       alert(error.message)
       return
     }
+
+    await recordCalculatorLoginLead(supabase, email)
 
     alert('Check your email for your login link')
   }

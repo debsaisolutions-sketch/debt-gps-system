@@ -2887,6 +2887,132 @@ const hasMeaningfulInputs = useMemo(() => {
               </p>
             </div>
           ) : null}
+          {!isPremium ? (
+            <div
+              style={{
+                marginTop: 14,
+                border: "1px solid var(--line)",
+                borderRadius: 14,
+                padding: "18px",
+                background: "var(--card)"
+              }}
+            >
+              <h4
+                style={{
+                  margin: "0 0 16px",
+                  color: "var(--text)",
+                  fontSize: "clamp(1rem, 2.2vw, 1.12rem)",
+                  fontWeight: 750,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.3
+                }}
+              >
+                How can the same dollar do two jobs?
+              </h4>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                  gap: "14px",
+                  marginBottom: 14
+                }}
+              >
+                <div
+                  style={{
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    border: "1px solid var(--line)",
+                    background: "rgba(148, 163, 184, 0.06)"
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: "0 0 10px",
+                      fontWeight: 650,
+                      fontSize: "0.92rem",
+                      color: "var(--text)"
+                    }}
+                  >
+                    Standard Path
+                  </p>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: 18,
+                      fontSize: "0.88rem",
+                      lineHeight: 1.55,
+                      color: "var(--muted)"
+                    }}
+                  >
+                    <li style={{ marginBottom: 6 }}>$600 → Debt</li>
+                    <li style={{ marginBottom: 6 }}>Money gone</li>
+                    <li style={{ margin: 0 }}>No growth</li>
+                  </ul>
+                </div>
+                <div
+                  style={{
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    border: "2px solid rgba(29, 107, 196, 0.5)",
+                    background:
+                      "linear-gradient(150deg, rgba(29, 107, 196, 0.16) 0%, rgba(99, 102, 241, 0.11) 55%, rgba(29, 107, 196, 0.07) 100%)",
+                    boxShadow: "0 6px 22px rgba(29, 107, 196, 0.16)"
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: "0 0 10px",
+                      fontWeight: 650,
+                      fontSize: "0.92rem",
+                      color: "var(--text)"
+                    }}
+                  >
+                    Advanced Strategy (Locked)
+                  </p>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: 18,
+                      fontSize: "0.88rem",
+                      lineHeight: 1.55,
+                      color: "var(--text)"
+                    }}
+                  >
+                    <li style={{ marginBottom: 6 }}>$600 → Capital</li>
+                    <li style={{ marginBottom: 6 }}>Used to reduce debt</li>
+                    <li style={{ margin: 0 }}>Capital still grows</li>
+                  </ul>
+                </div>
+              </div>
+              <p
+                className="help tight"
+                style={{
+                  margin: "0 0 8px",
+                  fontWeight: 600,
+                  color: "var(--text)",
+                  fontSize: "0.9rem",
+                  lineHeight: 1.5
+                }}
+              >
+                Most people only use their money once. Wealthy people use it twice.
+              </p>
+              <p
+                className="help tight"
+                style={{
+                  margin: "0 0 10px",
+                  fontWeight: 600,
+                  color: "var(--text)",
+                  fontSize: "0.9rem",
+                  lineHeight: 1.5
+                }}
+              >
+                The question is… which one are you doing?
+              </p>
+              <p className="help tight subtle" style={{ margin: 0, fontSize: "0.86rem" }}>
+                Unlock to see exactly how this works with your numbers.
+              </p>
+            </div>
+          ) : null}
           <div
             style={{
               marginTop: 14,
@@ -2940,7 +3066,7 @@ const hasMeaningfulInputs = useMemo(() => {
               className="primary-button"
               onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}`, "_blank")}
             >
-              See My Full Payoff Plan — $47
+              Unlock My Fastest Payoff Plan — $47
             </button>
             <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
               One-time setup. No long-term commitment.

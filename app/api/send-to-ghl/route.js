@@ -60,6 +60,7 @@ export async function POST(request) {
   }
 
   try {
+    console.log("GHL DEBUG", { apiKey, locationId, payload });
     const upstream = await fetch(GHL_CONTACTS_UPSERT, {
       method: "POST",
       headers: {

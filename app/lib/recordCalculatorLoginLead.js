@@ -1,26 +1,32 @@
-const LEAD_CONNECTOR_WEBHOOK_URL =
-  "https://services.leadconnectorhq.com/hooks/li7bawDeS1qlqOOTosAQ/webhook-trigger/c13d8594-b26f-4d27-813a-36b5"
+const LEAD_WEBHOOK_SOURCE = "Debt GPS"
 
 /**
- * Fire-and-forget; failures only logged (does not affect login).
+ * Fire-and-forget to internal API; failures only logged (does not affect login).
  * @param {string} userEmail normalized email
  */
 function postLeadConnectorWebhook(userEmail) {
-  void fetch(LEAD_CONNECTOR_WEBHOOK_URL, {
+  void fetch("/api/lead-webhook", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       email: userEmail,
-      source: "Debt GPS"
+      source: LEAD_WEBHOOK_SOURCE
     })
   })
-    .then((res) => {
+    .then(async (res) => {
       if (!res.ok) {
-        console.warn("[leads] webhook returned", res.status)
+        let detail = ""
+        try {
+          const data = await res.json()
+          detail = data?.error ? String(data.error) : JSON.stringify(data)
+        } catch {
+          /* ignore */
+        }
+        console.warn("[leads] lead-webhook route failed", res.status, detail)
       }
     })
     .catch((err) => {
-      console.warn("[leads] webhook failed", err)
+      console.warn("[leads] lead-webhook request failed", err)
     })
 }
 

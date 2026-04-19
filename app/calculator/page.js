@@ -1601,12 +1601,13 @@ const hasMeaningfulInputs = useMemo(() => {
                   <span
                     style={{
                       display: "inline-block",
-                      padding: "2px 8px",
+                      padding: "3px 10px",
                       borderRadius: 999,
-                      background: "rgba(29, 107, 196, 0.12)",
+                      background: "rgba(29, 107, 196, 0.18)",
                       color: "#1d4ed8",
                       fontWeight: 700,
-                      fontSize: 12,
+                      fontSize: 13.5,
+                      letterSpacing: "0.4px",
                       marginRight: 8
                     }}
                   >

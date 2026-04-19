@@ -1471,10 +1471,28 @@ const hasMeaningfulInputs = useMemo(() => {
         <section className="card step-card" aria-labelledby="step1-heading">
           <div className="step-badge">Step 1</div>
           <h2 id="step1-heading">Your numbers</h2>
-          <p className="help tight">
-            Enter your debts and monthly numbers below, then we&apos;ll show you the
-            strongest payoff path based on your situation.
-          </p>
+          <div
+            role="note"
+            style={{
+              margin: "0 0 20px",
+              padding: "14px 16px",
+              borderRadius: 12,
+              border: "1px solid rgba(29, 107, 196, 0.28)",
+              background: "rgba(29, 107, 196, 0.07)"
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+                lineHeight: 1.55,
+                color: "var(--text)",
+                fontSize: "1.02rem"
+              }}
+            >
+              <strong>Start here:</strong> Enter your income, expenses, and debts to
+              calculate your payoff strategy.
+            </p>
+          </div>
 
           <div className="local-scenarios-panel step1-scenario-controls">
             <p className="help tight local-scenarios-lead">
@@ -1570,7 +1588,7 @@ const hasMeaningfulInputs = useMemo(() => {
               />
             </div>
             <div className="field">
-              <label>Monthly income</label>
+              <label>Monthly income ($)</label>
               <div style={{ position: "relative" }}>
                 <span
                   style={{
@@ -1595,7 +1613,7 @@ const hasMeaningfulInputs = useMemo(() => {
               </div>
             </div>
             <div className="field">
-              <label>Living expenses (excluding debt payments)</label>
+              <label>Living expenses ($)</label>
               <div style={{ position: "relative" }}>
                 <span
                   style={{
@@ -1627,10 +1645,6 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          <p className="help tight">
-            Start by entering your debts below. We&apos;ll show you the fastest way
-            to pay them off.
-          </p>
           <div className="debt-section-header">
             <div className="debt-section-header-text">
               <h3 className="subsection-title debt-section-title">Debts</h3>
@@ -1652,7 +1666,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   />
                 </div>
                 <div className="field">
-                  <label>Balance</label>
+                  <label>Balance ($)</label>
                   <div style={{ position: "relative" }}>
                     <span
                       style={{
@@ -1687,7 +1701,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   />
                 </div>
                 <div className="field">
-                  <label>Min. payment</label>
+                  <label>Min. payment ($)</label>
                   <div style={{ position: "relative" }}>
                     <span
                       style={{

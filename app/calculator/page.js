@@ -3941,7 +3941,12 @@ const hasMeaningfulInputs = useMemo(() => {
           >
             <div className="summary-item">
               <span className="summary-label">Total debt</span>
-              <span className="summary-value">{toCurrency(aggregated.total)}</span>
+              <span
+                className="summary-value"
+                style={{ color: "#9b2c2c" }}
+              >
+                {toCurrency(aggregated.total)}
+              </span>
             </div>
             {bankingActive ? (
               <>

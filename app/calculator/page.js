@@ -651,6 +651,15 @@ function CalculatorPage() {
 
   const aggregated = useMemo(() => aggregateDebts(form.debts), [form.debts]);
 
+  /** Step 1: only show strategy-budget availability / warnings after real debt + min payment exist. */
+  const step1StrategyBudgetReady = useMemo(
+    () =>
+      form.debts.some(
+        (d) => Number(d.balance) > 0 && Number(d.minPayment) > 0
+      ),
+    [form.debts]
+  );
+
 const hasMeaningfulInputs = useMemo(() => {
   if (aggregated.total <= 0) return false;
 
@@ -1564,29 +1573,57 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
             <div className="field">
               <label>Monthly income</label>
-              <input
-                type="number"
-                min={0}
-                value={form.monthly_income || ""}
-                onChange={(e) => updateField("monthly_income", e.target.value)}
-                placeholder="Enter your monthly income"
-                autoComplete="off"
-              />
+              <div style={{ position: "relative" }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#6b7280"
+                  }}
+                >
+                  $
+                </span>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.monthly_income || ""}
+                  onChange={(e) => updateField("monthly_income", e.target.value)}
+                  placeholder="Enter monthly income"
+                  autoComplete="off"
+                  style={{ paddingLeft: 24 }}
+                />
+              </div>
             </div>
             <div className="field">
               <label>Living expenses (excluding debt payments)</label>
-              <input
-                type="number"
-                min={0}
-                value={form.monthly_expenses || ""}
-                onChange={(e) => updateField("monthly_expenses", e.target.value)}
-                placeholder="Enter living expenses (no debt payments)"
-                autoComplete="off"
-              />
+              <div style={{ position: "relative" }}>
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "#6b7280"
+                  }}
+                >
+                  $
+                </span>
+                <input
+                  type="number"
+                  min={0}
+                  value={form.monthly_expenses || ""}
+                  onChange={(e) => updateField("monthly_expenses", e.target.value)}
+                  placeholder="Enter living expenses (no debt payments)"
+                  autoComplete="off"
+                  style={{ paddingLeft: 24 }}
+                />
+              </div>
             </div>
           </div>
 
-          {appliedExceedsAvailableForStrategy ? (
+          {step1StrategyBudgetReady && appliedExceedsAvailableForStrategy ? (
             <div className="inline-warn" role="alert">
               Amount exceeds available for strategy
             </div>
@@ -1618,13 +1655,27 @@ const hasMeaningfulInputs = useMemo(() => {
                 </div>
                 <div className="field">
                   <label>Balance</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={d.balance || ""}
-                    onChange={(e) => updateDebt(d.id, "balance", e.target.value)}
-                    placeholder="e.g. 15000"
-                  />
+                  <div style={{ position: "relative" }}>
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: 10,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#6b7280"
+                      }}
+                    >
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={d.balance || ""}
+                      onChange={(e) => updateDebt(d.id, "balance", e.target.value)}
+                      placeholder="e.g. 15000"
+                      style={{ paddingLeft: 24 }}
+                    />
+                  </div>
                 </div>
                 <div className="field">
                   <label>APR %</label>
@@ -1639,13 +1690,27 @@ const hasMeaningfulInputs = useMemo(() => {
                 </div>
                 <div className="field">
                   <label>Min. payment</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={d.minPayment || ""}
-                    onChange={(e) => updateDebt(d.id, "minPayment", e.target.value)}
-                    placeholder="e.g. 300"
-                  />
+                  <div style={{ position: "relative" }}>
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: 10,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        color: "#6b7280"
+                      }}
+                    >
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={d.minPayment || ""}
+                      onChange={(e) => updateDebt(d.id, "minPayment", e.target.value)}
+                      placeholder="e.g. 300"
+                      style={{ paddingLeft: 24 }}
+                    />
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -1675,25 +1740,52 @@ const hasMeaningfulInputs = useMemo(() => {
                 ? "Used to fund your policy and support the Banking Strategy. Debt payoff occurs through policy loans and redirected payments — not direct extra payments."
                 : "Used as extra payment above minimums for Snowball or Avalanche payoff."}
             </p>
-            <input
-              type="number"
-              min={0}
-              placeholder={`Leave blank to use full amount (${toCurrency(cashAllocationPreview.availableForStrategy)})`}
-              value={form.amount_toward_debt_strategy}
-              onChange={(e) =>
-                updateField("amount_toward_debt_strategy", e.target.value)
-              }
-            />
-            <div style={{ fontSize: 13, color: "#6B7280", marginTop: 6 }}>
-  Available for strategy: {toCurrency(availableForStrategy)}
-  <div>(income - expenses - minimum payments)</div>
-</div>
+            <div style={{ position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#6b7280"
+                }}
+              >
+                $
+              </span>
+              <input
+                type="number"
+                min={0}
+                placeholder={
+                  step1StrategyBudgetReady
+                    ? `Leave blank to use full amount (${toCurrency(cashAllocationPreview.availableForStrategy)})`
+                    : "Enter your debts to calculate your strategy budget."
+                }
+                value={form.amount_toward_debt_strategy}
+                onChange={(e) =>
+                  updateField("amount_toward_debt_strategy", e.target.value)
+                }
+                style={{ paddingLeft: 24 }}
+              />
+            </div>
+            {step1StrategyBudgetReady ? (
+              <div style={{ fontSize: 13, color: "#6B7280", marginTop: 6 }}>
+                Available for strategy: {toCurrency(availableForStrategy)}
+                <div>(income - expenses - minimum payments)</div>
+              </div>
+            ) : (
+              <p className="help tight" style={{ marginTop: 6 }}>
+                Enter your debts to calculate your strategy budget.
+              </p>
+            )}
 
-{appliedExceedsAvailableForStrategy && (
-  <div style={{ fontSize: 13, color: "#DC2626", marginTop: 6 }}>
-    You’re trying to use {toCurrency(Number(form.amount_toward_debt_strategy) || 0)} but only {toCurrency(availableForStrategy)} is available after required minimum payments.
-  </div>
-)}
+            {step1StrategyBudgetReady && appliedExceedsAvailableForStrategy ? (
+              <div style={{ fontSize: 13, color: "#DC2626", marginTop: 6 }}>
+                You’re trying to use{" "}
+                {toCurrency(Number(form.amount_toward_debt_strategy) || 0)} but only{" "}
+                {toCurrency(availableForStrategy)} is available after required minimum
+                payments.
+              </div>
+            ) : null}
 
           <div
             className="standard-payoff-compare-panel"

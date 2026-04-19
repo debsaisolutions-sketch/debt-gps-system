@@ -1208,11 +1208,9 @@ const hasMeaningfulInputs = useMemo(() => {
         return next;
       }
 
-      const calculated = income - expenses;
-      return {
-        ...next,
-        amount_toward_debt_strategy: calculated >= 0 ? calculated : 0
-      };
+      // Do not auto-fill Monthly Strategy Budget from income − expenses (user enters it;
+      // projection still treats blank as "use full available" via computeDebtCashAllocation).
+      return next;
     });
   }, []);
 

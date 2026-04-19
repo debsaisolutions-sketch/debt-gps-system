@@ -642,6 +642,7 @@ function CalculatorPage() {
   const [loadScenarioSelect, setLoadScenarioSelect] = useState("");
   const [deleteScenarioId, setDeleteScenarioId] = useState("");
   const [email, setEmail] = useState("");
+  const [step1NotesOpen, setStep1NotesOpen] = useState(false);
   /** Step 2: simulated month for Debt Payoff Order / Paid Off Debts timeline (0 = start). */
   const [payoffTimelineCurrentMonth, setPayoffTimelineCurrentMonth] = useState(0);
 
@@ -2247,12 +2248,27 @@ const hasMeaningfulInputs = useMemo(() => {
           ) : null}
 
           <div className="field full">
-            <label>Notes</label>
-            <textarea
-              value={form.notes}
-              onChange={(e) => updateField("notes", e.target.value)}
-              placeholder="Assumptions, goals, follow-ups…"
-            />
+            <button
+              type="button"
+              className="button-link quiet"
+              onClick={() => setStep1NotesOpen((o) => !o)}
+              aria-expanded={step1NotesOpen}
+              aria-controls="step1-notes"
+              id="step1-notes-toggle"
+            >
+              {step1NotesOpen ? "Hide notes" : "Add notes (optional)"}
+            </button>
+            {step1NotesOpen ? (
+              <>
+                <label htmlFor="step1-notes">Notes</label>
+                <textarea
+                  id="step1-notes"
+                  value={form.notes}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  placeholder="Assumptions, goals, follow-ups…"
+                />
+              </>
+            ) : null}
           </div>
 
           {surplus < 0 ? (
@@ -2271,6 +2287,13 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
+          <p
+            className="help tight subtle"
+            style={{ marginBottom: 10, lineHeight: 1.45 }}
+          >
+            Tip: Save your plan when you&apos;re done — you can come back and update it
+            anytime.
+          </p>
           <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
             <button
               type="button"

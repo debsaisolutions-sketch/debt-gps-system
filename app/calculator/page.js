@@ -1477,6 +1477,19 @@ const hasMeaningfulInputs = useMemo(() => {
               Your progress saves automatically on this device. You can come back
               anytime and continue where you left off.
             </p>
+            <p
+              className="help tight"
+              style={{
+                marginTop: 4,
+                marginBottom: 12,
+                fontWeight: 600,
+                color: "var(--text)",
+                fontSize: "0.875rem",
+                lineHeight: 1.45
+              }}
+            >
+              First time here? Skip this and start entering your numbers below.
+            </p>
             <div className="local-scenarios-controls">
               <div className="field load-scenario-field">
                 <label htmlFor="load-local-scenario">Continue where you left off</label>

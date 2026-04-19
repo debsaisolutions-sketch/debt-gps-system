@@ -1585,7 +1585,8 @@ const hasMeaningfulInputs = useMemo(() => {
                   padding: "14px 16px",
                   borderRadius: 12,
                   border: "1px solid rgba(29, 107, 196, 0.28)",
-                  background: "rgba(29, 107, 196, 0.07)"
+                  borderLeft: "4px solid rgba(29, 107, 196, 0.6)",
+                  background: "rgba(29, 107, 196, 0.1)"
                 }}
               >
                 <p
@@ -1593,11 +1594,25 @@ const hasMeaningfulInputs = useMemo(() => {
                     margin: 0,
                     lineHeight: 1.55,
                     color: "var(--text)",
-                    fontSize: "1.02rem"
+                    fontSize: 15,
+                    fontWeight: 600
                   }}
                 >
-                  <strong>Start here:</strong> Enter your income, expenses, and debts to
-                  calculate your payoff strategy.
+                  <span
+                    style={{
+                      display: "inline-block",
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                      background: "rgba(29, 107, 196, 0.12)",
+                      color: "#1d4ed8",
+                      fontWeight: 700,
+                      fontSize: 12,
+                      marginRight: 8
+                    }}
+                  >
+                    START HERE
+                  </span>
+                  Enter your income, expenses, and debts to calculate your payoff strategy.
                 </p>
               </div>
             </div>

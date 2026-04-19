@@ -1471,28 +1471,6 @@ const hasMeaningfulInputs = useMemo(() => {
         <section className="card step-card" aria-labelledby="step1-heading">
           <div className="step-badge">Step 1</div>
           <h2 id="step1-heading">Your numbers</h2>
-          <div
-            role="note"
-            style={{
-              margin: "0 0 20px",
-              padding: "14px 16px",
-              borderRadius: 12,
-              border: "1px solid rgba(29, 107, 196, 0.28)",
-              background: "rgba(29, 107, 196, 0.07)"
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                lineHeight: 1.55,
-                color: "var(--text)",
-                fontSize: "1.02rem"
-              }}
-            >
-              <strong>Start here:</strong> Enter your income, expenses, and debts to
-              calculate your payoff strategy.
-            </p>
-          </div>
 
           <div className="local-scenarios-panel step1-scenario-controls">
             <p className="help tight local-scenarios-lead">
@@ -1586,6 +1564,29 @@ const hasMeaningfulInputs = useMemo(() => {
                 placeholder="e.g. jane@email.com"
                 autoComplete="off"
               />
+            </div>
+            <div className="field full">
+              <div
+                role="note"
+                style={{
+                  padding: "14px 16px",
+                  borderRadius: 12,
+                  border: "1px solid rgba(29, 107, 196, 0.28)",
+                  background: "rgba(29, 107, 196, 0.07)"
+                }}
+              >
+                <p
+                  style={{
+                    margin: 0,
+                    lineHeight: 1.55,
+                    color: "var(--text)",
+                    fontSize: "1.02rem"
+                  }}
+                >
+                  <strong>Start here:</strong> Enter your income, expenses, and debts to
+                  calculate your payoff strategy.
+                </p>
+              </div>
             </div>
             <div className="field">
               <label>Monthly income ($)</label>
@@ -2990,22 +2991,23 @@ const hasMeaningfulInputs = useMemo(() => {
             <div
               style={{
                 marginTop: 14,
-                padding: "10px 12px",
+                padding: "12px 16px",
                 borderRadius: 10,
-                border: "1px dashed rgba(148, 163, 184, 0.45)",
-                background: "rgba(148, 163, 184, 0.07)"
+                background: "rgba(148, 163, 184, 0.08)",
+                border: "1px solid rgba(148, 163, 184, 0.25)"
               }}
             >
               <p
-                className="help tight subtle"
                 style={{
                   margin: 0,
                   textAlign: "center",
-                  fontSize: "0.86rem",
-                  lineHeight: 1.45
+                  color: "#374151",
+                  fontSize: 15,
+                  lineHeight: 1.5
                 }}
               >
-                Your fastest strategy is hidden — unlock to see the exact payoff order.
+                <strong>Your fastest strategy is hidden.</strong> Unlock to see the exact
+                payoff order.
               </p>
             </div>
           ) : null}

@@ -5,6 +5,8 @@ import { getSeoArticleBySlug, seoArticles } from "../../lib/seoArticles";
 
 const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
 
+export const dynamic = "force-dynamic";
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY

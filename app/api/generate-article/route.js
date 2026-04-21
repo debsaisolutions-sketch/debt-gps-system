@@ -1,5 +1,11 @@
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const ARTICLE_FILE_PATH = path.join(process.cwd(), "app/lib/seoArticles.js");
@@ -179,38 +185,27 @@ export async function POST(request) {
     const body = await request.json();
     const action = cleanText(body?.action || "generate");
 
-    if (action === "save") {
-      const normalized = normalizeArticle(body?.article);
-      const validationError = validateArticle(normalized);
-      if (validationError) {
-        return new Response(
-          JSON.stringify({ success: false, error: `Invalid article: ${validationError}` }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        );
+    if (body.action === "save") {
+      const article = body.article;
+
+      const { error } = await supabase
+        .from("seo_articles")
+        .upsert({
+          slug: article.slug,
+          title: article.title,
+          description: article.description,
+          intro: article.intro,
+          sections: article.sections,
+          faq: article.faq,
+          cta_title: article.ctaTitle,
+          cta_text: article.ctaText
+        });
+
+      if (error) {
+        return Response.json({ success: false, error: error.message }, { status: 500 });
       }
 
-      const currentFileContents = await readFile(ARTICLE_FILE_PATH, "utf8");
-      const currentArticles = extractArticleArrayFromFile(currentFileContents);
-      const existingSlug = currentArticles.some((item) => item.slug === normalized.slug);
-
-      if (existingSlug) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "An article with this slug already exists. Regenerate or edit before saving."
-          }),
-          { status: 409, headers: { "Content-Type": "application/json" } }
-        );
-      }
-
-      const updatedArticles = [...currentArticles, normalized];
-      const updatedFile = buildSeoArticlesModule(updatedArticles);
-      await writeFile(ARTICLE_FILE_PATH, updatedFile, "utf8");
-
-      return new Response(
-        JSON.stringify({ success: true, saved: true, article: normalized }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
+      return Response.json({ success: true, article });
     }
 
     const topic = cleanText(body?.topic);

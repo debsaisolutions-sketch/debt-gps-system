@@ -1,33 +1,71 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
 import { getSeoArticleBySlug, seoArticles } from "../../lib/seoArticles";
 
 const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
 export function generateStaticParams() {
   return seoArticles.map((article) => ({ slug: article.slug }));
 }
 
-export function generateMetadata({ params }) {
-  const article = getSeoArticleBySlug(params.slug);
+export async function generateMetadata({ params }) {
+  const staticArticle = getSeoArticleBySlug(params.slug);
 
-  if (!article) {
+  if (staticArticle) {
+    return {
+      title: `${staticArticle.title} | Debt GPS System`,
+      description: staticArticle.description
+    };
+  }
+
+  const { data: dbArticle } = await supabase
+    .from("seo_articles")
+    .select("title, description")
+    .eq("slug", params.slug)
+    .maybeSingle();
+
+  if (!dbArticle) {
     return {
       title: "Article Not Found | Debt GPS System"
     };
   }
 
   return {
-    title: `${article.title} | Debt GPS System`,
-    description: article.description
+    title: `${dbArticle.title} | Debt GPS System`,
+    description: dbArticle.description
   };
 }
 
-export default function LearnArticlePage({ params }) {
-  const article = getSeoArticleBySlug(params.slug);
+export default async function LearnArticlePage({ params }) {
+  let article = getSeoArticleBySlug(params.slug);
 
   if (!article) {
-    notFound();
+    const { data: dbArticle, error } = await supabase
+      .from("seo_articles")
+      .select("*")
+      .eq("slug", params.slug)
+      .maybeSingle();
+
+    if (error || !dbArticle) {
+      notFound();
+    }
+
+    article = {
+      slug: dbArticle.slug,
+      title: dbArticle.title,
+      description: dbArticle.description,
+      intro: dbArticle.intro,
+      sections: dbArticle.sections || [],
+      faq: dbArticle.faq || [],
+      ctaTitle: dbArticle.cta_title,
+      ctaText: dbArticle.cta_text
+    };
   }
 
   return (

@@ -1,31 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { getSeoArticleBySlug, seoArticles } from "../../lib/seoArticles";
-
-const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
-
-export const dynamic = "force-dynamic";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-export function generateStaticParams() {
-  return seoArticles.map((article) => ({ slug: article.slug }));
-}
+const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
-  const staticArticle = getSeoArticleBySlug(params.slug);
-
-  if (staticArticle) {
-    return {
-      title: `${staticArticle.title} | Debt GPS System`,
-      description: staticArticle.description
-    };
-  }
-
   const { data: dbArticle } = await supabase
     .from("seo_articles")
     .select("title, description")
@@ -45,29 +31,14 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function LearnArticlePage({ params }) {
-  let article = getSeoArticleBySlug(params.slug);
+  const { data: article } = await supabase
+    .from("seo_articles")
+    .select("*")
+    .eq("slug", params.slug)
+    .single();
 
   if (!article) {
-    const { data: dbArticle, error } = await supabase
-      .from("seo_articles")
-      .select("*")
-      .eq("slug", params.slug)
-      .maybeSingle();
-
-    if (error || !dbArticle) {
-      notFound();
-    }
-
-    article = {
-      slug: dbArticle.slug,
-      title: dbArticle.title,
-      description: dbArticle.description,
-      intro: dbArticle.intro,
-      sections: dbArticle.sections || [],
-      faq: dbArticle.faq || [],
-      ctaTitle: dbArticle.cta_title,
-      ctaText: dbArticle.cta_text
-    };
+    notFound();
   }
 
   return (
@@ -144,9 +115,9 @@ export default async function LearnArticlePage({ params }) {
         </section>
 
         <section className="card" style={{ borderColor: "rgba(29, 107, 196, 0.45)" }}>
-          <h2 style={{ fontWeight: 800 }}>{article.ctaTitle}</h2>
+          <h2 style={{ fontWeight: 800 }}>{article.cta_title}</h2>
           <p className="help" style={{ fontSize: "1rem", marginBottom: "16px" }}>
-            {article.ctaText}
+            {article.cta_text}
           </p>
           <div className="top-actions" style={{ marginTop: 0 }}>
             <Link className="button-link primary-button" href="/calculator">

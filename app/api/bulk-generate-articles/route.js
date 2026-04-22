@@ -69,7 +69,7 @@ Requirements:
   return article;
 }
 
-export async function POST() {
+export async function GET() {
   const { data: topics, error: topicError } = await supabase
     .from("seo_article_topics")
     .select("*")

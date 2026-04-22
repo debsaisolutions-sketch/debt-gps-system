@@ -73,6 +73,17 @@ export default async function LearnArticlePage({ params }) {
             <p className="help" style={{ marginBottom: 0, fontSize: "1rem", lineHeight: 1.7 }}>
               {section.body}
             </p>
+            <div style={{ marginTop: "12px", display: "grid", gap: "4px" }}>
+              <a href="/learn/how-to-get-out-of-debt-without-consolidation">
+                Get out of debt without consolidation
+              </a>
+              <a href="/learn/snowball-vs-avalanche-method">
+                Snowball vs Avalanche method
+              </a>
+              <a href="/learn/how-to-lower-credit-card-interest-rate">
+                Lower your interest rates
+              </a>
+            </div>
           </section>
         ))}
 

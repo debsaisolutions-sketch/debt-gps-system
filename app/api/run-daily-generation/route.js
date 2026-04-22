@@ -1,5 +1,3 @@
-import { fetch } from "undici";
-
 export async function GET() {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;

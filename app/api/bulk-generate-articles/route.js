@@ -1,0 +1,153 @@
+import OpenAI from "openai";
+import { createClient } from "@supabase/supabase-js";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
+
+function slugify(input) {
+  return String(input || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
+
+async function generateArticleFromTopic(topic) {
+  const prompt = `
+You are writing a debt-help SEO article for Debt GPS System.
+
+Return ONLY valid JSON with this exact shape:
+{
+  "title": "string",
+  "slug": "string",
+  "description": "string",
+  "intro": "string",
+  "sections": [
+    { "heading": "string", "body": "string" }
+  ],
+  "faq": [
+    { "question": "string", "answer": "string" }
+  ],
+  "ctaTitle": "string",
+  "ctaText": "string"
+}
+
+Requirements:
+- Topic: ${topic}
+- Clear, practical, beginner-friendly language
+- 4 to 6 sections
+- 4 to 6 FAQs
+- Slug must be lowercase with hyphens only
+- Make content specific to debt payoff, budgeting, payoff strategy, or cash flow
+- No markdown
+- No code fences
+`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4.1-mini",
+    temperature: 0.7,
+    messages: [
+      { role: "system", content: "You write structured SEO articles in strict JSON." },
+      { role: "user", content: prompt }
+    ]
+  });
+
+  const text = response.choices?.[0]?.message?.content || "";
+  const article = JSON.parse(text);
+
+  if (!article.slug) {
+    article.slug = slugify(article.title || topic);
+  }
+
+  return article;
+}
+
+export async function POST() {
+  const { data: topics, error: topicError } = await supabase
+    .from("seo_article_topics")
+    .select("*")
+    .eq("status", "pending")
+    .order("id", { ascending: true })
+    .limit(5);
+
+  if (topicError) {
+    return Response.json({ success: false, error: topicError.message }, { status: 500 });
+  }
+
+  if (!topics || topics.length === 0) {
+    return Response.json({ success: true, message: "No pending topics found.", processed: 0 });
+  }
+
+  const results = [];
+
+  for (const item of topics) {
+    try {
+      const article = await generateArticleFromTopic(item.topic);
+
+      const { error: articleError } = await supabase
+        .from("seo_articles")
+        .upsert({
+          slug: article.slug,
+          title: article.title,
+          description: article.description,
+          intro: article.intro,
+          sections: article.sections || [],
+          faq: article.faq || [],
+          cta_title: article.ctaTitle,
+          cta_text: article.ctaText
+        });
+
+      if (articleError) {
+        throw new Error(articleError.message);
+      }
+
+      const { error: updateError } = await supabase
+        .from("seo_article_topics")
+        .update({
+          status: "completed",
+          slug: article.slug,
+          error_message: null,
+          processed_at: new Date().toISOString()
+        })
+        .eq("id", item.id);
+
+      if (updateError) {
+        throw new Error(updateError.message);
+      }
+
+      results.push({
+        topic: item.topic,
+        slug: article.slug,
+        status: "completed"
+      });
+    } catch (error) {
+      await supabase
+        .from("seo_article_topics")
+        .update({
+          status: "failed",
+          error_message: error.message,
+          processed_at: new Date().toISOString()
+        })
+        .eq("id", item.id);
+
+      results.push({
+        topic: item.topic,
+        status: "failed",
+        error: error.message
+      });
+    }
+  }
+
+  return Response.json({
+    success: true,
+    processed: results.length,
+    results
+  });
+}

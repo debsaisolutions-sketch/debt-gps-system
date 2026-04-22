@@ -100,6 +100,24 @@ export async function POST(request) {
       /* non-JSON success body is ok */
     }
 
+    if (plan === "paid" && email) {
+      const { createClient } = require("@supabase/supabase-js");
+
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY
+      );
+
+      try {
+        await supabase
+          .from("leads")
+          .update({ plan: "paid" })
+          .eq("email", email.toLowerCase());
+      } catch (err) {
+        console.warn("[leads] supabase paid update failed", err);
+      }
+    }
+
     return NextResponse.json({ success: true, ghl: parsed })
   } catch (e) {
     console.error("[send-to-ghl] fetch to GHL failed", e)

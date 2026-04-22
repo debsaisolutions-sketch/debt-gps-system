@@ -611,11 +611,17 @@ function accelerationLabel(m) {
 }
 
 function CalculatorPage() {
-  const searchParams = useSearchParams();
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
-  const isPremium = searchParams?.get("access") === "paid";
-  const [isUnlocked, setIsUnlocked] = useState(isPremium);
-  const handleUnlockClick = () => {
+  useEffect(() => {
+    const paid = sessionStorage.getItem("paid_user");
+    if (paid === "true") {
+      setIsUnlocked(true);
+      setIsPremium(true);
+    }
+  }, []);
+  const handleUnlockClick = async () => {
     const trimmedEmail = email.trim();
 
     if (!trimmedEmail) {
@@ -631,6 +637,23 @@ function CalculatorPage() {
     }
 
     setUnlockError("");
+
+    try {
+      const { data: paidLead, error: paidLeadError } = await supabase
+        .from("leads")
+        .select("plan")
+        .eq("email", trimmedEmail.toLowerCase())
+        .maybeSingle();
+
+      if (!paidLeadError && paidLead?.plan === "paid") {
+        setUnlockError("");
+        setIsUnlocked(true);
+        setIsPremium(true);
+        return;
+      }
+    } catch (err) {
+      console.warn("[leads] paid lookup failed", err);
+    }
 
     console.log("[leads] sending email to GHL:", trimmedEmail);
     fetch("/api/send-to-ghl", {
@@ -875,7 +898,8 @@ const hasMeaningfulInputs = useMemo(() => {
     helocPayoffTriggerMonth1,
     helocStateLatest,
     totalHelocInterestPaid,
-    consumerDebtPayoffMonthById
+    consumerDebtPayoffMonthById,
+    totalInterestPaid: totalInterest
   } = projection;
 
   const maxPayoffMonthFromProjection = useMemo(() => {
@@ -2372,6 +2396,118 @@ const hasMeaningfulInputs = useMemo(() => {
             ) : null}
           </p>
 
+          {!isUnlocked ? (
+            <div
+              className="strategy-comparison-section"
+              aria-label="Strategy comparison locked"
+            >
+              <h3 className="subsection-title">Strategy Comparison</h3>
+              <div
+                style={{
+                  border: "1px solid var(--line)",
+                  borderRadius: 14,
+                  padding: "18px",
+                  background: "var(--card)"
+                }}
+              >
+                <div
+                  style={{
+                    height: 150,
+                    borderRadius: 10,
+                    background:
+                      "linear-gradient(90deg, rgba(148,163,184,0.28), rgba(148,163,184,0.14), rgba(148,163,184,0.28))",
+                    filter: "blur(1.5px)",
+                    marginBottom: 14
+                  }}
+                />
+                <p style={{ margin: "0 0 6px", fontWeight: 700, color: "var(--text)" }}>
+                  Get your free payoff summary
+                </p>
+                <p className="help tight" style={{ margin: 0 }}>
+                  Enter your email to save your progress and unlock your personalized payoff summary.
+                </p>
+                <p className="help tight" style={{ marginTop: 6 }}>
+                  See exactly how long it will take and what to do next.
+                </p>
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (unlockError) setUnlockError("");
+                  }}
+                  style={{
+                    width: "100%",
+                    marginTop: 12,
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    border: "1px solid var(--line)",
+                    background: "var(--bg)",
+                    color: "var(--text)"
+                  }}
+                />
+                {unlockError ? (
+                  <p className="status error" style={{ marginTop: 10 }}>
+                    {unlockError}
+                  </p>
+                ) : null}
+                <div style={{ marginTop: 14 }}>
+                  <button
+                    type="button"
+                    onClick={handleUnlockClick}
+                    className="primary-button"
+                  >
+                    Get My Free Results
+                  </button>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      margin: "10px 0",
+                      fontSize: 12,
+                      opacity: 0.7
+                    }}
+                  >
+                    — or —
+                  </div>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    style={{
+                      marginTop: 0,
+                      opacity: 0.9
+                    }}
+                    onClick={async () => {
+                      const trimmedEmail = email.trim();
+
+                      if (trimmedEmail) {
+                        try {
+                          await fetch("/api/send-to-ghl", {
+                            method: "POST",
+                            headers: {
+                              "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                              email: trimmedEmail,
+                              source: "Debt GPS",
+                              plan: "paid"
+                            })
+                          });
+                        } catch (err) {
+                          console.warn("[leads] direct paid CTA error", err);
+                        }
+                      }
+
+                      window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcheckout%2Fsuccess%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D`, "_blank");
+                    }}
+                  >
+                    Skip Results — Show Me My Fastest Payoff Plan
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div
             role="region"
             aria-labelledby="best-path-heading"
@@ -2755,14 +2891,128 @@ const hasMeaningfulInputs = useMemo(() => {
             )}
           </div>
 
-          {true ? (
-          <>    
+          {hasMeaningfulInputs ? (
+          <>
           {isUnlocked ? (
           <>
+          {!isPremium ? (
+            <>
+            <div
+              style={{
+                marginTop: 14,
+                marginBottom: 14,
+                border: "1px solid rgba(29, 107, 196, 0.28)",
+                borderRadius: 14,
+                padding: "16px",
+                background: "linear-gradient(180deg, rgba(29,107,196,0.08), rgba(29,107,196,0.03))"
+              }}
+            >
+              <p style={{ margin: "0 0 6px", fontWeight: 800, color: "var(--text)" }}>
+                Ready to unlock your fastest payoff path?
+              </p>
+              <p className="help tight" style={{ margin: "0 0 12px" }}>
+                You’ve unlocked your free results. Upgrade now to see Banking + HELOC comparisons, your exact payoff order, and the full step-by-step payoff roadmap.
+              </p>
+              {consumerDebtFreeMonth > 0 ? (
+                <>
+                  <p
+                    className="help tight"
+                    style={{ margin: "0 0 12px", fontWeight: 600, color: "var(--text)" }}
+                  >
+                    Based on your current plan, you’re on track for{" "}
+                    <strong>
+                      {Math.ceil((consumerDebtFreeMonth || 0) / 12)} years
+                    </strong>{" "}
+                    in debt. The right strategy could dramatically shorten that timeline.
+                  </p>
+                  {typeof totalInterest === "number" && totalInterest > 0 ? (
+                    <p
+                      className="help tight"
+                      style={{ margin: "0 0 12px", fontWeight: 600, color: "var(--text)" }}
+                    >
+                      That could mean paying{" "}
+                      <strong>
+                        ${Math.round(totalInterest).toLocaleString()}
+                      </strong>{" "}
+                      in interest over time.
+                    </p>
+                  ) : null}
+                </>
+              ) : null}
+              <p
+                className="help tight"
+                style={{ margin: "0 0 12px", fontSize: 12, opacity: 0.85 }}
+              >
+                Most people in your situation choose this plan to eliminate debt faster and save thousands in interest.
+              </p>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={async () => {
+                  const trimmedEmail = email.trim();
+
+                  if (trimmedEmail) {
+                    try {
+                      await fetch("/api/send-to-ghl", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                          email: trimmedEmail,
+                          source: "Debt GPS",
+                          plan: "paid"
+                        })
+                      });
+                    } catch (err) {
+                      console.warn("[leads] paid lead send-to-ghl error", err);
+                    }
+                  }
+
+                  window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcheckout%2Fsuccess%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D`, "_blank");
+                }}
+              >
+                Show Me How to Get Out of Debt Faster — $47
+              </button>
+              <p
+                className="help tight"
+                style={{ margin: "10px 0 0", fontSize: 12, opacity: 0.8 }}
+              >
+                Start with your saved email and unlock the full Banking + HELOC payoff roadmap instantly.
+              </p>
+            </div>
+            <div
+              aria-hidden="true"
+              style={{
+                height: 1,
+                margin: "14px 0 16px",
+                background: "linear-gradient(90deg, rgba(29,107,196,0), rgba(29,107,196,0.22), rgba(29,107,196,0))"
+              }}
+            />
+            </>
+          ) : null}
           <div
             className="strategy-comparison-section"
             aria-label="Strategy comparison using your current inputs"
           >
+            <p
+              style={{
+                margin: "0 0 6px",
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                color: "var(--muted)"
+              }}
+            >
+              Free Preview
+            </p>
+            <p
+              className="help tight"
+              style={{ margin: "0 0 10px", fontSize: 12, opacity: 0.8 }}
+            >
+              Full payoff order, Banking strategy, and HELOC optimization are included in your paid plan.
+            </p>
             <h3 className="subsection-title">Strategy Comparison</h3>
             <p className="help tight strategy-comparison-lead">
               Uses the same income, expenses, debts, and strategy budget as Step 1. Two
@@ -3268,6 +3518,46 @@ const hasMeaningfulInputs = useMemo(() => {
                   Early users keep $47/month before pricing increases.
                 </p>
               </div>
+              <div
+                style={{
+                  display: "grid",
+                  gap: 12,
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  margin: "14px 0"
+                }}
+              >
+                <div
+                  style={{
+                    border: "1px solid rgba(148, 163, 184, 0.28)",
+                    borderRadius: 12,
+                    padding: 14,
+                    background: "rgba(255,255,255,0.55)"
+                  }}
+                >
+                  <p style={{ margin: "0 0 8px", fontWeight: 800, color: "var(--text)" }}>Free Preview</p>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    <li>Basic payoff projection</li>
+                    <li>Strategy preview</li>
+                    <li>Email unlock access</li>
+                  </ul>
+                </div>
+
+                <div
+                  style={{
+                    border: "1px solid rgba(29, 107, 196, 0.28)",
+                    borderRadius: 12,
+                    padding: 14,
+                    background: "linear-gradient(180deg, rgba(29,107,196,0.08), rgba(29,107,196,0.03))"
+                  }}
+                >
+                  <p style={{ margin: "0 0 8px", fontWeight: 800, color: "var(--text)" }}>Paid Plan</p>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    <li>Full payoff order</li>
+                    <li>Banking + HELOC comparison</li>
+                    <li>Complete payoff roadmap</li>
+                  </ul>
+                </div>
+              </div>
               <button
                 type="button"
                 className="primary-button"
@@ -3306,73 +3596,7 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
           </>
-          ) : (
-            <div
-              className="strategy-comparison-section"
-              aria-label="Strategy comparison locked"
-            >
-              <h3 className="subsection-title">Strategy Comparison</h3>
-              <div
-                style={{
-                  border: "1px solid var(--line)",
-                  borderRadius: 14,
-                  padding: "18px",
-                  background: "var(--card)"
-                }}
-              >
-                <div
-                  style={{
-                    height: 150,
-                    borderRadius: 10,
-                    background:
-                      "linear-gradient(90deg, rgba(148,163,184,0.28), rgba(148,163,184,0.14), rgba(148,163,184,0.28))",
-                    filter: "blur(1.5px)",
-                    marginBottom: 14
-                  }}
-                />
-                <p style={{ margin: "0 0 6px", fontWeight: 700, color: "var(--text)" }}>
-                  Get your free payoff summary
-                </p>
-                <p className="help tight" style={{ margin: 0 }}>
-                  Enter your email to save your progress and unlock your personalized payoff summary.
-                </p>
-                <p className="help tight" style={{ marginTop: 6 }}>
-                  See exactly how long it will take and what to do next.
-                </p>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (unlockError) setUnlockError("");
-                  }}
-                  style={{
-                    width: "100%",
-                    marginTop: 12,
-                    padding: "10px 12px",
-                    borderRadius: 8,
-                    border: "1px solid var(--line)",
-                    background: "var(--bg)",
-                    color: "var(--text)"
-                  }}
-                />
-                {unlockError ? (
-                  <p className="status error" style={{ marginTop: 10 }}>
-                    {unlockError}
-                  </p>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={handleUnlockClick}
-                  className="primary-button"
-                  style={{ marginTop: 14 }}
-                >
-                  Get My Free Results
-                </button>
-              </div>
-            </div>
-          )}
+          ) : null}
 
           {isPremium ? (
           <div className="payoff-order-panel">

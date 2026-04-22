@@ -575,19 +575,49 @@ export default function LandingPage() {
             lineHeight: 1.2
           }}
         >
-          Stop Guessing. See Your Plan.
+          Get Out of Debt Faster — With the Right Strategy
         </h2>
         <p
           style={{
-            margin: "0 auto 30px",
-            maxWidth: "520px",
+            margin: "0 auto 16px",
+            maxWidth: "560px",
             fontSize: "1.02rem",
             lineHeight: 1.55,
             color: "rgba(248, 250, 252, 0.88)"
           }}
         >
-          Start with checkout—then use your access link to open the calculator with your
-          real numbers and explore scenarios and the payoff timeline.
+          Unlock your full Debt GPS payoff plan, including your exact payoff order, Banking
+          strategy comparison, HELOC comparison, and the complete roadmap to eliminate debt
+          faster and reduce interest.
+        </p>
+        <ul
+          style={{
+            margin: "0 auto 16px",
+            paddingLeft: "1.25rem",
+            maxWidth: "520px",
+            textAlign: "left",
+            fontSize: "0.98rem",
+            lineHeight: 1.6,
+            color: "rgba(248, 250, 252, 0.9)"
+          }}
+        >
+          <li style={{ marginBottom: 8 }}>See your exact fastest payoff path</li>
+          <li style={{ marginBottom: 8 }}>
+            Compare Snowball, Avalanche, Banking, and HELOC side by side
+          </li>
+          <li style={{ marginBottom: 0 }}>Unlock the full step-by-step payoff roadmap</li>
+        </ul>
+        <p
+          style={{
+            margin: "0 auto 30px",
+            maxWidth: "520px",
+            fontSize: "0.95rem",
+            lineHeight: 1.5,
+            color: "rgba(248, 250, 252, 0.82)",
+            fontWeight: 500
+          }}
+        >
+          Start today and see your full strategy instantly.
         </p>
         <div
           style={{

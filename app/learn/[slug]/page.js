@@ -122,21 +122,31 @@ export default async function LearnArticlePage({ params }) {
         </section>
 
         <section className="card" style={{ borderColor: "rgba(29, 107, 196, 0.45)" }}>
-          <h2 style={{ fontWeight: 800 }}>{article.cta_title}</h2>
-          <p className="help" style={{ fontSize: "1rem", marginBottom: "16px" }}>
-            {article.cta_text}
+          <h2 style={{ fontWeight: 800 }}>
+            Want a Custom Plan to Pay Off Your Debt Faster?
+          </h2>
+
+          <p style={{ marginBottom: "16px" }}>
+            Most people stay stuck because they do not have a clear strategy.
+            Use the Debt GPS Calculator to see your exact payoff timeline,
+            interest savings, and fastest path to becoming debt free.
           </p>
-          <div className="top-actions" style={{ marginTop: 0 }}>
-            <Link className="button-link primary-button" href="/calculator">
-              Launch Calculator
-            </Link>
+
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
             <a
-              className="secondary-button"
-              href={CALENDLY_URL}
+              href="/calculator"
+              className="button-link primary-button"
+            >
+              See My Plan
+            </a>
+
+            <a
+              href="https://calendly.com/debsaisolutions/30min"
               target="_blank"
               rel="noopener noreferrer"
+              className="secondary-button"
             >
-              Book a Free Strategy Call
+              Get Expert Help
             </a>
           </div>
         </section>

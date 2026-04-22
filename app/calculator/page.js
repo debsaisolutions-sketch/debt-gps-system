@@ -2956,6 +2956,19 @@ const hasMeaningfulInputs = useMemo(() => {
               >
                 Most people in your situation choose this plan to eliminate debt faster and save thousands in interest.
               </p>
+              <p
+                style={{
+                  margin: "0 0 10px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "var(--text)"
+                }}
+              >
+                <span style={{ textDecoration: "line-through", opacity: 0.6, marginRight: 6 }}>
+                  $97
+                </span>
+                <span>$47 Early Access</span>
+              </p>
               <button
                 type="button"
                 className="primary-button"
@@ -2985,6 +2998,12 @@ const hasMeaningfulInputs = useMemo(() => {
               >
                 Show Me How to Get Out of Debt Faster — $47
               </button>
+              <p
+                className="help tight"
+                style={{ margin: "8px 0 0", fontSize: 12, fontWeight: 600, color: "var(--text)" }}
+              >
+                Lock in your $47 early-access rate while your plan stays active. Cancel anytime.
+              </p>
               <p
                 className="help tight"
                 style={{ margin: "10px 0 0", fontSize: 12, opacity: 0.8 }}

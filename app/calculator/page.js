@@ -613,11 +613,8 @@ function accelerationLabel(m) {
 function CalculatorPage() {
   const searchParams = useSearchParams();
 
-  const [isUnlocked, setIsUnlocked] = useState(() => {
-    const access = searchParams?.get("access");
-    return access === "paid";
-  });
-  const isPremium = isUnlocked;
+  const isPremium = searchParams?.get("access") === "paid";
+  const [isUnlocked, setIsUnlocked] = useState(isPremium);
   const handleUnlockClick = () => {
     const trimmedEmail = email.trim();
 
@@ -643,7 +640,8 @@ function CalculatorPage() {
       },
       body: JSON.stringify({
         email: trimmedEmail,
-        source: "Debt GPS"
+        source: "Debt GPS",
+        plan: "free"
       })
     })
       .then(async (res) => {
@@ -3086,6 +3084,16 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
           {!isPremium ? (
+            <div style={{ marginTop: 14 }}>
+              <p className="help tight" style={{ fontWeight: 600 }}>
+                You are currently viewing a limited version of your plan.
+              </p>
+              <p className="help tight">
+                Unlock to see your exact fastest payoff path, full strategy breakdown, and step-by-step execution plan.
+              </p>
+            </div>
+          ) : null}
+          {!isPremium ? (
             <div
               style={{
                 marginTop: 14,
@@ -3263,7 +3271,7 @@ const hasMeaningfulInputs = useMemo(() => {
               <button
                 type="button"
                 className="primary-button"
-                onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}`, "_blank")}
+                onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank")}
               >
                 Unlock My Fastest Payoff Plan — $47
               </button>

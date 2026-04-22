@@ -27,9 +27,11 @@ export async function POST(request) {
     )
   }
 
-  let body
+  let email
+  let source
+  let plan
   try {
-    body = await request.json()
+    ({ email, source, plan } = await request.json())
   } catch (e) {
     console.error("[send-to-ghl] invalid JSON body", e)
     return NextResponse.json(
@@ -38,13 +40,14 @@ export async function POST(request) {
     )
   }
 
-  const email = typeof body.email === "string" ? body.email.trim() : ""
-  const source = typeof body.source === "string" ? body.source.trim() : ""
+  const normalizedEmail = typeof email === "string" ? email.trim() : ""
+  const normalizedSource = typeof source === "string" ? source.trim() : ""
+  const normalizedPlan = typeof plan === "string" ? plan.trim() : ""
 
-  if (!email || !source) {
+  if (!normalizedEmail || !normalizedSource) {
     console.error("[send-to-ghl] missing email or source", {
-      hasEmail: Boolean(email),
-      hasSource: Boolean(source)
+      hasEmail: Boolean(normalizedEmail),
+      hasSource: Boolean(normalizedSource)
     })
     return NextResponse.json(
       { success: false, error: "email and source are required" },
@@ -54,9 +57,10 @@ export async function POST(request) {
 
   const payload = {
     locationId: locationId,
-    email,
+    email: normalizedEmail,
     tags: ["Debt GPS"],
-    source
+    source: normalizedSource,
+    plan: normalizedPlan || "free"
   }
 
   try {

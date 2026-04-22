@@ -144,7 +144,7 @@ export default async function LearnArticlePage({ params }) {
               href="https://calendly.com/debsaisolutions/30min"
               target="_blank"
               rel="noopener noreferrer"
-              className="secondary-button"
+              className="button-link primary-button"
             >
               Get Expert Help
             </a>

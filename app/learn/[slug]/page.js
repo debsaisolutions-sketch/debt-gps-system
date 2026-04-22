@@ -31,11 +31,18 @@ export async function generateMetadata({ params }) {
 }
 
 export default async function LearnArticlePage({ params }) {
-  const { data: article } = await supabase
+  const slug = params?.slug;
+
+  console.log("SLUG:", slug);
+
+  const { data: article, error } = await supabase
     .from("seo_articles")
     .select("*")
-    .eq("slug", params.slug)
-    .single();
+    .eq("slug", slug)
+    .maybeSingle();
+
+  console.log("ARTICLE:", article);
+  console.log("ERROR:", error);
 
   if (!article) {
     notFound();

@@ -291,7 +291,7 @@ export function MonthTable({ columns, rows, className = "", style = {}, ...props
 import Image from "next/image";
 import Link from "next/link";
 import { redirect, useSearchParams } from "next/navigation";
-import { useMemo, useState, useCallback, useEffect, Suspense } from "react";
+import { useMemo, useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
 import {
   aggregateDebts,
@@ -613,6 +613,7 @@ function accelerationLabel(m) {
 function CalculatorPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const resultsRef = useRef(null);
 
   useEffect(() => {
     const paid = sessionStorage.getItem("paid_user");
@@ -649,6 +650,9 @@ function CalculatorPage() {
         setUnlockError("");
         setIsUnlocked(true);
         setIsPremium(true);
+        setTimeout(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 100);
         return;
       }
     } catch (err) {
@@ -677,6 +681,9 @@ function CalculatorPage() {
       });
 
     setIsUnlocked(true);
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
   };
   const [form, setForm] = useState(() => buildDefaultForm());
   const [saveStatus, setSaveStatus] = useState("");
@@ -2357,7 +2364,11 @@ const hasMeaningfulInputs = useMemo(() => {
 </div>
 </section>
 
-        <section className="card step-card results-card" aria-labelledby="step2-heading">
+        <section
+          ref={resultsRef}
+          className="card step-card results-card"
+          aria-labelledby="step2-heading"
+        >
           <div className="step-badge secondary">Step 2</div>
           <h2 id="step2-heading">Projected results</h2>
           {isPremium && shouldShowError ? (

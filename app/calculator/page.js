@@ -3271,7 +3271,29 @@ const hasMeaningfulInputs = useMemo(() => {
               <button
                 type="button"
                 className="primary-button"
-                onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank")}
+                onClick={async () => {
+                  const trimmedEmail = email.trim();
+
+                  if (trimmedEmail) {
+                    try {
+                      await fetch("/api/send-to-ghl", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                          email: trimmedEmail,
+                          source: "Debt GPS",
+                          plan: "paid"
+                        })
+                      });
+                    } catch (err) {
+                      console.warn("[leads] paid lead send-to-ghl error", err);
+                    }
+                  }
+
+                  window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
+                }}
               >
                 Unlock My Fastest Payoff Plan — $47
               </button>

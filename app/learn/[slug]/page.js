@@ -12,21 +12,29 @@ const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
-  const { data: dbArticle } = await supabase
+  const slug = params.slug;
+
+  const { data: article } = await supabase
     .from("seo_articles")
     .select("title, description")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .maybeSingle();
 
-  if (!dbArticle) {
+  if (!article) {
     return {
-      title: "Article Not Found | Debt GPS System"
+      title: "Debt GPS Learning Center",
+      description: "Learn how to pay off debt faster and take control of your finances."
     };
   }
 
   return {
-    title: `${dbArticle.title} | Debt GPS System`,
-    description: dbArticle.description
+    title: `${article.title} | Debt GPS System`,
+    description: article.description,
+    openGraph: {
+      title: article.title,
+      description: article.description,
+      type: "article"
+    }
   };
 }
 
@@ -40,6 +48,12 @@ export default async function LearnArticlePage({ params }) {
     .select("*")
     .eq("slug", slug)
     .maybeSingle();
+
+  const { data: relatedArticles } = await supabase
+    .from("seo_articles")
+    .select("slug, title")
+    .neq("slug", slug)
+    .limit(3);
 
   console.log("ARTICLE:", article);
   console.log("ERROR:", error);
@@ -128,6 +142,18 @@ export default async function LearnArticlePage({ params }) {
                   {item.answer}
                 </p>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="card" style={{ marginTop: "18px" }}>
+          <h2 style={{ marginBottom: "10px" }}>Related Articles</h2>
+
+          <div style={{ display: "grid", gap: "8px" }}>
+            {relatedArticles?.map((item) => (
+              <Link key={item.slug} href={`/learn/${item.slug}`}>
+                {item.title}
+              </Link>
             ))}
           </div>
         </section>

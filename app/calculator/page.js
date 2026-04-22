@@ -611,17 +611,38 @@ function accelerationLabel(m) {
 }
 
 function CalculatorPage() {
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const isPremium = false;
+  const searchParams = useSearchParams();
+
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    const access = searchParams?.get("access");
+    return access === "paid";
+  });
+  const isPremium = isUnlocked;
   const handleUnlockClick = () => {
-    console.log("[leads] sending email to GHL:", email);
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail) {
+      setUnlockError("Please enter your email first.");
+      return;
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(trimmedEmail)) {
+      setUnlockError("Please enter a valid email address.");
+      return;
+    }
+
+    setUnlockError("");
+
+    console.log("[leads] sending email to GHL:", trimmedEmail);
     fetch("/api/send-to-ghl", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        email,
+        email: trimmedEmail,
         source: "Debt GPS"
       })
     })
@@ -633,15 +654,16 @@ function CalculatorPage() {
       .catch((err) => {
         console.warn("[leads] send-to-ghl error", err);
       });
+
     setIsUnlocked(true);
   };
-  const searchParams = useSearchParams();
   const [form, setForm] = useState(() => buildDefaultForm());
   const [saveStatus, setSaveStatus] = useState("");
   const [localScenarios, setLocalScenarios] = useState([]);
   const [loadScenarioSelect, setLoadScenarioSelect] = useState("");
   const [deleteScenarioId, setDeleteScenarioId] = useState("");
   const [email, setEmail] = useState("");
+  const [unlockError, setUnlockError] = useState("");
   const [step1NotesOpen, setStep1NotesOpen] = useState(false);
   /** Step 2: simulated month for Debt Payoff Order / Paid Off Debts timeline (0 = start). */
   const [payoffTimelineCurrentMonth, setPayoffTimelineCurrentMonth] = useState(0);
@@ -3189,68 +3211,70 @@ const hasMeaningfulInputs = useMemo(() => {
               </p>
             </div>
           ) : null}
-          <div
-            style={{
-              marginTop: 14,
-              border: "1px solid var(--line)",
-              borderRadius: 14,
-              padding: "18px",
-              background: "var(--card)"
-            }}
-          >
-            <h4 style={{ margin: "0 0 10px", color: "var(--text)" }}>
-              Unlock Your Fastest Payoff Plan (Early Access Pricing)
-            </h4>
-            <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
-              Early users lock in $47/month — price increases to $97 soon.
-            </p>
-            <ul>
-              <li>Unlock Banking + HELOC comparisons</li>
-              <li>See your exact payoff order (step-by-step)</li>
-              <li>Access full month-by-month payoff roadmap</li>
-              <li>See your true fastest strategy (not just standard methods)</li>
-            </ul>
-            <p className="help tight" style={{ margin: "0 0 12px" }}>
-              You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
-            </p>
-            {!isPremium ? (
-              <p className="help tight" style={{ margin: "0 0 12px", fontWeight: 500 }}>
-                You’re about{" "}
-                {Number.isFinite(
-                  strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
-                )
-                  ? strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
-                  : "--"}{" "}
-                months away from being debt free — unlock your fastest path now.
+          {!isPremium ? (
+            <div
+              style={{
+                marginTop: 14,
+                border: "1px solid var(--line)",
+                borderRadius: 14,
+                padding: "18px",
+                background: "var(--card)"
+              }}
+            >
+              <h4 style={{ margin: "0 0 10px", color: "var(--text)" }}>
+                Unlock Your Fastest Payoff Plan (Early Access Pricing)
+              </h4>
+              <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
+                Early users lock in $47/month — price increases to $97 soon.
               </p>
-            ) : null}
-            <div style={{ margin: "0 0 12px", padding: "12px", border: "1px solid var(--line)", borderRadius: 10 }}>
-              <h5 style={{ margin: "0 0 8px", color: "var(--text)" }}>
-                See the plan most people miss
-              </h5>
-              <ul style={{ margin: "0 0 8px", paddingLeft: 18 }}>
-                <li>Cut years off your payoff timeline</li>
-                <li>See which debt to attack first</li>
-                <li>Unlock advanced strategy paths hidden in free view</li>
+              <ul>
+                <li>Unlock Banking + HELOC comparisons</li>
+                <li>See your exact payoff order (step-by-step)</li>
+                <li>Access full month-by-month payoff roadmap</li>
+                <li>See your true fastest strategy (not just standard methods)</li>
               </ul>
-              <p className="help tight" style={{ margin: 0 }}>
-                Early users keep $47/month before pricing increases.
+              <p className="help tight" style={{ margin: "0 0 12px" }}>
+                You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
+              </p>
+              {!isPremium ? (
+                <p className="help tight" style={{ margin: "0 0 12px", fontWeight: 500 }}>
+                  You’re about{" "}
+                  {Number.isFinite(
+                    strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
+                  )
+                    ? strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
+                    : "--"}{" "}
+                  months away from being debt free — unlock your fastest path now.
+                </p>
+              ) : null}
+              <div style={{ margin: "0 0 12px", padding: "12px", border: "1px solid var(--line)", borderRadius: 10 }}>
+                <h5 style={{ margin: "0 0 8px", color: "var(--text)" }}>
+                  See the plan most people miss
+                </h5>
+                <ul style={{ margin: "0 0 8px", paddingLeft: 18 }}>
+                  <li>Cut years off your payoff timeline</li>
+                  <li>See which debt to attack first</li>
+                  <li>Unlock advanced strategy paths hidden in free view</li>
+                </ul>
+                <p className="help tight" style={{ margin: 0 }}>
+                  Early users keep $47/month before pricing increases.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}`, "_blank")}
+              >
+                Unlock My Fastest Payoff Plan — $47
+              </button>
+              <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
+                One-time setup. No long-term commitment.
+              </p>
+              <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
+                Start now and lock in early access pricing before it increases.
               </p>
             </div>
-            <button
-              type="button"
-              className="primary-button"
-              onClick={() => window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}`, "_blank")}
-            >
-              Unlock My Fastest Payoff Plan — $47
-            </button>
-            <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
-              One-time setup. No long-term commitment.
-            </p>
-            <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
-              Start now and lock in early access pricing before it increases.
-            </p>
-          </div>
+          ) : null}
           </>
           ) : (
             <div
@@ -3289,7 +3313,10 @@ const hasMeaningfulInputs = useMemo(() => {
                   type="email"
                   placeholder="Enter your email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (unlockError) setUnlockError("");
+                  }}
                   style={{
                     width: "100%",
                     marginTop: 12,
@@ -3300,6 +3327,11 @@ const hasMeaningfulInputs = useMemo(() => {
                     color: "var(--text)"
                   }}
                 />
+                {unlockError ? (
+                  <p className="status error" style={{ marginTop: 10 }}>
+                    {unlockError}
+                  </p>
+                ) : null}
                 <button
                   type="button"
                   onClick={handleUnlockClick}

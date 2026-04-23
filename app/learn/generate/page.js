@@ -9,10 +9,31 @@ export default function GenerateArticlePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [article, setArticle] = useState(null);
+  const [hasDraft, setHasDraft] = useState(false);
+
+  const [title, setTitle] = useState("");
+  const [slug, setSlug] = useState("");
+  const [description, setDescription] = useState("");
+  const [intro, setIntro] = useState("");
+  const [sections, setSections] = useState([]);
+  const [faq, setFaq] = useState([]);
+  const [ctaTitle, setCtaTitle] = useState("");
+  const [ctaText, setCtaText] = useState("");
 
   const canGenerate = useMemo(() => topic.trim().length > 0 && !loading, [topic, loading]);
-  const canSave = Boolean(article) && !saving;
+  const canSave = hasDraft && !saving;
+
+  function updateSection(index, field, value) {
+    setSections((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, [field]: value } : s))
+    );
+  }
+
+  function updateFaqItem(index, field, value) {
+    setFaq((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, [field]: value } : item))
+    );
+  }
 
   async function handleGenerate() {
     setLoading(true);
@@ -31,10 +52,41 @@ export default function GenerateArticlePage() {
         throw new Error(payload?.error || "Generation failed");
       }
 
-      setArticle(payload.article);
+      const a = payload.article;
+      setTitle(a.title ?? "");
+      setSlug(a.slug ?? "");
+      setDescription(a.description ?? "");
+      setIntro(a.intro ?? "");
+      setSections(
+        Array.isArray(a.sections)
+          ? a.sections.map((s) => ({
+              heading: s.heading ?? "",
+              body: s.body ?? ""
+            }))
+          : []
+      );
+      setFaq(
+        Array.isArray(a.faq)
+          ? a.faq.map((item) => ({
+              question: item.question ?? "",
+              answer: item.answer ?? ""
+            }))
+          : []
+      );
+      setCtaTitle(a.ctaTitle ?? "");
+      setCtaText(a.ctaText ?? "");
+      setHasDraft(true);
       setSuccess("Article generated. Review it, then save.");
     } catch (err) {
-      setArticle(null);
+      setHasDraft(false);
+      setTitle("");
+      setSlug("");
+      setDescription("");
+      setIntro("");
+      setSections([]);
+      setFaq([]);
+      setCtaTitle("");
+      setCtaText("");
       setError(err?.message || "Generation failed");
     } finally {
       setLoading(false);
@@ -42,7 +94,18 @@ export default function GenerateArticlePage() {
   }
 
   async function handleSave() {
-    if (!article) return;
+    if (!hasDraft) return;
+
+    const article = {
+      title,
+      slug,
+      description,
+      intro,
+      sections,
+      faq,
+      ctaTitle,
+      ctaText
+    };
 
     setSaving(true);
     setError("");
@@ -61,7 +124,31 @@ export default function GenerateArticlePage() {
       }
 
       setSuccess("Article saved to seoArticles.js.");
-      setArticle(payload.article);
+      const saved = payload.article;
+      if (saved) {
+        setTitle(saved.title ?? "");
+        setSlug(saved.slug ?? "");
+        setDescription(saved.description ?? "");
+        setIntro(saved.intro ?? "");
+        setSections(
+          Array.isArray(saved.sections)
+            ? saved.sections.map((s) => ({
+                heading: s.heading ?? "",
+                body: s.body ?? ""
+              }))
+            : []
+        );
+        setFaq(
+          Array.isArray(saved.faq)
+            ? saved.faq.map((item) => ({
+                question: item.question ?? "",
+                answer: item.answer ?? ""
+              }))
+            : []
+        );
+        setCtaTitle(saved.ctaTitle ?? "");
+        setCtaText(saved.ctaText ?? "");
+      }
     } catch (err) {
       setError(err?.message || "Save failed");
     } finally {
@@ -113,32 +200,60 @@ export default function GenerateArticlePage() {
         {success ? <p className="status success">{success}</p> : null}
       </section>
 
-      {article ? (
+      {hasDraft ? (
         <section className="card">
           <p className="step-badge" style={{ marginBottom: "8px" }}>
             Generated Output
           </p>
-          <h2 style={{ marginBottom: "8px" }}>{article.title}</h2>
-          <p className="help" style={{ marginBottom: "8px" }}>
-            <strong>Slug:</strong> {article.slug}
-          </p>
-          <p className="help" style={{ marginBottom: "14px" }}>
-            {article.description}
-          </p>
+          <div className="field" style={{ marginBottom: "8px" }}>
+            <label htmlFor="article-title">Title</label>
+            <input
+              id="article-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+          <div className="field" style={{ marginBottom: "8px" }}>
+            <label htmlFor="article-slug">Slug</label>
+            <input
+              id="article-slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+            />
+          </div>
+          <div className="field" style={{ marginBottom: "14px" }}>
+            <label htmlFor="article-description">Description</label>
+            <textarea
+              id="article-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
+          </div>
 
           <section style={{ marginBottom: "12px" }}>
             <h3 style={{ margin: "0 0 6px" }}>Intro</h3>
-            <p className="help" style={{ marginBottom: 0, fontSize: "1rem", color: "var(--text)" }}>
-              {article.intro}
-            </p>
+            <textarea
+              className="help"
+              value={intro}
+              onChange={(e) => setIntro(e.target.value)}
+              rows={6}
+              style={{
+                marginBottom: 0,
+                fontSize: "1rem",
+                color: "var(--text)",
+                width: "100%",
+                boxSizing: "border-box"
+              }}
+            />
           </section>
 
           <section style={{ marginBottom: "12px" }}>
             <h3 style={{ margin: "0 0 8px" }}>Sections</h3>
             <div style={{ display: "grid", gap: "10px" }}>
-              {article.sections?.map((section) => (
+              {sections.map((section, index) => (
                 <div
-                  key={section.heading}
+                  key={`section-${index}`}
                   style={{
                     border: "1px solid var(--line)",
                     borderRadius: "12px",
@@ -146,10 +261,25 @@ export default function GenerateArticlePage() {
                     padding: "12px 14px"
                   }}
                 >
-                  <h4 style={{ margin: "0 0 6px", fontSize: "1rem" }}>{section.heading}</h4>
-                  <p className="help" style={{ marginBottom: 0 }}>
-                    {section.body}
-                  </p>
+                  <div className="field" style={{ marginBottom: "8px" }}>
+                    <label htmlFor={`section-heading-${index}`}>Heading</label>
+                    <input
+                      id={`section-heading-${index}`}
+                      value={section.heading}
+                      onChange={(e) => updateSection(index, "heading", e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`section-body-${index}`}>Body</label>
+                    <textarea
+                      id={`section-body-${index}`}
+                      className="help"
+                      value={section.body}
+                      onChange={(e) => updateSection(index, "body", e.target.value)}
+                      rows={5}
+                      style={{ marginBottom: 0, width: "100%", boxSizing: "border-box" }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -158,9 +288,9 @@ export default function GenerateArticlePage() {
           <section style={{ marginBottom: "12px" }}>
             <h3 style={{ margin: "0 0 8px" }}>FAQ</h3>
             <div style={{ display: "grid", gap: "10px" }}>
-              {article.faq?.map((item) => (
+              {faq.map((item, index) => (
                 <div
-                  key={item.question}
+                  key={`faq-${index}`}
                   style={{
                     border: "1px solid var(--line)",
                     borderRadius: "12px",
@@ -168,10 +298,25 @@ export default function GenerateArticlePage() {
                     padding: "12px 14px"
                   }}
                 >
-                  <h4 style={{ margin: "0 0 6px", fontSize: "1rem" }}>{item.question}</h4>
-                  <p className="help" style={{ marginBottom: 0 }}>
-                    {item.answer}
-                  </p>
+                  <div className="field" style={{ marginBottom: "8px" }}>
+                    <label htmlFor={`faq-q-${index}`}>Question</label>
+                    <input
+                      id={`faq-q-${index}`}
+                      value={item.question}
+                      onChange={(e) => updateFaqItem(index, "question", e.target.value)}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor={`faq-a-${index}`}>Answer</label>
+                    <textarea
+                      id={`faq-a-${index}`}
+                      className="help"
+                      value={item.answer}
+                      onChange={(e) => updateFaqItem(index, "answer", e.target.value)}
+                      rows={4}
+                      style={{ marginBottom: 0, width: "100%", boxSizing: "border-box" }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -179,12 +324,25 @@ export default function GenerateArticlePage() {
 
           <section style={{ marginBottom: "16px" }}>
             <h3 style={{ margin: "0 0 6px" }}>CTA</h3>
-            <p className="help" style={{ marginBottom: "6px" }}>
-              <strong>{article.ctaTitle}</strong>
-            </p>
-            <p className="help" style={{ marginBottom: 0 }}>
-              {article.ctaText}
-            </p>
+            <div className="field" style={{ marginBottom: "6px" }}>
+              <label htmlFor="cta-title">CTA title</label>
+              <input
+                id="cta-title"
+                value={ctaTitle}
+                onChange={(e) => setCtaTitle(e.target.value)}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="cta-text">CTA text</label>
+              <textarea
+                id="cta-text"
+                className="help"
+                value={ctaText}
+                onChange={(e) => setCtaText(e.target.value)}
+                rows={4}
+                style={{ marginBottom: 0, width: "100%", boxSizing: "border-box" }}
+              />
+            </div>
           </section>
 
           <div className="top-actions" style={{ marginTop: 0 }}>
@@ -196,7 +354,7 @@ export default function GenerateArticlePage() {
             >
               {saving ? "Saving..." : "Save Article"}
             </button>
-            <Link className="secondary-button" href={`/learn/${article.slug}`}>
+            <Link className="secondary-button" href={`/learn/${slug}`}>
               View Saved Route
             </Link>
           </div>

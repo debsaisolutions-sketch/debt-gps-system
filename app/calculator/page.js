@@ -348,6 +348,15 @@ function newDebtRow(id) {
   };
 }
 
+function newLumpSumPayment(id) {
+  return {
+    id,
+    month: "",
+    amount: "",
+    note: ""
+  };
+}
+
 function buildDefaultForm() {
   return {
     client_name: "",
@@ -378,7 +387,8 @@ function buildDefaultForm() {
     /** Legacy field for older saved scenarios; not shown in UI. Engine does not use it. */
     max_monthly_heloc_draw: 0,
     advanced_projection_years: "",
-    amount_toward_debt_strategy: ""
+    amount_toward_debt_strategy: "",
+    lump_sum_payments: []
   };
 }
 
@@ -421,7 +431,8 @@ function buildTestResetForm() {
     payoff_method: PAYOFF_METHODS.SNOWBALL,
     acceleration_method: ACCELERATION_METHODS.STANDARD,
     advanced_projection_years: "",
-    amount_toward_debt_strategy: ""
+    amount_toward_debt_strategy: "",
+    lump_sum_payments: []
   };
 }
 
@@ -443,6 +454,28 @@ function normalizeFormSnapshot(raw) {
           }))
           .map(stripLegacyTemplateDebtRow)
       : [newDebtRow(`d-${Date.now()}`)];
+
+  const lumpSumPaymentsIn = Array.isArray(raw.lump_sum_payments)
+    ? raw.lump_sum_payments
+    : base.lump_sum_payments;
+  const lump_sum_payments = lumpSumPaymentsIn
+    .map((p, i) => {
+      const monthRaw =
+        p?.month === "" || p?.month == null ? "" : Math.floor(Number(p.month) || 0);
+      const month =
+        monthRaw === "" ? "" : Number.isFinite(monthRaw) ? Math.max(1, monthRaw) : "";
+      const amount =
+        p?.amount === "" || p?.amount == null
+          ? ""
+          : Math.max(0, Number(p.amount) || 0);
+      return {
+        id: String(p?.id ?? `lump-${i}-${Date.now()}`),
+        month,
+        amount,
+        note: p?.note != null ? String(p.note) : ""
+      };
+    })
+    .filter((p) => p.month !== "" || p.amount !== "" || p.note.trim() !== "");
 
   let monthlyIncomeNorm =
     raw.monthly_income === "" || raw.monthly_income == null
@@ -518,6 +551,8 @@ function normalizeFormSnapshot(raw) {
       raw.amount_toward_debt_strategy != null
         ? String(raw.amount_toward_debt_strategy)
         : base.amount_toward_debt_strategy
+    ,
+    lump_sum_payments
   };
 }
 
@@ -1294,6 +1329,46 @@ const hasMeaningfulInputs = useMemo(() => {
     }));
   }, []);
 
+  const updateLumpSumPayment = useCallback((id, field, raw) => {
+    setForm((prev) => ({
+      ...prev,
+      lump_sum_payments: (prev.lump_sum_payments || []).map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              [field]:
+                field === "month"
+                  ? raw === ""
+                    ? ""
+                    : Math.max(1, Math.floor(Number(raw) || 0))
+                  : field === "amount"
+                    ? raw === ""
+                      ? ""
+                      : Math.max(0, Number(raw) || 0)
+                    : raw
+            }
+          : p
+      )
+    }));
+  }, []);
+
+  const addLumpSumPayment = useCallback(() => {
+    setForm((prev) => ({
+      ...prev,
+      lump_sum_payments: [
+        ...(prev.lump_sum_payments || []),
+        newLumpSumPayment(`lump-${Date.now()}`)
+      ]
+    }));
+  }, []);
+
+  const removeLumpSumPayment = useCallback((id) => {
+    setForm((prev) => ({
+      ...prev,
+      lump_sum_payments: (prev.lump_sum_payments || []).filter((p) => p.id !== id)
+    }));
+  }, []);
+
   async function saveScenario() {
     const defaultName =
       (form.client_name || "").trim() ||
@@ -1821,6 +1896,84 @@ const hasMeaningfulInputs = useMemo(() => {
           </div>
           <button type="button" className="button-link quiet" onClick={addDebt}>
             + Add debt
+          </button>
+
+          <div className="debt-section-header" style={{ marginTop: 16 }}>
+            <div className="debt-section-header-text">
+              <h3 className="subsection-title debt-section-title">One-Time Lump Sum Payments</h3>
+              <p className="help tight">
+                Add optional one-time payment events. These are saved with your local scenario.
+              </p>
+            </div>
+          </div>
+          <div className="debt-list">
+            {(form.lump_sum_payments || []).length === 0 ? (
+              <p className="help tight">No lump sum payments added.</p>
+            ) : (
+              (form.lump_sum_payments || []).map((p, idx) => (
+                <div key={p.id} className="debt-row">
+                  <div className="field">
+                    <label>{idx === 0 ? "Month" : `Month (${idx + 1})`}</label>
+                    <input
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={p.month === "" ? "" : p.month}
+                      onChange={(e) =>
+                        updateLumpSumPayment(p.id, "month", e.target.value)
+                      }
+                      placeholder="e.g. 3"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Amount ($)</label>
+                    <div style={{ position: "relative" }}>
+                      <span
+                        style={{
+                          position: "absolute",
+                          left: 10,
+                          top: "50%",
+                          transform: "translateY(-50%)",
+                          color: "#6b7280"
+                        }}
+                      >
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        min={0}
+                        value={p.amount === "" ? "" : p.amount}
+                        onChange={(e) =>
+                          updateLumpSumPayment(p.id, "amount", e.target.value)
+                        }
+                        placeholder="e.g. 2000"
+                        style={{ paddingLeft: 24 }}
+                      />
+                    </div>
+                  </div>
+                  <div className="field debt-name">
+                    <label>Note</label>
+                    <input
+                      value={p.note}
+                      onChange={(e) => updateLumpSumPayment(p.id, "note", e.target.value)}
+                      placeholder="Optional note"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="icon-remove"
+                    onClick={() => removeLumpSumPayment(p.id)}
+                    aria-label="Remove lump sum payment"
+                    title="Remove lump sum payment"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+          <button type="button" className="button-link quiet" onClick={addLumpSumPayment}>
+            + Add lump sum
           </button>
 
           <div className="field full">

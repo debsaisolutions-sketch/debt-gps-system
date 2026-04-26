@@ -1256,47 +1256,8 @@ const hasMeaningfulInputs = useMemo(() => {
     setForm((prev) => {
       const next = {
         ...prev,
-        [name]: [
-          "client_name",
-          "email",
-          "notes",
-          "monthly_income",
-          "monthly_expenses",
-          "payoff_method",
-          "acceleration_method",
-          "advanced_projection_years",
-          "amount_toward_debt_strategy"
-        ].includes(name)
-          ? value
-          : name === "use_capital_vehicle"
-            ? Boolean(value)
-            : Number(value)
+        [name]: name === "use_capital_vehicle" ? Boolean(value) : value
       };
-
-      if (name !== "monthly_income" && name !== "monthly_expenses") {
-        return next;
-      }
-
-      if (!next.monthly_income || !next.monthly_expenses) {
-        next.amount_toward_debt_strategy = "";
-        return next;
-      }
-
-      const incomeRaw = String(next.monthly_income ?? "").trim();
-      const expensesRaw = String(next.monthly_expenses ?? "").trim();
-
-      if (incomeRaw === "" || expensesRaw === "") {
-        return { ...next, amount_toward_debt_strategy: "" };
-      }
-
-      const income = Number(incomeRaw);
-      const expenses = Number(expensesRaw);
-      if (!Number.isFinite(income) || !Number.isFinite(expenses)) {
-        return next;
-      }
-
-      // Do not auto-fill Monthly Strategy Budget from income − expenses (user enters it;
-      // projection still treats blank as "use full available" via computeDebtCashAllocation).
       return next;
     });
   }, []);
@@ -1336,16 +1297,7 @@ const hasMeaningfulInputs = useMemo(() => {
         p.id === id
           ? {
               ...p,
-              [field]:
-                field === "month"
-                  ? raw === ""
-                    ? ""
-                    : Math.max(1, Math.floor(Number(raw) || 0))
-                  : field === "amount"
-                    ? raw === ""
-                      ? ""
-                      : Math.max(0, Number(raw) || 0)
-                    : raw
+              [field]: raw
             }
           : p
       )
@@ -2408,13 +2360,13 @@ const hasMeaningfulInputs = useMemo(() => {
                   <input
                     type="number"
                     min={0}
-                    value={form.heloc_credit_limit || ""}
+                    value={form.heloc_credit_limit}
                     placeholder={`Default ${toCurrency(aggregated.total)}`}
                     onChange={(e) => {
                       const v = e.target.value;
                       updateField(
                         "heloc_credit_limit",
-                        v === "" ? 0 : Number(v)
+                        v
                       );
                     }}
                   />
@@ -3059,121 +3011,6 @@ const hasMeaningfulInputs = useMemo(() => {
           <>
           {isUnlocked ? (
           <>
-          {!isPremium ? (
-            <>
-            <div
-              style={{
-                marginTop: 14,
-                marginBottom: 14,
-                border: "1px solid rgba(29, 107, 196, 0.28)",
-                borderRadius: 14,
-                padding: "16px",
-                background: "linear-gradient(180deg, rgba(29,107,196,0.08), rgba(29,107,196,0.03))"
-              }}
-            >
-              <p style={{ margin: "0 0 6px", fontWeight: 800, color: "var(--text)" }}>
-                Ready to unlock your fastest payoff path?
-              </p>
-              <p className="help tight" style={{ margin: "0 0 12px" }}>
-                You’ve unlocked your free results. Upgrade now to see Banking + HELOC comparisons, your exact payoff order, and the full step-by-step payoff roadmap.
-              </p>
-              {consumerDebtFreeMonth > 0 ? (
-                <>
-                  <p
-                    className="help tight"
-                    style={{ margin: "0 0 12px", fontWeight: 600, color: "var(--text)" }}
-                  >
-                    Based on your current plan, you’re on track for{" "}
-                    <strong>
-                      {Math.ceil((consumerDebtFreeMonth || 0) / 12)} years
-                    </strong>{" "}
-                    in debt. The right strategy could dramatically shorten that timeline.
-                  </p>
-                  {typeof totalInterest === "number" && totalInterest > 0 ? (
-                    <p
-                      className="help tight"
-                      style={{ margin: "0 0 12px", fontWeight: 600, color: "var(--text)" }}
-                    >
-                      That could mean paying{" "}
-                      <strong>
-                        ${Math.round(totalInterest).toLocaleString()}
-                      </strong>{" "}
-                      in interest over time.
-                    </p>
-                  ) : null}
-                </>
-              ) : null}
-              <p
-                className="help tight"
-                style={{ margin: "0 0 12px", fontSize: 12, opacity: 0.85 }}
-              >
-                Most people in your situation choose this plan to eliminate debt faster and save thousands in interest.
-              </p>
-              <p
-                style={{
-                  margin: "0 0 10px",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "var(--text)"
-                }}
-              >
-                <span style={{ textDecoration: "line-through", opacity: 0.6, marginRight: 6 }}>
-                  $97
-                </span>
-                <span>$47 Early Access</span>
-              </p>
-              <button
-                type="button"
-                className="primary-button"
-                onClick={async () => {
-                  const trimmedEmail = email.trim();
-
-                  if (trimmedEmail) {
-                    try {
-                      await fetch("/api/send-to-ghl", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                          email: trimmedEmail,
-                          source: "Debt GPS",
-                          plan: "paid"
-                        })
-                      });
-                    } catch (err) {
-                      console.warn("[leads] paid lead send-to-ghl error", err);
-                    }
-                  }
-
-                  window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcheckout%2Fsuccess%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D`, "_blank");
-                }}
-              >
-                Show Me How to Get Out of Debt Faster — $47
-              </button>
-              <p
-                className="help tight"
-                style={{ margin: "8px 0 0", fontSize: 12, fontWeight: 600, color: "var(--text)" }}
-              >
-                Lock in your $47 early-access rate while your plan stays active. Cancel anytime.
-              </p>
-              <p
-                className="help tight"
-                style={{ margin: "10px 0 0", fontSize: 12, opacity: 0.8 }}
-              >
-                Start with your saved email and unlock the full Banking + HELOC payoff roadmap instantly.
-              </p>
-            </div>
-            <div
-              aria-hidden="true"
-              style={{
-                height: 1,
-                margin: "14px 0 16px",
-                background: "linear-gradient(90deg, rgba(29,107,196,0), rgba(29,107,196,0.22), rgba(29,107,196,0))"
-              }}
-            />
-            </>
-          ) : null}
           <div
             className="strategy-comparison-section"
             aria-label="Strategy comparison using your current inputs"

@@ -2624,389 +2624,6 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          <div
-            role="region"
-            aria-labelledby="best-path-heading"
-            style={{
-              margin: "6px 0 22px",
-              padding: "20px 22px 22px",
-              background: "var(--card)",
-              border: "1px solid #e8ecf4",
-              borderRadius: 14,
-              boxShadow:
-                "0 1px 3px rgba(15, 23, 42, 0.05), 0 6px 20px rgba(15, 23, 42, 0.05)"
-            }}
-          >
-            <h3
-              id="best-path-heading"
-              className="subsection-title"
-              style={{ marginTop: 0, marginBottom: 10 }}
-            >
-              Your Best Path Forward
-            </h3>
-            <p style={{ fontSize: "0.85rem", color: "#6B7280", marginBottom: 12 }}>
-              Based on your current income, expenses, and debt structure
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div>
-                <h4
-                  style={{
-                    margin: "0 0 6px",
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    color: "var(--text)"
-                  }}
-                >
-                  Best Path Forward
-                </h4>
-                {step2RecommendationRanking.bestOverall ? (
-                  (() => {
-                    const best = step2RecommendationRanking.bestOverall;
-                    const p = best.projection;
-                    const hideAdvancedMetricsForFree =
-                      !isPremium && (best.id === "banking" || best.id === "heloc");
-                    const capY = Math.round(p.projectionMaxMonths / 12);
-                    const consumerM = p.consumerDebtFreeMonth;
-                    const totalM = p.schedule?.debtFreeMonth;
-                    const consumerLine =
-                      hideAdvancedMetricsForFree
-                        ? "--"
-                        : consumerM != null && Number.isFinite(consumerM)
-                        ? `${consumerM} months`
-                        : p.hitProjectionCap
-                          ? `Not within ${capY}-year projection cap`
-                          : "—";
-                    const totalLine =
-                      hideAdvancedMetricsForFree
-                        ? "--"
-                        : totalM != null && Number.isFinite(totalM)
-                        ? `${totalM} months`
-                        : p.hitProjectionCap
-                          ? `Not within ${capY}-year projection cap`
-                          : "—";
-                    const interestSaved = hideAdvancedMetricsForFree
-                      ? "--"
-                      : toCurrency(p.interestSavedVsMinimum ?? 0);
-                    const summaryById =
-                      !isPremium && (best.id === "banking" || best.id === "heloc")
-                        ? "Advanced strategy available after unlock."
-                        : best.id === "banking"
-                        ? "This is the fastest and most efficient path based on your numbers—and it pairs paying off creditors with building long-term capital you can borrow against."
-                        : best.id === "heloc"
-                          ? "This is the fastest and most efficient path based on your numbers, using your HELOC as modeled in this comparison."
-                          : "This is the fastest and most efficient path based on your numbers among the Standard acceleration options ranked here.";
-                    return (
-                      <>
-                        <p
-                          style={{
-                            margin: "0 0 10px",
-                            fontSize: "1.05rem",
-                            fontWeight: 700,
-                            color: "var(--text)",
-                            letterSpacing: "-0.02em",
-                            lineHeight: 1.35
-                          }}
-                        >
-                          <span className="subtle" style={{ fontWeight: 600, fontSize: "0.88rem" }}>
-                            Best Path Forward:{" "}
-                          </span>
-                          {displayScenarioLabel(best.id)}
-                        </p>
-                        <dl
-                          style={{
-                            margin: "0 0 12px",
-                            padding: 0,
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 8
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "minmax(0, 1fr) auto",
-                              gap: "4px 16px",
-                              alignItems: "baseline",
-                              fontSize: "0.88rem"
-                            }}
-                          >
-                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
-                              Debt-free from creditors
-                            </dt>
-                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
-                              {consumerLine}
-                            </dd>
-                          </div>
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "minmax(0, 1fr) auto",
-                              gap: "4px 16px",
-                              alignItems: "baseline",
-                              fontSize: "0.88rem"
-                            }}
-                          >
-                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
-                              Fully repaid (full plan)
-                            </dt>
-                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
-                              {totalLine}
-                            </dd>
-                          </div>
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "minmax(0, 1fr) auto",
-                              gap: "4px 16px",
-                              alignItems: "baseline",
-                              fontSize: "0.88rem"
-                            }}
-                          >
-                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
-                              Interest saved vs. minimums
-                            </dt>
-                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--accent)" }}>
-                              {interestSaved}
-                            </dd>
-                          </div>
-                          {best.id === "banking" &&
-                          !p.policyContributionExceedsAppliedStrategy ? (
-                            <div
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "minmax(0, 1fr) auto",
-                                gap: "4px 16px",
-                                alignItems: "baseline",
-                                fontSize: "0.88rem"
-                              }}
-                            >
-                              <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
-                                Modeled ending net (cash value − loan)
-                              </dt>
-                              <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
-                                {isPremium
-                                  ? toCurrency(p.endingNetPolicyEquity ?? 0)
-                                  : "--"}
-                              </dd>
-                            </div>
-                          ) : null}
-                        </dl>
-                        <p
-                          className="help tight"
-                          style={{
-                            margin: "0 0 10px",
-                            fontSize: "0.9rem",
-                            lineHeight: 1.45,
-                            color: "var(--text)"
-                          }}
-                        >
-                          {summaryById}
-                        </p>
-                        {step2RecommendationRanking.nextBestOverall ? (
-                          <p
-                            className="help tight subtle"
-                            style={{ margin: 0, fontSize: "0.86rem", lineHeight: 1.45 }}
-                          >
-                            If this option is not available to you, the next best path is{" "}
-                            <strong>
-                              {displayScenarioLabel(
-                                step2RecommendationRanking.nextBestOverall.id
-                              )}
-                            </strong>
-                            .
-                          </p>
-                        ) : null}
-                      </>
-                    );
-                  })()
-                ) : (
-                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
-                    —
-                  </p>
-                )}
-              </div>
-              <div
-                style={{
-                  paddingTop: 12,
-                  borderTop: "1px solid var(--line)"
-                }}
-              >
-                <h4
-                  style={{
-                    margin: "0 0 6px",
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    color: "var(--text)"
-                  }}
-                >
-                  Next Best Option
-                </h4>
-                <p className="help tight" style={{ marginBottom: 8 }}>
-                  Second-ranked among valid scenarios on this page (after Best Path
-                  Forward). Use it when the top pick is unavailable, not a fit, or you
-                  want a clear runner-up from the same inputs and comparison run.
-                </p>
-                {step2RecommendationRanking.nextBestOverall ? (
-                  <>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "1.05rem",
-                        fontWeight: 700,
-                        color: "var(--text)",
-                        letterSpacing: "-0.02em",
-                        lineHeight: 1.3
-                      }}
-                    >
-                      {displayScenarioLabel(
-                        step2RecommendationRanking.nextBestOverall.id
-                      )}
-                    </p>
-                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
-                      {formatRankingScenarioMetrics(
-                        step2RecommendationRanking.nextBestOverall.id,
-                        step2RecommendationRanking.nextBestOverall.projection
-                      )}
-                    </p>
-                  </>
-                ) : (
-                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
-                    —
-                  </p>
-                )}
-              </div>
-              <div
-                style={{
-                  paddingTop: 12,
-                  borderTop: "1px solid var(--line)"
-                }}
-              >
-                <h4
-                  style={{
-                    margin: "0 0 6px",
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    color: "var(--text)"
-                  }}
-                >
-                  Current Selected Scenario
-                </h4>
-                <p className="help tight" style={{ marginBottom: 8 }}>
-                  This section reflects the strategy currently selected in your
-                  comparison view.
-                </p>
-                <p
-                  style={{
-                    margin: "0 0 6px",
-                    fontSize: "1.05rem",
-                    fontWeight: 700,
-                    color: "var(--text)",
-                    letterSpacing: "-0.02em",
-                    lineHeight: 1.3
-                  }}
-                >
-                  {displayScenarioLabel(
-                    selectedComparisonScenarioKey
-                  )}
-                </p>
-                <p className="help tight" style={{ margin: 0, fontSize: "0.86rem" }}>
-                  {currentSelectionStatusMessage}
-                </p>
-              </div>
-              <div
-                style={{
-                  paddingTop: 12,
-                  borderTop: "1px solid var(--line)"
-                }}
-              >
-                <h4
-                  style={{
-                    margin: "0 0 6px",
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    color: "var(--text)"
-                  }}
-                >
-                  Best Standard Accelerated Route
-                </h4>
-                {step2RecommendationRanking.bestStandardAccelerated ? (
-                  <>
-                    <p className="help tight" style={{ marginBottom: 8 }}>
-                      {step2RecommendationRanking.bestStandardAccelerated.id ===
-                      "standardAvalanche" ? (
-                        <>
-                          On these debts, Avalanche (Standard) is modeled to save more
-                          interest by attacking higher-rate balances first. Snowball
-                          (Standard) often clears the smallest balance first, so your
-                          first &quot;win&quot; can arrive sooner and feel more visible.
-                        </>
-                      ) : (
-                        <>
-                          On these debts, Snowball (Standard) is modeled to clear your
-                          smallest balance first—good for early momentum. Avalanche
-                          (Standard) prioritizes rate, which often trims total interest
-                          if you stay disciplined through the sequence.
-                        </>
-                      )}
-                    </p>
-                    <p className="help tight" style={{ marginBottom: 8 }}>
-                      Both are strong Standard options—the better fit is whether you
-                      want the lowest modeled interest cost (Avalanche lean) or faster
-                      early payoffs on small balances (Snowball lean).
-                    </p>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "1.05rem",
-                        fontWeight: 700,
-                        color: "var(--text)",
-                        letterSpacing: "-0.02em",
-                        lineHeight: 1.3
-                      }}
-                    >
-                      {displayScenarioLabel(
-                        step2RecommendationRanking.bestStandardAccelerated.id
-                      )}
-                    </p>
-                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
-                      {formatRankingScenarioMetrics(
-                        step2RecommendationRanking.bestStandardAccelerated.id,
-                        step2RecommendationRanking.bestStandardAccelerated.projection
-                      )}
-                    </p>
-                  </>
-                ) : (
-                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
-                    —
-                  </p>
-                )}
-              </div>
-            </div>
-            {form.acceleration_method !== ACCELERATION_METHODS.BANKING ? (
-              <p
-                className="help tight"
-                style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
-              >
-                {isPremium
-                  ? "Standard and HELOC paths can be powerful on their own—you are not behind if Banking Strategy is not the right fit today. When you are ready, the Banking column below shows how capital-building could layer on with the same inputs."
-                  : "Advanced strategy available after unlock."}
-              </p>
-            ) : (
-              <p
-                className="help tight"
-                style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
-              >
-                {isPremium
-                  ? "Banking Strategy can pair disciplined paydown with long-term capital optionality; keep monitoring contributions and loan mechanics so the model stays aligned with how you run the plan."
-                  : "Advanced strategy available after unlock."}
-              </p>
-            )}
-          </div>
-
           {hasMeaningfulInputs ? (
           <>
           {isUnlocked ? (
@@ -3641,6 +3258,389 @@ const hasMeaningfulInputs = useMemo(() => {
           ) : null}
           </>
           ) : null}
+
+          <div
+            role="region"
+            aria-labelledby="best-path-heading"
+            style={{
+              margin: "6px 0 22px",
+              padding: "20px 22px 22px",
+              background: "var(--card)",
+              border: "1px solid #e8ecf4",
+              borderRadius: 14,
+              boxShadow:
+                "0 1px 3px rgba(15, 23, 42, 0.05), 0 6px 20px rgba(15, 23, 42, 0.05)"
+            }}
+          >
+            <h3
+              id="best-path-heading"
+              className="subsection-title"
+              style={{ marginTop: 0, marginBottom: 10 }}
+            >
+              Your Best Path Forward
+            </h3>
+            <p style={{ fontSize: "0.85rem", color: "#6B7280", marginBottom: 12 }}>
+              Based on your current income, expenses, and debt structure
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <div>
+                <h4
+                  style={{
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
+                  }}
+                >
+                  Best Path Forward
+                </h4>
+                {step2RecommendationRanking.bestOverall ? (
+                  (() => {
+                    const best = step2RecommendationRanking.bestOverall;
+                    const p = best.projection;
+                    const hideAdvancedMetricsForFree =
+                      !isPremium && (best.id === "banking" || best.id === "heloc");
+                    const capY = Math.round(p.projectionMaxMonths / 12);
+                    const consumerM = p.consumerDebtFreeMonth;
+                    const totalM = p.schedule?.debtFreeMonth;
+                    const consumerLine =
+                      hideAdvancedMetricsForFree
+                        ? "--"
+                        : consumerM != null && Number.isFinite(consumerM)
+                        ? `${consumerM} months`
+                        : p.hitProjectionCap
+                          ? `Not within ${capY}-year projection cap`
+                          : "—";
+                    const totalLine =
+                      hideAdvancedMetricsForFree
+                        ? "--"
+                        : totalM != null && Number.isFinite(totalM)
+                        ? `${totalM} months`
+                        : p.hitProjectionCap
+                          ? `Not within ${capY}-year projection cap`
+                          : "—";
+                    const interestSaved = hideAdvancedMetricsForFree
+                      ? "--"
+                      : toCurrency(p.interestSavedVsMinimum ?? 0);
+                    const summaryById =
+                      !isPremium && (best.id === "banking" || best.id === "heloc")
+                        ? "Advanced strategy available after unlock."
+                        : best.id === "banking"
+                        ? "This is the fastest and most efficient path based on your numbers—and it pairs paying off creditors with building long-term capital you can borrow against."
+                        : best.id === "heloc"
+                          ? "This is the fastest and most efficient path based on your numbers, using your HELOC as modeled in this comparison."
+                          : "This is the fastest and most efficient path based on your numbers among the Standard acceleration options ranked here.";
+                    return (
+                      <>
+                        <p
+                          style={{
+                            margin: "0 0 10px",
+                            fontSize: "1.05rem",
+                            fontWeight: 700,
+                            color: "var(--text)",
+                            letterSpacing: "-0.02em",
+                            lineHeight: 1.35
+                          }}
+                        >
+                          <span className="subtle" style={{ fontWeight: 600, fontSize: "0.88rem" }}>
+                            Best Path Forward:{" "}
+                          </span>
+                          {displayScenarioLabel(best.id)}
+                        </p>
+                        <dl
+                          style={{
+                            margin: "0 0 12px",
+                            padding: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 8
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "minmax(0, 1fr) auto",
+                              gap: "4px 16px",
+                              alignItems: "baseline",
+                              fontSize: "0.88rem"
+                            }}
+                          >
+                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                              Debt-free from creditors
+                            </dt>
+                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
+                              {consumerLine}
+                            </dd>
+                          </div>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "minmax(0, 1fr) auto",
+                              gap: "4px 16px",
+                              alignItems: "baseline",
+                              fontSize: "0.88rem"
+                            }}
+                          >
+                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                              Fully repaid (full plan)
+                            </dt>
+                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
+                              {totalLine}
+                            </dd>
+                          </div>
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "minmax(0, 1fr) auto",
+                              gap: "4px 16px",
+                              alignItems: "baseline",
+                              fontSize: "0.88rem"
+                            }}
+                          >
+                            <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                              Interest saved vs. minimums
+                            </dt>
+                            <dd style={{ margin: 0, fontWeight: 600, color: "var(--accent)" }}>
+                              {interestSaved}
+                            </dd>
+                          </div>
+                          {best.id === "banking" &&
+                          !p.policyContributionExceedsAppliedStrategy ? (
+                            <div
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "minmax(0, 1fr) auto",
+                                gap: "4px 16px",
+                                alignItems: "baseline",
+                                fontSize: "0.88rem"
+                              }}
+                            >
+                              <dt style={{ margin: 0, color: "#6B7280", fontWeight: 600 }}>
+                                Modeled ending net (cash value − loan)
+                              </dt>
+                              <dd style={{ margin: 0, fontWeight: 600, color: "var(--text)" }}>
+                                {isPremium
+                                  ? toCurrency(p.endingNetPolicyEquity ?? 0)
+                                  : "--"}
+                              </dd>
+                            </div>
+                          ) : null}
+                        </dl>
+                        <p
+                          className="help tight"
+                          style={{
+                            margin: "0 0 10px",
+                            fontSize: "0.9rem",
+                            lineHeight: 1.45,
+                            color: "var(--text)"
+                          }}
+                        >
+                          {summaryById}
+                        </p>
+                        {step2RecommendationRanking.nextBestOverall ? (
+                          <p
+                            className="help tight subtle"
+                            style={{ margin: 0, fontSize: "0.86rem", lineHeight: 1.45 }}
+                          >
+                            If this option is not available to you, the next best path is{" "}
+                            <strong>
+                              {displayScenarioLabel(
+                                step2RecommendationRanking.nextBestOverall.id
+                              )}
+                            </strong>
+                            .
+                          </p>
+                        ) : null}
+                      </>
+                    );
+                  })()
+                ) : (
+                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
+                    —
+                  </p>
+                )}
+              </div>
+              <div
+                style={{
+                  paddingTop: 12,
+                  borderTop: "1px solid var(--line)"
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
+                  }}
+                >
+                  Next Best Option
+                </h4>
+                <p className="help tight" style={{ marginBottom: 8 }}>
+                  Second-ranked among valid scenarios on this page (after Best Path
+                  Forward). Use it when the top pick is unavailable, not a fit, or you
+                  want a clear runner-up from the same inputs and comparison run.
+                </p>
+                {step2RecommendationRanking.nextBestOverall ? (
+                  <>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "1.05rem",
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        letterSpacing: "-0.02em",
+                        lineHeight: 1.3
+                      }}
+                    >
+                      {displayScenarioLabel(
+                        step2RecommendationRanking.nextBestOverall.id
+                      )}
+                    </p>
+                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
+                      {formatRankingScenarioMetrics(
+                        step2RecommendationRanking.nextBestOverall.id,
+                        step2RecommendationRanking.nextBestOverall.projection
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
+                    —
+                  </p>
+                )}
+              </div>
+              <div
+                style={{
+                  paddingTop: 12,
+                  borderTop: "1px solid var(--line)"
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
+                  }}
+                >
+                  Current Selected Scenario
+                </h4>
+                <p className="help tight" style={{ marginBottom: 8 }}>
+                  This section reflects the strategy currently selected in your
+                  comparison view.
+                </p>
+                <p
+                  style={{
+                    margin: "0 0 6px",
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                    color: "var(--text)",
+                    letterSpacing: "-0.02em",
+                    lineHeight: 1.3
+                  }}
+                >
+                  {displayScenarioLabel(
+                    selectedComparisonScenarioKey
+                  )}
+                </p>
+                <p className="help tight" style={{ margin: 0, fontSize: "0.86rem" }}>
+                  {currentSelectionStatusMessage}
+                </p>
+              </div>
+              <div
+                style={{
+                  paddingTop: 12,
+                  borderTop: "1px solid var(--line)"
+                }}
+              >
+                <h4
+                  style={{
+                    margin: "0 0 6px",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    color: "var(--text)"
+                  }}
+                >
+                  Best Standard Accelerated Route
+                </h4>
+                {step2RecommendationRanking.bestStandardAccelerated ? (
+                  <>
+                    <p className="help tight" style={{ marginBottom: 8 }}>
+                      {step2RecommendationRanking.bestStandardAccelerated.id ===
+                      "standardAvalanche" ? (
+                        <>
+                          On these debts, Avalanche (Standard) is modeled to save more
+                          interest by attacking higher-rate balances first. Snowball
+                          (Standard) often clears the smallest balance first, so your
+                          first &quot;win&quot; can arrive sooner and feel more visible.
+                        </>
+                      ) : (
+                        <>
+                          On these debts, Snowball (Standard) is modeled to clear your
+                          smallest balance first—good for early momentum. Avalanche
+                          (Standard) prioritizes rate, which often trims total interest
+                          if you stay disciplined through the sequence.
+                        </>
+                      )}
+                    </p>
+                    <p className="help tight" style={{ marginBottom: 8 }}>
+                      Both are strong Standard options—the better fit is whether you
+                      want the lowest modeled interest cost (Avalanche lean) or faster
+                      early payoffs on small balances (Snowball lean).
+                    </p>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "1.05rem",
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        letterSpacing: "-0.02em",
+                        lineHeight: 1.3
+                      }}
+                    >
+                      {displayScenarioLabel(
+                        step2RecommendationRanking.bestStandardAccelerated.id
+                      )}
+                    </p>
+                    <p className="help tight subtle" style={{ margin: "6px 0 0", fontSize: "0.8rem" }}>
+                      {formatRankingScenarioMetrics(
+                        step2RecommendationRanking.bestStandardAccelerated.id,
+                        step2RecommendationRanking.bestStandardAccelerated.projection
+                      )}
+                    </p>
+                  </>
+                ) : (
+                  <p className="subtle" style={{ margin: 0, fontSize: "0.9rem" }}>
+                    —
+                  </p>
+                )}
+              </div>
+            </div>
+            {form.acceleration_method !== ACCELERATION_METHODS.BANKING ? (
+              <p
+                className="help tight"
+                style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
+              >
+                {isPremium
+                  ? "Standard and HELOC paths can be powerful on their own—you are not behind if Banking Strategy is not the right fit today. When you are ready, the Banking column below shows how capital-building could layer on with the same inputs."
+                  : "Advanced strategy available after unlock."}
+              </p>
+            ) : (
+              <p
+                className="help tight"
+                style={{ marginTop: 16, marginBottom: 0, fontSize: "0.86rem" }}
+              >
+                {isPremium
+                  ? "Banking Strategy can pair disciplined paydown with long-term capital optionality; keep monitoring contributions and loan mechanics so the model stays aligned with how you run the plan."
+                  : "Advanced strategy available after unlock."}
+              </p>
+            )}
+          </div>
 
           {isPremium ? (
           <div className="payoff-order-panel">

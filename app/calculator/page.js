@@ -3348,18 +3348,14 @@ const hasMeaningfulInputs = useMemo(() => {
                   lineHeight: 1.5
                 }}
               >
-                <strong>Your fastest strategy is hidden.</strong> Unlock to see the exact
-                payoff order.
+                <strong>Unlock your fastest strategy to see the exact payoff order and month-by-month roadmap.</strong>
               </p>
             </div>
           ) : null}
           {!isPremium ? (
             <div style={{ marginTop: 14 }}>
               <p className="help tight" style={{ fontWeight: 600 }}>
-                You are currently viewing a limited version of your plan.
-              </p>
-              <p className="help tight">
-                Unlock to see your exact fastest payoff path, full strategy breakdown, and step-by-step execution plan.
+                Your free preview shows the starting point. The full plan shows which debt to attack first, how each payment changes your timeline, and where Banking or HELOC strategies may shorten the payoff path.
               </p>
             </div>
           ) : null}

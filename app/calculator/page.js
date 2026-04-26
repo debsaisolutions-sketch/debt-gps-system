@@ -2946,319 +2946,6 @@ const hasMeaningfulInputs = useMemo(() => {
               ) : null}
             </div>
           </div>
-          {!isPremium ? (
-            <div
-              style={{
-                marginTop: 14,
-                padding: "12px 16px",
-                borderRadius: 10,
-                background: "rgba(148, 163, 184, 0.08)",
-                border: "1px solid rgba(148, 163, 184, 0.25)"
-              }}
-            >
-              <p
-                style={{
-                  margin: 0,
-                  textAlign: "center",
-                  color: "#374151",
-                  fontSize: 15,
-                  lineHeight: 1.5
-                }}
-              >
-                <button
-                  type="button"
-                  className="primary-button"
-                  onClick={async () => {
-                    const trimmedEmail = email.trim();
-
-                    if (trimmedEmail) {
-                      try {
-                        await fetch("/api/send-to-ghl", {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json"
-                          },
-                          body: JSON.stringify({
-                            email: trimmedEmail,
-                            source: "Debt GPS",
-                            plan: "paid"
-                          })
-                        });
-                      } catch (err) {
-                        console.warn("[leads] paid lead send-to-ghl error", err);
-                      }
-                    }
-
-                    window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
-                  }}
-                >
-                  Unlock your fastest strategy — see exact payoff order + roadmap
-                </button>
-              </p>
-            </div>
-          ) : null}
-          {!isPremium ? (
-            <div style={{ marginTop: 14 }}>
-              <p className="help tight" style={{ fontWeight: 600 }}>
-                Your free preview shows the starting point. The full plan shows which debt to attack first, how each payment changes your timeline, and where Banking or HELOC strategies may shorten the payoff path.
-              </p>
-            </div>
-          ) : null}
-          {!isPremium ? (
-            <div
-              style={{
-                marginTop: 14,
-                border: "1px solid var(--line)",
-                borderRadius: 14,
-                padding: "18px",
-                background: "var(--card)"
-              }}
-            >
-              <h4
-                style={{
-                  margin: "0 0 16px",
-                  color: "var(--text)",
-                  fontSize: "clamp(1rem, 2.2vw, 1.12rem)",
-                  fontWeight: 750,
-                  letterSpacing: "-0.02em",
-                  lineHeight: 1.3
-                }}
-              >
-                How can the same dollar do two jobs?
-              </h4>
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                  gap: "14px",
-                  marginBottom: 14
-                }}
-              >
-                <div
-                  style={{
-                    borderRadius: 10,
-                    padding: "12px 14px",
-                    border: "1px solid var(--line)",
-                    background: "rgba(148, 163, 184, 0.06)"
-                  }}
-                >
-                  <p
-                    style={{
-                      margin: "0 0 10px",
-                      fontWeight: 650,
-                      fontSize: "0.92rem",
-                      color: "var(--text)"
-                    }}
-                  >
-                    Standard Path
-                  </p>
-                  <ul
-                    style={{
-                      margin: 0,
-                      paddingLeft: 18,
-                      fontSize: "0.88rem",
-                      lineHeight: 1.55,
-                      color: "var(--muted)"
-                    }}
-                  >
-                    <li style={{ marginBottom: 6 }}>$600 → Debt</li>
-                    <li style={{ marginBottom: 6 }}>Money gone</li>
-                    <li style={{ margin: 0 }}>No growth</li>
-                  </ul>
-                </div>
-                <div
-                  style={{
-                    borderRadius: 10,
-                    padding: "12px 14px",
-                    border: "2px solid rgba(29, 107, 196, 0.5)",
-                    background:
-                      "linear-gradient(150deg, rgba(29, 107, 196, 0.16) 0%, rgba(99, 102, 241, 0.11) 55%, rgba(29, 107, 196, 0.07) 100%)",
-                    boxShadow: "0 6px 22px rgba(29, 107, 196, 0.16)"
-                  }}
-                >
-                  <p
-                    style={{
-                      margin: "0 0 10px",
-                      fontWeight: 650,
-                      fontSize: "0.92rem",
-                      color: "var(--text)"
-                    }}
-                  >
-                    Advanced Strategy (Locked)
-                  </p>
-                  <ul
-                    style={{
-                      margin: 0,
-                      paddingLeft: 18,
-                      fontSize: "0.88rem",
-                      lineHeight: 1.55,
-                      color: "var(--text)"
-                    }}
-                  >
-                    <li style={{ marginBottom: 6 }}>$600 → Capital</li>
-                    <li style={{ marginBottom: 6 }}>Used to reduce debt</li>
-                    <li style={{ margin: 0 }}>Capital still grows</li>
-                  </ul>
-                </div>
-              </div>
-              <p
-                className="help tight"
-                style={{
-                  margin: "0 0 8px",
-                  fontWeight: 600,
-                  color: "var(--text)",
-                  fontSize: "0.9rem",
-                  lineHeight: 1.5
-                }}
-              >
-                Most people only use their money once. Wealthy people use it twice.
-              </p>
-              <p
-                className="help tight"
-                style={{
-                  margin: "0 0 10px",
-                  fontWeight: 600,
-                  color: "var(--text)",
-                  fontSize: "0.9rem",
-                  lineHeight: 1.5
-                }}
-              >
-                The question is… which one are you doing?
-              </p>
-              <p className="help tight subtle" style={{ margin: 0, fontSize: "0.86rem" }}>
-                Unlock to see exactly how this works with your numbers.
-              </p>
-            </div>
-          ) : null}
-          {!isPremium ? (
-            <div
-              style={{
-                marginTop: 14,
-                border: "1px solid var(--line)",
-                borderRadius: 14,
-                padding: "18px",
-                background: "var(--card)"
-              }}
-            >
-              <h4 style={{ margin: "0 0 10px", color: "var(--text)" }}>
-                Unlock Your Fastest Payoff Plan (Early Access Pricing)
-              </h4>
-              <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
-                Early users lock in $47/month — price increases to $97 soon.
-              </p>
-              <ul>
-                <li>Unlock Banking + HELOC comparisons</li>
-                <li>See your exact payoff order (step-by-step)</li>
-                <li>Access full month-by-month payoff roadmap</li>
-                <li>See your true fastest strategy (not just standard methods)</li>
-              </ul>
-              <p className="help tight" style={{ margin: "0 0 12px" }}>
-                You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
-              </p>
-              {!isPremium ? (
-                <p className="help tight" style={{ margin: "0 0 12px", fontWeight: 500 }}>
-                  You’re about{" "}
-                  {Number.isFinite(
-                    strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
-                  )
-                    ? strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
-                    : "--"}{" "}
-                  months away from being debt free — unlock your fastest path now.
-                </p>
-              ) : null}
-              <div style={{ margin: "0 0 12px", padding: "12px", border: "1px solid var(--line)", borderRadius: 10 }}>
-                <h5 style={{ margin: "0 0 8px", color: "var(--text)" }}>
-                  See the plan most people miss
-                </h5>
-                <ul style={{ margin: "0 0 8px", paddingLeft: 18 }}>
-                  <li>Cut years off your payoff timeline</li>
-                  <li>See which debt to attack first</li>
-                  <li>Unlock advanced strategy paths hidden in free view</li>
-                </ul>
-                <p className="help tight" style={{ margin: 0 }}>
-                  Early users keep $47/month before pricing increases.
-                </p>
-              </div>
-              <div
-                style={{
-                  display: "grid",
-                  gap: 12,
-                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                  margin: "14px 0"
-                }}
-              >
-                <div
-                  style={{
-                    border: "1px solid rgba(148, 163, 184, 0.28)",
-                    borderRadius: 12,
-                    padding: 14,
-                    background: "rgba(255,255,255,0.55)"
-                  }}
-                >
-                  <p style={{ margin: "0 0 8px", fontWeight: 800, color: "var(--text)" }}>Free Preview</p>
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    <li>Basic payoff projection</li>
-                    <li>Strategy preview</li>
-                    <li>Email unlock access</li>
-                  </ul>
-                </div>
-
-                <div
-                  style={{
-                    border: "1px solid rgba(29, 107, 196, 0.28)",
-                    borderRadius: 12,
-                    padding: 14,
-                    background: "linear-gradient(180deg, rgba(29,107,196,0.08), rgba(29,107,196,0.03))"
-                  }}
-                >
-                  <p style={{ margin: "0 0 8px", fontWeight: 800, color: "var(--text)" }}>Paid Plan</p>
-                  <ul style={{ margin: 0, paddingLeft: 18 }}>
-                    <li>Full payoff order</li>
-                    <li>Banking + HELOC comparison</li>
-                    <li>Complete payoff roadmap</li>
-                  </ul>
-                </div>
-              </div>
-              <button
-                type="button"
-                className="primary-button"
-                onClick={async () => {
-                  const trimmedEmail = email.trim();
-
-                  if (trimmedEmail) {
-                    try {
-                      await fetch("/api/send-to-ghl", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                          email: trimmedEmail,
-                          source: "Debt GPS",
-                          plan: "paid"
-                        })
-                      });
-                    } catch (err) {
-                      console.warn("[leads] paid lead send-to-ghl error", err);
-                    }
-                  }
-
-                  window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
-                }}
-              >
-                Unlock My Fastest Payoff Plan — $47
-              </button>
-              <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
-                One-time setup. No long-term commitment.
-              </p>
-              <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
-                Start now and lock in early access pricing before it increases.
-              </p>
-            </div>
-          ) : null}
-          </>
-          ) : null}
-
           <div
             role="region"
             aria-labelledby="best-path-heading"
@@ -3641,6 +3328,318 @@ const hasMeaningfulInputs = useMemo(() => {
               </p>
             )}
           </div>
+          {!isPremium ? (
+            <div
+              style={{
+                marginTop: 14,
+                padding: "12px 16px",
+                borderRadius: 10,
+                background: "rgba(148, 163, 184, 0.08)",
+                border: "1px solid rgba(148, 163, 184, 0.25)"
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  textAlign: "center",
+                  color: "#374151",
+                  fontSize: 15,
+                  lineHeight: 1.5
+                }}
+              >
+                <button
+                  type="button"
+                  className="primary-button"
+                  onClick={async () => {
+                    const trimmedEmail = email.trim();
+
+                    if (trimmedEmail) {
+                      try {
+                        await fetch("/api/send-to-ghl", {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json"
+                          },
+                          body: JSON.stringify({
+                            email: trimmedEmail,
+                            source: "Debt GPS",
+                            plan: "paid"
+                          })
+                        });
+                      } catch (err) {
+                        console.warn("[leads] paid lead send-to-ghl error", err);
+                      }
+                    }
+
+                    window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
+                  }}
+                >
+                  Unlock your fastest strategy — see exact payoff order + roadmap
+                </button>
+              </p>
+            </div>
+          ) : null}
+          {!isPremium ? (
+            <div style={{ marginTop: 14 }}>
+              <p className="help tight" style={{ fontWeight: 600 }}>
+                Your free preview shows the starting point. The full plan shows which debt to attack first, how each payment changes your timeline, and where Banking or HELOC strategies may shorten the payoff path.
+              </p>
+            </div>
+          ) : null}
+          {!isPremium ? (
+            <div
+              style={{
+                marginTop: 14,
+                border: "1px solid var(--line)",
+                borderRadius: 14,
+                padding: "18px",
+                background: "var(--card)"
+              }}
+            >
+              <h4
+                style={{
+                  margin: "0 0 16px",
+                  color: "var(--text)",
+                  fontSize: "clamp(1rem, 2.2vw, 1.12rem)",
+                  fontWeight: 750,
+                  letterSpacing: "-0.02em",
+                  lineHeight: 1.3
+                }}
+              >
+                How can the same dollar do two jobs?
+              </h4>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                  gap: "14px",
+                  marginBottom: 14
+                }}
+              >
+                <div
+                  style={{
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    border: "1px solid var(--line)",
+                    background: "rgba(148, 163, 184, 0.06)"
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: "0 0 10px",
+                      fontWeight: 650,
+                      fontSize: "0.92rem",
+                      color: "var(--text)"
+                    }}
+                  >
+                    Standard Path
+                  </p>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: 18,
+                      fontSize: "0.88rem",
+                      lineHeight: 1.55,
+                      color: "var(--muted)"
+                    }}
+                  >
+                    <li style={{ marginBottom: 6 }}>$600 → Debt</li>
+                    <li style={{ marginBottom: 6 }}>Money gone</li>
+                    <li style={{ margin: 0 }}>No growth</li>
+                  </ul>
+                </div>
+                <div
+                  style={{
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    border: "2px solid rgba(29, 107, 196, 0.5)",
+                    background:
+                      "linear-gradient(150deg, rgba(29, 107, 196, 0.16) 0%, rgba(99, 102, 241, 0.11) 55%, rgba(29, 107, 196, 0.07) 100%)",
+                    boxShadow: "0 6px 22px rgba(29, 107, 196, 0.16)"
+                  }}
+                >
+                  <p
+                    style={{
+                      margin: "0 0 10px",
+                      fontWeight: 650,
+                      fontSize: "0.92rem",
+                      color: "var(--text)"
+                    }}
+                  >
+                    Advanced Strategy (Locked)
+                  </p>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: 18,
+                      fontSize: "0.88rem",
+                      lineHeight: 1.55,
+                      color: "var(--text)"
+                    }}
+                  >
+                    <li style={{ marginBottom: 6 }}>$600 → Capital</li>
+                    <li style={{ marginBottom: 6 }}>Used to reduce debt</li>
+                    <li style={{ margin: 0 }}>Capital still grows</li>
+                  </ul>
+                </div>
+              </div>
+              <p
+                className="help tight"
+                style={{
+                  margin: "0 0 8px",
+                  fontWeight: 600,
+                  color: "var(--text)",
+                  fontSize: "0.9rem",
+                  lineHeight: 1.5
+                }}
+              >
+                Most people only use their money once. Wealthy people use it twice.
+              </p>
+              <p
+                className="help tight"
+                style={{
+                  margin: "0 0 10px",
+                  fontWeight: 600,
+                  color: "var(--text)",
+                  fontSize: "0.9rem",
+                  lineHeight: 1.5
+                }}
+              >
+                The question is… which one are you doing?
+              </p>
+              <p className="help tight subtle" style={{ margin: 0, fontSize: "0.86rem" }}>
+                Unlock to see exactly how this works with your numbers.
+              </p>
+            </div>
+          ) : null}
+          {!isPremium ? (
+            <div
+              style={{
+                marginTop: 14,
+                border: "1px solid var(--line)",
+                borderRadius: 14,
+                padding: "18px",
+                background: "var(--card)"
+              }}
+            >
+              <h4 style={{ margin: "0 0 10px", color: "var(--text)" }}>
+                Unlock Your Fastest Payoff Plan (Early Access Pricing)
+              </h4>
+              <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
+                Early users lock in $47/month — price increases to $97 soon.
+              </p>
+              <ul>
+                <li>Unlock Banking + HELOC comparisons</li>
+                <li>See your exact payoff order (step-by-step)</li>
+                <li>Access full month-by-month payoff roadmap</li>
+                <li>See your true fastest strategy (not just standard methods)</li>
+              </ul>
+              <p className="help tight" style={{ margin: "0 0 12px" }}>
+                You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
+              </p>
+              {!isPremium ? (
+                <p className="help tight" style={{ margin: "0 0 12px", fontWeight: 500 }}>
+                  You’re about{" "}
+                  {Number.isFinite(
+                    strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
+                  )
+                    ? strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
+                    : "--"}{" "}
+                  months away from being debt free — unlock your fastest path now.
+                </p>
+              ) : null}
+              <div style={{ margin: "0 0 12px", padding: "12px", border: "1px solid var(--line)", borderRadius: 10 }}>
+                <h5 style={{ margin: "0 0 8px", color: "var(--text)" }}>
+                  See the plan most people miss
+                </h5>
+                <ul style={{ margin: "0 0 8px", paddingLeft: 18 }}>
+                  <li>Cut years off your payoff timeline</li>
+                  <li>See which debt to attack first</li>
+                  <li>Unlock advanced strategy paths hidden in free view</li>
+                </ul>
+                <p className="help tight" style={{ margin: 0 }}>
+                  Early users keep $47/month before pricing increases.
+                </p>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gap: 12,
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  margin: "14px 0"
+                }}
+              >
+                <div
+                  style={{
+                    border: "1px solid rgba(148, 163, 184, 0.28)",
+                    borderRadius: 12,
+                    padding: 14,
+                    background: "rgba(255,255,255,0.55)"
+                  }}
+                >
+                  <p style={{ margin: "0 0 8px", fontWeight: 800, color: "var(--text)" }}>Free Preview</p>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    <li>Basic payoff projection</li>
+                    <li>Strategy preview</li>
+                    <li>Email unlock access</li>
+                  </ul>
+                </div>
+
+                <div
+                  style={{
+                    border: "1px solid rgba(29, 107, 196, 0.28)",
+                    borderRadius: 12,
+                    padding: 14,
+                    background: "linear-gradient(180deg, rgba(29,107,196,0.08), rgba(29,107,196,0.03))"
+                  }}
+                >
+                  <p style={{ margin: "0 0 8px", fontWeight: 800, color: "var(--text)" }}>Paid Plan</p>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    <li>Full payoff order</li>
+                    <li>Banking + HELOC comparison</li>
+                    <li>Complete payoff roadmap</li>
+                  </ul>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={async () => {
+                  const trimmedEmail = email.trim();
+
+                  if (trimmedEmail) {
+                    try {
+                      await fetch("/api/send-to-ghl", {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                          email: trimmedEmail,
+                          source: "Debt GPS",
+                          plan: "paid"
+                        })
+                      });
+                    } catch (err) {
+                      console.warn("[leads] paid lead send-to-ghl error", err);
+                    }
+                  }
+
+                  window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
+                }}
+              >
+                Unlock My Fastest Payoff Plan — $47
+              </button>
+              <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
+                One-time setup. No long-term commitment.
+              </p>
+              <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
+                Start now and lock in early access pricing before it increases.
+              </p>
+            </div>
+          ) : null}
+          </>
+          ) : null}
 
           {isPremium ? (
           <div className="payoff-order-panel">

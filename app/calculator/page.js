@@ -3382,7 +3382,7 @@ const hasMeaningfulInputs = useMemo(() => {
           {!isPremium ? (
             <div style={{ marginTop: 14 }}>
               <p className="help tight" style={{ fontWeight: 600 }}>
-                Your free preview shows the starting point. The full plan shows which debt to attack first, how each payment changes your timeline, and where Banking or HELOC strategies may shorten the payoff path.
+                Your free preview shows the starting point. Unlock the full plan to see the exact order, roadmap, and advanced strategy options.
               </p>
             </div>
           ) : null}
@@ -3493,7 +3493,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   lineHeight: 1.5
                 }}
               >
-                Most people only use their money once. Wealthy people use it twice.
+                Standard payoff sends extra money straight to debt. Advanced strategies may help reduce interest, improve cash flow, and move you toward payoff.
               </p>
               <p
                 className="help tight"
@@ -3505,10 +3505,10 @@ const hasMeaningfulInputs = useMemo(() => {
                   lineHeight: 1.5
                 }}
               >
-                The question is… which one are you doing?
+                Compare both paths using your numbers.
               </p>
               <p className="help tight subtle" style={{ margin: 0, fontSize: "0.86rem" }}>
-                Unlock to see exactly how this works with your numbers.
+                Unlock to see the full strategy details.
               </p>
             </div>
           ) : null}
@@ -3535,22 +3535,22 @@ const hasMeaningfulInputs = useMemo(() => {
                 <li>See your true fastest strategy (not just standard methods)</li>
               </ul>
               <p className="help tight" style={{ margin: "0 0 12px" }}>
-                You're currently seeing a basic payoff path. Your fastest, optimized strategy is locked.
+                Unlock your optimized strategy and exact payoff roadmap.
               </p>
               {!isPremium ? (
                 <p className="help tight" style={{ margin: "0 0 12px", fontWeight: 500 }}>
-                  You’re about{" "}
+                  Free preview estimate: about{" "}
                   {Number.isFinite(
                     strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
                   )
                     ? strategyComparisonProjections.standardSnowball.consumerDebtFreeMonth
                     : "--"}{" "}
-                  months away from being debt free — unlock your fastest path now.
+                  months to debt freedom.
                 </p>
               ) : null}
               <div style={{ margin: "0 0 12px", padding: "12px", border: "1px solid var(--line)", borderRadius: 10 }}>
                 <h5 style={{ margin: "0 0 8px", color: "var(--text)" }}>
-                  See the plan most people miss
+                  See your plan in one view
                 </h5>
                 <ul style={{ margin: "0 0 8px", paddingLeft: 18 }}>
                   <li>Cut years off your payoff timeline</li>
@@ -3634,7 +3634,7 @@ const hasMeaningfulInputs = useMemo(() => {
                 One-time setup. No long-term commitment.
               </p>
               <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
-                Start now and lock in early access pricing before it increases.
+                Early users keep $47/month before pricing increases.
               </p>
             </div>
           ) : null}

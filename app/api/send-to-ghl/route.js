@@ -55,24 +55,31 @@ export async function POST(request) {
     )
   }
 
-  const payload = {
-    locationId: locationId,
+  // Lead Connector Contact upsert rejects unknown properties (422). `plan` is not a contact field.
+  const ghlPayload = {
+    locationId,
     email: normalizedEmail,
     tags: ["Debt GPS"],
-    source: normalizedSource,
-    plan: normalizedPlan || "free"
+    source: normalizedSource
   }
 
   try {
-    console.log("GHL DEBUG", { apiKey, locationId, payload });
+    console.log("[send-to-ghl] LeadConnector upsert", {
+      locationId,
+      email: normalizedEmail,
+      tagCount: ghlPayload.tags?.length,
+      source: normalizedSource,
+      planLocal: normalizedPlan || "free"
+    })
     const upstream = await fetch(GHL_CONTACTS_UPSERT, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
         "Content-Type": "application/json",
         Version: "2021-07-28"
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(ghlPayload)
     })
 
     const text = await upstream.text()
@@ -100,7 +107,7 @@ export async function POST(request) {
       /* non-JSON success body is ok */
     }
 
-    if (plan === "paid" && email) {
+    if (normalizedPlan === "paid" && normalizedEmail) {
       const { createClient } = require("@supabase/supabase-js");
 
       const supabase = createClient(
@@ -112,7 +119,7 @@ export async function POST(request) {
         await supabase
           .from("leads")
           .update({ plan: "paid" })
-          .eq("email", email.toLowerCase());
+          .eq("email", normalizedEmail);
       } catch (err) {
         console.warn("[leads] supabase paid update failed", err);
       }

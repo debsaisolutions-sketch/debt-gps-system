@@ -1,5 +1,4 @@
 'use client';
-import { Fragment } from "react";
 import Link from "next/link";
 import Image from "next/image";
 const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
@@ -60,6 +59,7 @@ const features = [
 ];
 
 export default function LandingPage() {
+  const year = new Date().getFullYear();
   return (
     <main className="page landing-page" style={{ maxWidth: "1160px", paddingTop: "32px" }}>
       {/* Hero */}
@@ -81,6 +81,15 @@ export default function LandingPage() {
           }}
         >
           <div style={{ flex: "1 1 300px", maxWidth: "580px", minWidth: 0 }}>
+            <div className="landing-brand-row">
+              <Image src="/logo.png" alt="Debt GPS System" width={28} height={28} />
+              <div>
+                <div className="landing-brand-name">Debt GPS System</div>
+                <div className="landing-brand-sub">
+                  Debt strategy modeling for real-world payoff decisions
+                </div>
+              </div>
+            </div>
             <p
               className="hero-eyebrow"
               style={{ color: "rgba(248, 250, 252, 0.9)", marginBottom: "10px" }}
@@ -122,19 +131,10 @@ export default function LandingPage() {
               }}
             >
               <a
-                className="secondary-button"
+                className="landing-button landing-button--light"
                 href={CALENDLY_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{
-                  padding: "15px 24px",
-                  fontSize: "1rem",
-                  fontWeight: 650,
-                  borderRadius: 12,
-                  background: "rgba(255,255,255,0.14)",
-                  color: "#f8fafc",
-                  border: "1px solid rgba(255,255,255,0.32)"
-                }}
               >
                 Book a Free Strategy Call
               </a>
@@ -275,40 +275,35 @@ export default function LandingPage() {
         <div
           style={{
             display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
+            flexDirection: "column",
             alignItems: "center",
-            gap: "8px 6px",
-            rowGap: 10
+            gap: 12
           }}
         >
-          {trustPoints.map((text, i) => (
-            <Fragment key={text}>
-              {i > 0 ? (
-                <span
-                  aria-hidden
-                  style={{ color: "var(--line)", fontWeight: 300, userSelect: "none" }}
-                >
-                  ·
-                </span>
-              ) : null}
-              <span
-                style={{
-                  fontSize: "0.8125rem",
-                  fontWeight: 600,
-                  color: "var(--muted)",
-                  letterSpacing: "0.01em"
-                }}
-              >
+          <p className="landing-trust-lead">
+            Trusted by families and business owners looking for payoff clarity
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "8px 10px",
+              rowGap: 10
+            }}
+          >
+            {trustPoints.map((text) => (
+              <span key={text} className="landing-trust-chip">
                 {text}
               </span>
-            </Fragment>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section style={{ marginBottom: "60px" }}>
+      <section style={{ marginBottom: "68px" }}>
         <p
           className="hero-eyebrow"
           style={{
@@ -346,7 +341,7 @@ export default function LandingPage() {
               className="card"
               style={{
                 margin: 0,
-                padding: "26px 22px 28px",
+                padding: "30px 24px 32px",
                 position: "relative",
                 overflow: "hidden"
               }}
@@ -379,8 +374,8 @@ export default function LandingPage() {
                 className="help tight"
                 style={{
                   margin: 0,
-                  fontSize: "0.9rem",
-                  lineHeight: 1.55,
+                  fontSize: "0.96rem",
+                  lineHeight: 1.62,
                   color: "var(--muted)"
                 }}
               >
@@ -392,7 +387,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features */}
-      <section style={{ marginBottom: "60px" }}>
+      <section style={{ marginBottom: "68px" }}>
         <p
           className="hero-eyebrow"
           style={{
@@ -423,9 +418,9 @@ export default function LandingPage() {
             margin: "0 auto 34px",
             textAlign: "center",
             maxWidth: "580px",
-            fontSize: "0.95rem",
+            fontSize: "1rem",
             color: "var(--muted)",
-            lineHeight: 1.5
+            lineHeight: 1.6
           }}
         >
           Same inputs, four strategies — with sequence and timing surfaced, not hidden behind
@@ -444,7 +439,7 @@ export default function LandingPage() {
               className="card"
               style={{
                 margin: 0,
-                padding: "24px 22px 26px",
+                padding: "28px 24px 30px",
                 borderTop: `3px solid ${f.accent}`,
                 display: "flex",
                 flexDirection: "column",
@@ -466,8 +461,8 @@ export default function LandingPage() {
               <p
                 style={{
                   margin: 0,
-                  fontSize: "0.9rem",
-                  lineHeight: 1.55,
+                  fontSize: "0.96rem",
+                  lineHeight: 1.62,
                   color: "var(--muted)"
                 }}
               >
@@ -482,7 +477,7 @@ export default function LandingPage() {
       <section
         className="card"
         style={{
-          marginBottom: "60px",
+          marginBottom: "68px",
           padding: "clamp(28px, 4vw, 40px) clamp(22px, 3vw, 36px)",
           background:
             "linear-gradient(180deg, var(--accent-soft) 0%, var(--card) 42%)",
@@ -530,8 +525,8 @@ export default function LandingPage() {
           style={{
             margin: "0 0 18px",
             paddingLeft: "1.25rem",
-            fontSize: "0.98rem",
-            lineHeight: 1.65,
+            fontSize: "1rem",
+            lineHeight: 1.7,
             color: "var(--text)",
             maxWidth: "700px"
           }}
@@ -543,8 +538,8 @@ export default function LandingPage() {
         <p
           style={{
             margin: 0,
-            fontSize: "0.95rem",
-            lineHeight: 1.6,
+            fontSize: "0.98rem",
+            lineHeight: 1.62,
             color: "var(--muted)",
             maxWidth: "700px",
             fontWeight: 500
@@ -582,7 +577,7 @@ export default function LandingPage() {
             margin: "0 auto 16px",
             maxWidth: "560px",
             fontSize: "1.02rem",
-            lineHeight: 1.55,
+            lineHeight: 1.6,
             color: "rgba(248, 250, 252, 0.88)"
           }}
         >
@@ -596,8 +591,8 @@ export default function LandingPage() {
             paddingLeft: "1.25rem",
             maxWidth: "520px",
             textAlign: "left",
-            fontSize: "0.98rem",
-            lineHeight: 1.6,
+            fontSize: "1rem",
+            lineHeight: 1.7,
             color: "rgba(248, 250, 252, 0.9)"
           }}
         >
@@ -611,8 +606,8 @@ export default function LandingPage() {
           style={{
             margin: "0 auto 30px",
             maxWidth: "520px",
-            fontSize: "0.95rem",
-            lineHeight: 1.5,
+            fontSize: "0.98rem",
+            lineHeight: 1.58,
             color: "rgba(248, 250, 252, 0.82)",
             fontWeight: 500
           }}
@@ -629,39 +624,30 @@ export default function LandingPage() {
           }}
         >
           <Link
-            className="primary-button"
+            className="landing-button landing-button--primary"
             href="/calculator"
-            style={{
-              padding: "15px 28px",
-              fontSize: "1rem",
-              fontWeight: 700,
-              borderRadius: 12,
-              boxShadow: "0 6px 22px rgba(29, 107, 196, 0.5)",
-              minWidth: "168px",
-              textAlign: "center"
-            }}
           >
             Start Your Plan
           </Link>
           <a
-            className="secondary-button"
+            className="landing-button landing-button--light"
             href={CALENDLY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              padding: "15px 24px",
-              fontSize: "1rem",
-              fontWeight: 650,
-              borderRadius: 12,
-              background: "rgba(255,255,255,0.14)",
-              color: "#f8fafc",
-              border: "1px solid rgba(255,255,255,0.32)"
-            }}
           >
             Book a Free Strategy Call
           </a>
         </div>
       </section>
+
+      <footer className="landing-footer">
+        <nav className="landing-footer-links" aria-label="Legal and contact links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms</a>
+          <a href="mailto:info@debtgpssystem.com">info@debtgpssystem.com</a>
+        </nav>
+        <p className="landing-footer-copy">© {year} Debt GPS System. All rights reserved.</p>
+      </footer>
     </main>
   );
 }

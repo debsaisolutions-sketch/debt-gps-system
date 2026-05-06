@@ -573,6 +573,121 @@ button,
   text-decoration: underline;
 }
 
+.landing-brand-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.landing-brand-name {
+  color: #f8fafc;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.landing-brand-sub {
+  color: rgba(248, 250, 252, 0.88);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.landing-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 170px;
+  padding: 15px 24px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition: transform 0.12s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.landing-button:hover {
+  transform: translateY(-1px);
+}
+
+.landing-button--primary {
+  background: var(--accent-2);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(29, 107, 196, 0.42);
+}
+
+.landing-button--primary:hover {
+  filter: brightness(1.04);
+}
+
+.landing-button--light {
+  background: #fff;
+  color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.16);
+}
+
+.landing-button--light:hover {
+  background: #f8fafc;
+}
+
+.landing-trust-lead {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.88;
+  text-align: center;
+}
+
+.landing-trust-chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.landing-footer {
+  margin-top: 18px;
+  margin-bottom: 12px;
+  padding: 18px 10px 10px;
+  text-align: center;
+}
+
+.landing-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 18px;
+  margin-bottom: 10px;
+}
+
+.landing-footer-links a {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.landing-footer-links a:hover {
+  text-decoration: underline;
+}
+
+.landing-footer-copy {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
 .inline-warn {
   margin-top: 14px;
   padding: 12px 14px;

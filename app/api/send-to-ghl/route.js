@@ -2,6 +2,135 @@ import { NextResponse } from "next/server"
 
 /** @see https://marketplace.gohighlevel.com/docs/ghl/contacts/upsert-contact */
 const GHL_CONTACTS_UPSERT = "https://services.leadconnectorhq.com/contacts/upsert"
+const GHL_PIPELINES =
+  "https://services.leadconnectorhq.com/opportunities/pipelines"
+const GHL_OPPORTUNITIES = "https://services.leadconnectorhq.com/opportunities/"
+
+const PIPELINE_NAME = "Debt GPS Leads"
+const STAGE_NAME_NEW_LEAD = "New Lead"
+
+function ghlRequestHeaders(apiKey) {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    Accept: "application/json",
+    "Content-Type": "application/json",
+    Version: "2021-07-28"
+  }
+}
+
+function contactIdFromUpsert(parsed) {
+  if (!parsed || typeof parsed !== "object") return ""
+  return (
+    parsed.contact?.id ||
+    parsed.contactId ||
+    parsed.id ||
+    parsed.data?.contact?.id ||
+    ""
+  )
+}
+
+function pipelinesFromListPayload(payload) {
+  if (!payload || typeof payload !== "object") return []
+  if (Array.isArray(payload.pipelines)) return payload.pipelines
+  if (Array.isArray(payload.data?.pipelines)) return payload.data.pipelines
+  if (Array.isArray(payload.data)) return payload.data
+  return []
+}
+
+/**
+ * @returns {Promise<object|null>} Parsed opportunity JSON or null on skip/failure (logged).
+ */
+async function createDebtGpsOpportunity({
+  apiKey,
+  locationId,
+  normalizedEmail,
+  contactId
+}) {
+  const headers = ghlRequestHeaders(apiKey)
+  const pipelinesUrl = new URL(GHL_PIPELINES)
+  pipelinesUrl.searchParams.set("locationId", locationId)
+
+  let listRes
+  try {
+    listRes = await fetch(pipelinesUrl, { method: "GET", headers })
+  } catch (e) {
+    console.error("[send-to-ghl] GET pipelines request failed", e)
+    return null
+  }
+
+  const listText = await listRes.text()
+  if (!listRes.ok) {
+    console.error("[send-to-ghl] GET pipelines failed", {
+      status: listRes.status,
+      bodyPreview: listText.slice(0, 1000)
+    })
+    return null
+  }
+
+  let listJson
+  try {
+    listJson = listText ? JSON.parse(listText) : null
+  } catch {
+    console.error("[send-to-ghl] GET pipelines invalid JSON", {
+      bodyPreview: listText.slice(0, 300)
+    })
+    return null
+  }
+
+  const pipelines = pipelinesFromListPayload(listJson)
+  const pipeline = pipelines.find((p) => p?.name === PIPELINE_NAME)
+  if (!pipeline?.id) {
+    console.warn(`[send-to-ghl] pipeline "${PIPELINE_NAME}" not found`)
+    return null
+  }
+
+  const stages = Array.isArray(pipeline.stages) ? pipeline.stages : []
+  if (!stages.length) {
+    console.warn("[send-to-ghl] pipeline has no stages")
+    return null
+  }
+
+  const namedStage = stages.find((s) => s?.name === STAGE_NAME_NEW_LEAD)
+  const stage = namedStage || stages[0]
+  if (!stage?.id) {
+    console.warn("[send-to-ghl] could not resolve pipelineStageId")
+    return null
+  }
+
+  let oppRes
+  try {
+    oppRes = await fetch(GHL_OPPORTUNITIES, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        locationId,
+        name: `Debt GPS Lead - ${normalizedEmail}`,
+        contactId,
+        pipelineId: pipeline.id,
+        pipelineStageId: stage.id,
+        status: "open"
+      })
+    })
+  } catch (e) {
+    console.error("[send-to-ghl] opportunity create request failed", e)
+    return null
+  }
+
+  const oppText = await oppRes.text()
+  if (!oppRes.ok) {
+    console.error("[send-to-ghl] opportunity create failed", {
+      status: oppRes.status,
+      bodyPreview: oppText.slice(0, 1000)
+    })
+    return null
+  }
+
+  try {
+    return oppText ? JSON.parse(oppText) : null
+  } catch {
+    return null
+  }
+}
 
 export async function GET() {
   return NextResponse.json({ ok: true, route: "send-to-ghl" })
@@ -73,12 +202,7 @@ export async function POST(request) {
     })
     const upstream = await fetch(GHL_CONTACTS_UPSERT, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Version: "2021-07-28"
-      },
+      headers: ghlRequestHeaders(apiKey),
       body: JSON.stringify(ghlPayload)
     })
 
@@ -105,6 +229,20 @@ export async function POST(request) {
       parsed = text ? JSON.parse(text) : null
     } catch {
       /* non-JSON success body is ok */
+    }
+
+    const contactId = contactIdFromUpsert(parsed)
+    if (contactId) {
+      await createDebtGpsOpportunity({
+        apiKey,
+        locationId,
+        normalizedEmail,
+        contactId
+      })
+    } else {
+      console.warn(
+        "[send-to-ghl] skip opportunity: no contact id in upsert response"
+      )
     }
 
     if (normalizedPlan === "paid" && normalizedEmail) {

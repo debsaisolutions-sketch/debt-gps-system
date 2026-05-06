@@ -2947,6 +2947,68 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           </div>
           <div
+            style={{
+              margin: "14px 0 20px",
+              padding: "18px 20px",
+              borderRadius: 14,
+              border: "1px solid rgba(29, 107, 196, 0.26)",
+              background:
+                "linear-gradient(180deg, rgba(29,107,196,0.08), rgba(29,107,196,0.03))"
+            }}
+          >
+            <h4
+              style={{
+                margin: "0 0 8px",
+                fontSize: "1.02rem",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "var(--text)"
+              }}
+            >
+              Unlock your fastest payoff plan
+            </h4>
+            <p
+              className="help tight"
+              style={{
+                margin: "0 0 12px",
+                fontSize: "0.92rem",
+                lineHeight: 1.45,
+                color: "var(--muted)"
+              }}
+            >
+              See your exact payoff order, full roadmap, and advanced strategy options.
+            </p>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={async () => {
+                const trimmedEmail = email.trim();
+
+                if (trimmedEmail) {
+                  try {
+                    await fetch("/api/send-to-ghl", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json"
+                      },
+                      body: JSON.stringify({
+                        email: trimmedEmail,
+                        source: "Debt GPS",
+                        plan: "paid"
+                      })
+                    });
+                  } catch (err) {
+                    console.warn("[leads] paid lead send-to-ghl error", err);
+                  }
+                }
+
+                window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
+              }}
+            >
+              Unlock My Fastest Payoff Plan — $47
+            </button>
+          </div>
+          <div
             role="region"
             aria-labelledby="best-path-heading"
             style={{

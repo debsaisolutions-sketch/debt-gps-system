@@ -276,7 +276,7 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Promo video (Zeely) */}
+      {/* Founder promo video */}
       <section
         aria-labelledby="promo-video-heading"
         style={{
@@ -338,7 +338,7 @@ export default function LandingPage() {
                 objectFit: "contain"
               }}
             >
-              <source src="/videos/debt-gps-zeely-ad.mp4" type="video/mp4" />
+              <source src="/videos/debt-gps-heygen-deb.mp4" type="video/mp4" />
             </video>
           </div>
           <Link className="landing-button landing-button--primary" href="/calculator">

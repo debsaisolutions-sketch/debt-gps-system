@@ -152,7 +152,7 @@ export default function LandingPage() {
                 maxWidth: "560px"
               }}
             >
-              Start with a 7-day free trial. Founding members keep $47/month while active.
+              Start with a 7-day free trial. Founder Access may be available through special follow-up offers and can save $20/month while active.
               Regular price is $67/month if you cancel and return later.
             </p>
           </div>
@@ -697,7 +697,7 @@ export default function LandingPage() {
             fontWeight: 500
           }}
         >
-          Begin with a 7-day free trial. Founding members keep $47/month while active.
+          Begin with a 7-day free trial. Founder Access may be available through special follow-up offers and can save $20/month while active.
           Regular price is $67/month if you cancel and return later.
         </p>
         <div

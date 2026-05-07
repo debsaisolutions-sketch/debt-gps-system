@@ -3005,7 +3005,7 @@ const hasMeaningfulInputs = useMemo(() => {
                 window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
               }}
             >
-              Unlock My Fastest Payoff Plan — $47
+              Unlock My Fastest Payoff Plan — $67
             </button>
           </div>
           <div
@@ -3588,7 +3588,7 @@ const hasMeaningfulInputs = useMemo(() => {
                 Unlock Your Fastest Payoff Plan (Early Access Pricing)
               </h4>
               <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
-                Early users lock in $47/month — price increases to $97 soon.
+                Early users lock in $67/month — price increases to $97 soon.
               </p>
               <ul>
                 <li>Unlock Banking + HELOC comparisons</li>
@@ -3620,7 +3620,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   <li>Unlock advanced strategy paths hidden in free view</li>
                 </ul>
                 <p className="help tight" style={{ margin: 0 }}>
-                  Early users keep $47/month before pricing increases.
+                  Founder Access may be available through special follow-up offers and can save $20/month while active.
                 </p>
               </div>
               <div
@@ -3690,13 +3690,13 @@ const hasMeaningfulInputs = useMemo(() => {
                   window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
                 }}
               >
-                Unlock My Fastest Payoff Plan — $47
+                Unlock My Fastest Payoff Plan — $67
               </button>
               <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
                 One-time setup. No long-term commitment.
               </p>
               <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
-                Early users keep $47/month before pricing increases.
+                Founder Access may be available through special follow-up offers and can save $20/month while active.
               </p>
             </div>
           ) : null}

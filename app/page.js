@@ -106,7 +106,7 @@ export default function LandingPage() {
                 color: "#f8fafc"
               }}
             >
-              Know Exactly What to Pay Next — and When You&apos;ll Be Debt Free
+              Start Where You Are. Build Toward Where You Want to Be.
             </h1>
             <p
               style={{
@@ -118,9 +118,9 @@ export default function LandingPage() {
                 fontWeight: 450
               }}
             >
-              Most tools show totals. Debt GPS shows the sequence — which debt gets paid
-              next, when each one disappears, and how your strategy actually plays out month
-              by month.
+              Debt GPS helps you stop guessing and compare Snowball, Avalanche, Banking
+              Strategy, and HELOC side by side — so you can see a clearer path to pay down
+              debt, free up cash flow, and start building a nest egg for your family.
             </p>
             <div
               style={{
@@ -130,6 +130,9 @@ export default function LandingPage() {
                 alignItems: "center"
               }}
             >
+              <Link className="landing-button landing-button--primary" href="/calculator">
+                Show Me My Debt GPS Plan
+              </Link>
               <a
                 className="landing-button landing-button--light"
                 href={CALENDLY_URL}
@@ -139,6 +142,19 @@ export default function LandingPage() {
                 Book a Free Strategy Call
               </a>
             </div>
+            <p
+              className="help tight"
+              style={{
+                margin: "10px 0 0",
+                fontSize: "0.85rem",
+                lineHeight: 1.45,
+                color: "rgba(248, 250, 252, 0.85)",
+                maxWidth: "560px"
+              }}
+            >
+              Start with a 7-day free trial. Founding members keep $47/month while active.
+              Regular price is $67/month if you cancel and return later.
+            </p>
           </div>
 
           {/* Mockup / value card */}
@@ -259,6 +275,77 @@ export default function LandingPage() {
           </div>
         </div>
       </header>
+
+      {/* Promo video (Zeely) */}
+      <section
+        aria-labelledby="promo-video-heading"
+        style={{
+          marginBottom: "56px",
+          padding: "clamp(22px, 3vw, 36px) clamp(18px, 3vw, 32px)",
+          background: "var(--card)",
+          border: "1px solid var(--line)",
+          borderRadius: 18,
+          boxShadow: "var(--shadow-xs)"
+        }}
+      >
+        <div style={{ maxWidth: "640px", margin: "0 auto", textAlign: "center" }}>
+          <h2
+            id="promo-video-heading"
+            style={{
+              margin: "0 0 14px",
+              fontSize: "clamp(1.35rem, 3vw, 1.65rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+              color: "var(--text)",
+              lineHeight: 1.2
+            }}
+          >
+            See How Debt GPS Works
+          </h2>
+          <p
+            style={{
+              margin: "0 auto 24px",
+              maxWidth: "560px",
+              fontSize: "clamp(0.98rem, 2vw, 1.05rem)",
+              lineHeight: 1.62,
+              color: "var(--muted)",
+              fontWeight: 450
+            }}
+          >
+            In less than a minute, see how Debt GPS helps you compare payoff strategies,
+            know what to pay next, and start building toward a better financial future.
+          </p>
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "min(100%, 360px)",
+              margin: "0 auto 24px",
+              aspectRatio: "9 / 16",
+              borderRadius: 16,
+              overflow: "hidden",
+              border: "1px solid var(--line)",
+              background: "#0f172a"
+            }}
+          >
+            <video
+              controls
+              playsInline
+              preload="metadata"
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "block",
+                objectFit: "contain"
+              }}
+            >
+              <source src="/videos/debt-gps-zeely-ad.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <Link className="landing-button landing-button--primary" href="/calculator">
+            Show Me My Debt GPS Plan
+          </Link>
+        </div>
+      </section>
 
       {/* Trust strip */}
       <section
@@ -507,19 +594,9 @@ export default function LandingPage() {
             fontWeight: 600
           }}
         >
-          Most debt tools stop at a payoff date.
-        </p>
-        <p
-          style={{
-            margin: "0 0 14px",
-            fontSize: "1.02rem",
-            lineHeight: 1.6,
-            color: "var(--text)",
-            maxWidth: "720px",
-            fontWeight: 500
-          }}
-        >
-          Debt GPS shows the path:
+          Most debt apps help you track balances. Debt GPS helps you compare multiple payoff
+          paths and see what can work now — and what may become possible as your cash flow
+          improves.
         </p>
         <ul
           style={{
@@ -532,8 +609,14 @@ export default function LandingPage() {
           }}
         >
           <li style={{ marginBottom: 8 }}>Which debt gets paid next</li>
+          <li style={{ marginBottom: 8 }}>
+            How Snowball, Avalanche, Banking Strategy, and HELOC compare side by side
+          </li>
           <li style={{ marginBottom: 8 }}>When each balance disappears</li>
-          <li style={{ marginBottom: 0 }}>How your cash flow builds momentum</li>
+          <li style={{ marginBottom: 0 }}>
+            How to start with Snowball or Avalanche now and evaluate advanced paths later as
+            cash flow improves
+          </li>
         </ul>
         <p
           style={{
@@ -545,7 +628,7 @@ export default function LandingPage() {
             fontWeight: 500
           }}
         >
-          So you&apos;re never guessing what to do next.
+          Stop waiting. See your next move clearly, then execute with confidence.
         </p>
       </section>
 
@@ -570,7 +653,7 @@ export default function LandingPage() {
             lineHeight: 1.2
           }}
         >
-          Get Out of Debt Faster — With the Right Strategy
+          Stop Guessing. Start Your Debt GPS Plan Today.
         </h2>
         <p
           style={{
@@ -581,9 +664,9 @@ export default function LandingPage() {
             color: "rgba(248, 250, 252, 0.88)"
           }}
         >
-          Unlock your full Debt GPS payoff plan, including your exact payoff order, Banking
-          strategy comparison, HELOC comparison, and the complete roadmap to eliminate debt
-          faster and reduce interest.
+          Most debt apps show one method or just track balances. Debt GPS compares Snowball,
+          Avalanche, Banking Strategy, and HELOC so you can choose a path that fits your life
+          today and evolves as your cash flow grows.
         </p>
         <ul
           style={{
@@ -596,11 +679,13 @@ export default function LandingPage() {
             color: "rgba(248, 250, 252, 0.9)"
           }}
         >
-          <li style={{ marginBottom: 8 }}>See your exact fastest payoff path</li>
+          <li style={{ marginBottom: 8 }}>Start where you are. Build toward where you want to be.</li>
           <li style={{ marginBottom: 8 }}>
-            Compare Snowball, Avalanche, Banking, and HELOC side by side
+            Compare Snowball, Avalanche, Banking Strategy, and HELOC side by side
           </li>
-          <li style={{ marginBottom: 0 }}>Unlock the full step-by-step payoff roadmap</li>
+          <li style={{ marginBottom: 0 }}>
+            Move from debt payoff toward wealth-building as your options expand
+          </li>
         </ul>
         <p
           style={{
@@ -612,7 +697,8 @@ export default function LandingPage() {
             fontWeight: 500
           }}
         >
-          Start today and see your full strategy instantly.
+          Begin with a 7-day free trial. Founding members keep $47/month while active.
+          Regular price is $67/month if you cancel and return later.
         </p>
         <div
           style={{
@@ -627,7 +713,7 @@ export default function LandingPage() {
             className="landing-button landing-button--primary"
             href="/calculator"
           >
-            Start Your Plan
+            Show Me My Debt GPS Plan
           </Link>
           <a
             className="landing-button landing-button--light"

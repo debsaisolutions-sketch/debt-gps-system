@@ -338,7 +338,7 @@ export default function LandingPage() {
                 objectFit: "contain"
               }}
             >
-              <source src="/videos/debt-gps-heygen-deb.mp4" type="video/mp4" />
+              <source src="/videos/debt-gps-founder-video.mp4" type="video/mp4" />
             </video>
           </div>
           <Link className="landing-button landing-button--primary" href="/calculator">

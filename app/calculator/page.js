@@ -2614,7 +2614,7 @@ const hasMeaningfulInputs = useMemo(() => {
                         }
                       }
 
-                      window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcheckout%2Fsuccess%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D`, "_blank");
+                      window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcheckout%2Fsuccess%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D`, "_blank");
                     }}
                   >
                     Skip Results — Show Me My Fastest Payoff Plan
@@ -3002,7 +3002,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   }
                 }
 
-                window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
+                window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
               }}
             >
               Unlock My Fastest Payoff Plan — $67
@@ -3433,7 +3433,7 @@ const hasMeaningfulInputs = useMemo(() => {
                       }
                     }
 
-                    window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
+                    window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
                   }}
                 >
                   Unlock your fastest strategy — see exact payoff order + roadmap
@@ -3687,7 +3687,7 @@ const hasMeaningfulInputs = useMemo(() => {
                     }
                   }
 
-                  window.open(`https://buy.stripe.com/5kQeVe5SX5Ul8Z6fPn28800?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
+                  window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
                 }}
               >
                 Unlock My Fastest Payoff Plan — $67

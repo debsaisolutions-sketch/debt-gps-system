@@ -2977,6 +2977,8 @@ const hasMeaningfulInputs = useMemo(() => {
               }}
             >
               See your exact payoff order, full roadmap, and advanced strategy options.
+              Regular price is $67/month — early-access users may qualify for $20 off while the
+              founder offer is active.
             </p>
             <button
               type="button"
@@ -3005,8 +3007,21 @@ const hasMeaningfulInputs = useMemo(() => {
                 window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
               }}
             >
-              Unlock My Fastest Payoff Plan — $67
+              Unlock My Plan — $67/mo
             </button>
+            <p
+              className="help tight"
+              style={{
+                margin: "8px 0 0",
+                textAlign: "center",
+                fontSize: "0.86rem",
+                lineHeight: 1.45,
+                color: "var(--muted)"
+              }}
+            >
+              After unlocking your preview, check your email/text for your founder discount
+              code.
+            </p>
           </div>
           <div
             role="region"
@@ -3585,10 +3600,12 @@ const hasMeaningfulInputs = useMemo(() => {
               }}
             >
               <h4 style={{ margin: "0 0 10px", color: "var(--text)" }}>
-                Unlock Your Fastest Payoff Plan (Early Access Pricing)
+                Unlock your fastest payoff plan
               </h4>
               <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
-                Early users lock in $67/month — price increases to $97 soon.
+                See your exact payoff order, full roadmap, and advanced strategy options.
+                Regular price is $67/month — early-access users may qualify for $20 off while
+                the founder offer is active.
               </p>
               <ul>
                 <li>Unlock Banking + HELOC comparisons</li>
@@ -3690,13 +3707,14 @@ const hasMeaningfulInputs = useMemo(() => {
                   window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
                 }}
               >
-                Unlock My Fastest Payoff Plan — $67
+                Unlock My Plan — $67/mo
               </button>
-              <p className="help tight" style={{ marginTop: 6, textAlign: "center" }}>
-                One-time setup. No long-term commitment.
+              <p className="help tight" style={{ marginTop: 6, textAlign: "center", fontSize: "0.86rem" }}>
+                After unlocking your preview, check your email/text for your founder discount
+                code.
               </p>
               <p className="help tight" style={{ marginTop: 4, textAlign: "center" }}>
-                Founder Access may be available through special follow-up offers and can save $20/month while active.
+                One-time setup. No long-term commitment.
               </p>
             </div>
           ) : null}

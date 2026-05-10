@@ -290,7 +290,6 @@ export function MonthTable({ columns, rows, className = "", style = {}, ...props
 
 import Image from "next/image";
 import Link from "next/link";
-import { redirect, useSearchParams } from "next/navigation";
 import { useMemo, useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { createClient } from "@supabase/supabase-js";
 import {
@@ -651,12 +650,17 @@ function CalculatorPage() {
   const resultsRef = useRef(null);
 
   useEffect(() => {
-    const paid = sessionStorage.getItem("paid_user");
-    if (paid === "true") {
-      setIsUnlocked(true);
-      setIsPremium(true);
-    }
+    fetch("/api/access", { credentials: "same-origin" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.premium) {
+          setIsPremium(true);
+          setIsUnlocked(true);
+        }
+      })
+      .catch(() => {});
   }, []);
+
   const handleUnlockClick = async () => {
     const trimmedEmail = email.trim();
 
@@ -673,26 +677,6 @@ function CalculatorPage() {
     }
 
     setUnlockError("");
-
-    try {
-      const { data: paidLead, error: paidLeadError } = await supabase
-        .from("leads")
-        .select("plan")
-        .eq("email", trimmedEmail.toLowerCase())
-        .maybeSingle();
-
-      if (!paidLeadError && paidLead?.plan === "paid") {
-        setUnlockError("");
-        setIsUnlocked(true);
-        setIsPremium(true);
-        setTimeout(() => {
-          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
-        return;
-      }
-    } catch (err) {
-      console.warn("[leads] paid lookup failed", err);
-    }
 
     console.log("[leads] sending email to GHL:", trimmedEmail);
     fetch("/api/send-to-ghl", {

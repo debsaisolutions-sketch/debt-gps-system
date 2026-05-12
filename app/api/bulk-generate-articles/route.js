@@ -76,9 +76,11 @@ function requireCronAuth(request) {
   }
   const authHeader = request.headers.get("authorization");
   const xCronSecret = request.headers.get("x-cron-secret");
+  const querySecret = request.nextUrl.searchParams.get("cron_secret");
   const bearerOk = authHeader === `Bearer ${secret}`;
   const secretHeaderOk = xCronSecret === secret;
-  if (!bearerOk && !secretHeaderOk) {
+  const queryOk = querySecret === secret;
+  if (!bearerOk && !secretHeaderOk && !queryOk) {
     return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
   return null;

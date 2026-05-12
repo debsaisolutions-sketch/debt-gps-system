@@ -69,7 +69,25 @@ Requirements:
   return article;
 }
 
-export async function GET() {
+function requireCronAuth(request) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) {
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const expected = `Bearer ${secret}`;
+  const authHeader = request.headers.get("authorization");
+  if (authHeader !== expected) {
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  return null;
+}
+
+export async function GET(request) {
+  const unauthorized = requireCronAuth(request);
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const { data: topics, error: topicError } = await supabase
     .from("seo_article_topics")
     .select("*")

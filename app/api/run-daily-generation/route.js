@@ -1,3 +1,5 @@
+import { generateSeoArticleBatch } from "../../lib/generateSeoArticleBatch";
+
 function requireCronAuth(request) {
   const secret = process.env.CRON_SECRET;
   if (!secret) {
@@ -27,18 +29,6 @@ function getDailyBatchCount() {
   return n;
 }
 
-async function readBulkResponseBody(res) {
-  const text = await res.text();
-  if (!text) {
-    return { body: null, bodyRaw: "" };
-  }
-  try {
-    return { body: JSON.parse(text), bodyRaw: text };
-  } catch {
-    return { body: { _parseError: true, raw: text }, bodyRaw: text };
-  }
-}
-
 export async function GET(request) {
   const unauthorized = requireCronAuth(request);
   if (unauthorized) {
@@ -46,51 +36,30 @@ export async function GET(request) {
   }
 
   try {
-    const origin = request.nextUrl.origin;
-    const secret = process.env.CRON_SECRET;
-    const bulkPath = "/api/bulk-generate-articles";
-    const bulkUrl = `${origin}${bulkPath}?cron_secret=${encodeURIComponent(secret)}`;
-
     const batches = getDailyBatchCount();
     const batchResponses = [];
 
-    console.log({
-      route: "run-daily-generation",
-      hasCronSecret: Boolean(process.env.CRON_SECRET),
-      bulkPath,
-      bulkUrlIncludesCronSecretParam: bulkUrl.includes("cron_secret="),
-      sendingAuthorizationHeader: true,
-      sendingXCronSecretHeader: true,
-      origin: request.nextUrl.origin
-    });
-
     for (let i = 0; i < batches; i++) {
-      const res = await fetch(bulkUrl, {
-        headers: {
-          Authorization: `Bearer ${secret}`,
-          "X-Cron-Secret": secret
-        }
-      });
-      const { body, bodyRaw } = await readBulkResponseBody(res);
-
+      const batch = await generateSeoArticleBatch();
       batchResponses.push({
         batchIndex: i + 1,
-        bulkPath,
-        bulkResponseStatus: res.status,
-        bulkResponseOk: res.ok,
-        bulkResponseBody: body,
-        bulkResponseBodyRaw: bodyRaw
+        success: batch.success,
+        processed: batch.processed,
+        results: batch.results,
+        message: batch.message,
+        error: batch.error,
+        httpStatus: batch.httpStatus
       });
     }
 
-    const allBatchesOk = batchResponses.every((b) => b.bulkResponseOk);
-    const failedBatches = batchResponses.filter((b) => !b.bulkResponseOk);
+    const allBatchesOk = batchResponses.every((b) => b.success !== false);
+    const failedBatches = batchResponses.filter((b) => b.success === false);
 
     return Response.json({
       success: allBatchesOk,
       message: allBatchesOk
-        ? "Daily generation completed; all bulk batch calls succeeded."
-        : `One or more bulk batch calls failed (${failedBatches.length} of ${batches}). See batchResponses for bulkResponseStatus and bulkResponseBody.`,
+        ? "Daily generation completed; all batches succeeded."
+        : `One or more batches failed (${failedBatches.length} of ${batches}). See batchResponses for details.`,
       batchesAttempted: batches,
       batchResponses,
       bulkSummary: {
@@ -98,8 +67,8 @@ export async function GET(request) {
         failedCount: failedBatches.length,
         statuses: batchResponses.map((b) => ({
           batchIndex: b.batchIndex,
-          bulkResponseStatus: b.bulkResponseStatus,
-          bulkResponseOk: b.bulkResponseOk
+          success: b.success,
+          httpStatus: b.httpStatus
         }))
       }
     });

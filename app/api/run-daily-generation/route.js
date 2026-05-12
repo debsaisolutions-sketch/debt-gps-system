@@ -23,6 +23,18 @@ function getDailyBatchCount() {
   return n;
 }
 
+async function readBulkResponseBody(res) {
+  const text = await res.text();
+  if (!text) {
+    return { body: null, bodyRaw: "" };
+  }
+  try {
+    return { body: JSON.parse(text), bodyRaw: text };
+  } catch {
+    return { body: { _parseError: true, raw: text }, bodyRaw: text };
+  }
+}
+
 export async function GET(request) {
   const unauthorized = requireCronAuth(request);
   if (unauthorized) {
@@ -30,41 +42,48 @@ export async function GET(request) {
   }
 
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    if (!baseUrl) {
-      return Response.json(
-        { success: false, error: "NEXT_PUBLIC_SITE_URL is not configured" },
-        { status: 500 }
-      );
-    }
+    const origin = request.nextUrl.origin;
+    const bulkUrl = `${origin}/api/bulk-generate-articles`;
 
     const batches = getDailyBatchCount();
     const authHeader = `Bearer ${process.env.CRON_SECRET}`;
     const batchResponses = [];
 
     for (let i = 0; i < batches; i++) {
-      const res = await fetch(`${baseUrl.replace(/\/$/, "")}/api/bulk-generate-articles`, {
+      const res = await fetch(bulkUrl, {
         headers: { Authorization: authHeader }
       });
-      let body = null;
-      try {
-        body = await res.json();
-      } catch {
-        body = null;
-      }
+      const { body, bodyRaw } = await readBulkResponseBody(res);
+
       batchResponses.push({
         batchIndex: i + 1,
-        status: res.status,
-        ok: res.ok,
-        body
+        bulkUrl,
+        bulkResponseStatus: res.status,
+        bulkResponseOk: res.ok,
+        bulkResponseBody: body,
+        bulkResponseBodyRaw: bodyRaw
       });
     }
 
+    const allBatchesOk = batchResponses.every((b) => b.bulkResponseOk);
+    const failedBatches = batchResponses.filter((b) => !b.bulkResponseOk);
+
     return Response.json({
-      success: true,
-      message: "Daily generation completed",
+      success: allBatchesOk,
+      message: allBatchesOk
+        ? "Daily generation completed; all bulk batch calls succeeded."
+        : `One or more bulk batch calls failed (${failedBatches.length} of ${batches}). See batchResponses for bulkResponseStatus and bulkResponseBody.`,
       batchesAttempted: batches,
-      batchResponses
+      batchResponses,
+      bulkSummary: {
+        allSucceeded: allBatchesOk,
+        failedCount: failedBatches.length,
+        statuses: batchResponses.map((b) => ({
+          batchIndex: b.batchIndex,
+          bulkResponseStatus: b.bulkResponseStatus,
+          bulkResponseOk: b.bulkResponseOk
+        }))
+      }
     });
   } catch (error) {
     return Response.json(

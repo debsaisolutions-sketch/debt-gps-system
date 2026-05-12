@@ -3,9 +3,11 @@ function requireCronAuth(request) {
   if (!secret) {
     return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
-  const expected = `Bearer ${secret}`;
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== expected) {
+  const xCronSecret = request.headers.get("x-cron-secret");
+  const bearerOk = authHeader === `Bearer ${secret}`;
+  const secretHeaderOk = xCronSecret === secret;
+  if (!bearerOk && !secretHeaderOk) {
     return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
   return null;
@@ -46,12 +48,15 @@ export async function GET(request) {
     const bulkUrl = `${origin}/api/bulk-generate-articles`;
 
     const batches = getDailyBatchCount();
-    const authHeader = `Bearer ${process.env.CRON_SECRET}`;
+    const secret = process.env.CRON_SECRET;
     const batchResponses = [];
 
     for (let i = 0; i < batches; i++) {
       const res = await fetch(bulkUrl, {
-        headers: { Authorization: authHeader }
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          "X-Cron-Secret": secret
+        }
       });
       const { body, bodyRaw } = await readBulkResponseBody(res);
 

@@ -76,11 +76,24 @@ function requireCronAuth(request) {
   }
   const authHeader = request.headers.get("authorization");
   const xCronSecret = request.headers.get("x-cron-secret");
-  const querySecret = request.nextUrl.searchParams.get("cron_secret");
+  const querySecret = new URL(request.url).searchParams.get("cron_secret");
   const bearerOk = authHeader === `Bearer ${secret}`;
   const secretHeaderOk = xCronSecret === secret;
   const queryOk = querySecret === secret;
   if (!bearerOk && !secretHeaderOk && !queryOk) {
+    console.log({
+      route: "bulk-generate-articles",
+      hasCronSecret: Boolean(process.env.CRON_SECRET),
+      hasAuthorizationHeader: Boolean(authHeader),
+      hasXCronSecretHeader: Boolean(xCronSecret),
+      hasCronSecretQuery: Boolean(querySecret),
+      authHeaderStartsWithBearer: Boolean(authHeader && authHeader.startsWith("Bearer ")),
+      bearerOk,
+      secretHeaderOk,
+      queryOk,
+      requestUrlPath: new URL(request.url).pathname,
+      requestUrlHasCronSecretParam: new URL(request.url).searchParams.has("cron_secret")
+    });
     return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
   return null;

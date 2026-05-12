@@ -5,7 +5,7 @@ function requireCronAuth(request) {
   }
   const authHeader = request.headers.get("authorization");
   const xCronSecret = request.headers.get("x-cron-secret");
-  const querySecret = request.nextUrl.searchParams.get("cron_secret");
+  const querySecret = new URL(request.url).searchParams.get("cron_secret");
   const bearerOk = authHeader === `Bearer ${secret}`;
   const secretHeaderOk = xCronSecret === secret;
   const queryOk = querySecret === secret;
@@ -53,6 +53,16 @@ export async function GET(request) {
 
     const batches = getDailyBatchCount();
     const batchResponses = [];
+
+    console.log({
+      route: "run-daily-generation",
+      hasCronSecret: Boolean(process.env.CRON_SECRET),
+      bulkPath,
+      bulkUrlIncludesCronSecretParam: bulkUrl.includes("cron_secret="),
+      sendingAuthorizationHeader: true,
+      sendingXCronSecretHeader: true,
+      origin: request.nextUrl.origin
+    });
 
     for (let i = 0; i < batches; i++) {
       const res = await fetch(bulkUrl, {

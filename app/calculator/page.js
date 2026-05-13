@@ -3229,7 +3229,7 @@ const hasMeaningfulInputs = useMemo(() => {
                         : strategyComparisonKeyStatStyle("green")
                     }
                   >
-                    <dt>Ending net (policy)</dt>
+                    <dt>Ending net (policy) 🏦</dt>
                     <dd>
                       {strategyComparisonProjections.banking
                         .policyContributionExceedsAppliedStrategy

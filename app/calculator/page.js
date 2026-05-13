@@ -2739,6 +2739,12 @@ const hasMeaningfulInputs = useMemo(() => {
         >
           <div className="step-badge secondary">Step 2</div>
           <h2 id="step2-heading">Projected results</h2>
+          <CalculatorWalkthroughCallout
+            id="calculator-walkthrough-step2-live-intro"
+            style={{ marginTop: 4, marginBottom: 14 }}
+            boldText="👉 Step 2: Watch your payoff results update as you enter your numbers."
+            bodyText="Your comparison will become more useful as you add income, expenses, debts, APRs, and minimum payments."
+          />
           {isPremium && shouldShowError ? (
             <div className="inline-warn" role="alert">
               Banking Strategy contribution cannot exceed the amount applied toward
@@ -2774,6 +2780,15 @@ const hasMeaningfulInputs = useMemo(() => {
               </span>
             ) : null}
           </p>
+
+          {isUnlocked ? (
+            <CalculatorWalkthroughCallout
+              id="calculator-walkthrough-step2-review-route"
+              style={{ marginTop: 4, marginBottom: 12 }}
+              boldText="👉 Review your payoff route."
+              bodyText="Look at your timeline, interest savings, and recommended next step. If you want help reviewing the options, schedule a free consultation."
+            />
+          ) : null}
 
           {!isUnlocked ? (
             <div
@@ -3164,6 +3179,7 @@ const hasMeaningfulInputs = useMemo(() => {
               ) : null}
             </div>
           </div>
+          {!isPremium ? (
           <div
             style={{
               margin: "14px 0 20px",
@@ -3241,6 +3257,7 @@ const hasMeaningfulInputs = useMemo(() => {
               code.
             </p>
           </div>
+          ) : null}
           <div
             role="region"
             aria-labelledby="best-path-heading"
@@ -4823,28 +4840,12 @@ const hasMeaningfulInputs = useMemo(() => {
                 className="subsection-title"
                 style={{ marginTop: 0, marginBottom: 10 }}
               >
-                {aggregated.total > 0
-                  ? "Add income and expenses to unlock projections"
-                  : "Your results will appear here"}
+                Your results will appear here as you complete Step 1.
               </h3>
-              {aggregated.total > 0 ? (
-                <p className="help tight" style={{ marginBottom: 0 }}>
-                  You already have debt balances in Step 1. Enter monthly income and
-                  living expenses so the model can allocate cash flow and show strategy
-                  comparison, timelines, and month-by-month projections here.
-                </p>
-              ) : (
-                <>
-                  <p className="help tight" style={{ marginBottom: 12 }}>
-                    Enter your debts and monthly numbers on the left to see your payoff
-                    timeline, interest savings, and strongest strategy path.
-                  </p>
-                  <p className="help tight" style={{ marginBottom: 0 }}>
-                    Once you enter your numbers, we&apos;ll compare payoff options and
-                    show your best next step.
-                  </p>
-                </>
-              )}
+              <p className="help tight" style={{ marginBottom: 0, lineHeight: 1.5 }}>
+                Enter your income, expenses, and debts on the left. Debt GPS will then
+                compare your payoff options and show your next best step.
+              </p>
             </div>
           )}
         </section>

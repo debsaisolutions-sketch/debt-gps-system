@@ -741,7 +741,61 @@ const hasMeaningfulInputs = useMemo(() => {
 
   return true;
 }, [aggregated.total, form.monthly_income, form.monthly_expenses]);
-  
+
+  const calculatorGuidedOnboarding = useMemo(() => {
+    const incomeStr = String(form.monthly_income ?? "").trim();
+    const incomeNum = Number(form.monthly_income);
+    const incomeFilled =
+      incomeStr !== "" && Number.isFinite(incomeNum) && incomeNum >= 0;
+
+    const expStr = String(form.monthly_expenses ?? "").trim();
+    const expNum = Number(form.monthly_expenses);
+    const expensesFilled =
+      expStr !== "" && Number.isFinite(expNum) && expNum >= 0;
+
+    const hasDebtBalance = aggregated.total > 0;
+
+    if (!incomeFilled) {
+      return {
+        message:
+          "👇 Start down where you see 👉 Enter your monthly income first. Then we'll walk you through the rest.",
+        showPointer: true,
+        pointerLabel: "Monthly income below"
+      };
+    }
+    if (!expensesFilled) {
+      return {
+        message: "Next: enter your living expenses.",
+        showPointer: true,
+        pointerLabel: "Living expenses below"
+      };
+    }
+    if (!hasDebtBalance) {
+      return {
+        message: "Next: add your debts one at a time.",
+        showPointer: true,
+        pointerLabel: "Debts section below"
+      };
+    }
+    if (isUnlocked) {
+      return {
+        message: "Nice work—your payoff summary is below.",
+        showPointer: false,
+        pointerLabel: null
+      };
+    }
+    return {
+      message: "Now unlock your free payoff summary.",
+      showPointer: true,
+      pointerLabel: "Unlock in Step 2 below"
+    };
+  }, [
+    form.monthly_income,
+    form.monthly_expenses,
+    aggregated.total,
+    isUnlocked
+  ]);
+
   const cashAllocationPreview = useMemo(
     () =>
       computeDebtCashAllocation(
@@ -1530,6 +1584,84 @@ const hasMeaningfulInputs = useMemo(() => {
         </div>
       </div>
 
+      <div
+        className="calculator-guided-onboarding"
+        role="status"
+        aria-live="polite"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 25,
+          margin: "0 0 14px",
+          maxWidth: "100%",
+          padding: "12px 16px",
+          borderRadius: "12px",
+          border: "1px solid rgba(29, 107, 196, 0.22)",
+          background: "color-mix(in srgb, var(--card) 92%, transparent)",
+          boxShadow: "0 6px 20px rgba(15, 23, 42, 0.06)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          gap: "10px 14px",
+          width: "100%",
+          boxSizing: "border-box"
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            flex: "1 1 200px",
+            fontWeight: 650,
+            fontSize: "clamp(0.92rem, 2.4vw, 1.02rem)",
+            lineHeight: 1.45,
+            color: "var(--text)"
+          }}
+        >
+          {calculatorGuidedOnboarding.message}
+        </p>
+        {calculatorGuidedOnboarding.showPointer ? (
+          <div
+            style={{
+              display: "inline-flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+              flexShrink: 0,
+              color: "#1d4ed8",
+              fontWeight: 700
+            }}
+            aria-hidden
+          >
+            <span
+              style={{
+                fontSize: "1.35rem",
+                lineHeight: 1,
+                filter: "drop-shadow(0 1px 0 rgba(255,255,255,0.8))"
+              }}
+            >
+              ↓
+            </span>
+            {calculatorGuidedOnboarding.pointerLabel ? (
+              <span
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.02em",
+                  textTransform: "uppercase",
+                  opacity: 0.85,
+                  maxWidth: 140,
+                  textAlign: "center",
+                  lineHeight: 1.2
+                }}
+              >
+                {calculatorGuidedOnboarding.pointerLabel}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+
       <div className="dashboard-grid">
         <section className="card step-card" aria-labelledby="step1-heading">
           <div className="step-badge">Step 1</div>
@@ -1674,14 +1806,14 @@ const hasMeaningfulInputs = useMemo(() => {
                       marginRight: 8
                     }}
                   >
-                    START HERE
+                    👉 START HERE
                   </span>
                   Enter your income, expenses, and debts to calculate your payoff strategy.
                 </p>
               </div>
             </div>
             <div className="field">
-              <label>Monthly income ($)</label>
+              <label htmlFor="calculator-monthly-income">Monthly income ($)</label>
               <div style={{ position: "relative" }}>
                 <span
                   style={{
@@ -1695,6 +1827,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   $
                 </span>
                 <input
+                  id="calculator-monthly-income"
                   type="number"
                   min={0}
                   value={form.monthly_income || ""}
@@ -1706,7 +1839,7 @@ const hasMeaningfulInputs = useMemo(() => {
               </div>
             </div>
             <div className="field">
-              <label>Living expenses ($)</label>
+              <label htmlFor="calculator-monthly-expenses">Living expenses ($)</label>
               <div style={{ position: "relative" }}>
                 <span
                   style={{
@@ -1720,6 +1853,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   $
                 </span>
                 <input
+                  id="calculator-monthly-expenses"
                   type="number"
                   min={0}
                   value={form.monthly_expenses || ""}
@@ -1738,7 +1872,7 @@ const hasMeaningfulInputs = useMemo(() => {
             </div>
           ) : null}
 
-          <div className="debt-section-header">
+          <div className="debt-section-header" id="calculator-debts-section">
             <div className="debt-section-header-text">
               <h3 className="subsection-title debt-section-title">Debts</h3>
               <p className="help tight">
@@ -2498,6 +2632,7 @@ const hasMeaningfulInputs = useMemo(() => {
 
           {!isUnlocked ? (
             <div
+              id="calculator-unlock-summary"
               className="strategy-comparison-section"
               aria-label="Strategy comparison locked"
             >

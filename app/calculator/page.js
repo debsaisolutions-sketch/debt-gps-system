@@ -683,6 +683,33 @@ function CalculatorWalkthroughCallout({ id, style, boldText, bodyText }) {
   );
 }
 
+/** Soft pills for key stats in Step 2 strategy comparison cards (UI only). */
+function strategyComparisonKeyStatStyle(kind) {
+  if (kind === "green") {
+    return {
+      padding: "8px 10px",
+      margin: "3px 0",
+      borderRadius: 10,
+      background: "linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%)",
+      border: "1px solid rgba(16, 185, 129, 0.28)",
+      borderBottom: "none",
+      boxSizing: "border-box"
+    };
+  }
+  if (kind === "yellow") {
+    return {
+      padding: "8px 10px",
+      margin: "3px 0",
+      borderRadius: 10,
+      background: "linear-gradient(180deg, #fffbeb 0%, #fef9c3 100%)",
+      border: "1px solid rgba(234, 179, 8, 0.3)",
+      borderBottom: "none",
+      boxSizing: "border-box"
+    };
+  }
+  return undefined;
+}
+
 function CalculatorPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -2915,7 +2942,10 @@ const hasMeaningfulInputs = useMemo(() => {
                       )}
                     </dd>
                   </div>
-                  <div className="strategy-comparison-row">
+                  <div
+                    className="strategy-comparison-row"
+                    style={strategyComparisonKeyStatStyle("yellow")}
+                  >
                     <dt>Fully repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
@@ -2924,7 +2954,10 @@ const hasMeaningfulInputs = useMemo(() => {
                       )}
                     </dd>
                   </div>
-                  <div className="strategy-comparison-row">
+                  <div
+                    className="strategy-comparison-row"
+                    style={strategyComparisonKeyStatStyle("yellow")}
+                  >
                     <dt>Interest saved</dt>
                     <dd>
                       {toCurrency(
@@ -2972,7 +3005,10 @@ const hasMeaningfulInputs = useMemo(() => {
                       )}
                     </dd>
                   </div>
-                  <div className="strategy-comparison-row">
+                  <div
+                    className="strategy-comparison-row"
+                    style={strategyComparisonKeyStatStyle("yellow")}
+                  >
                     <dt>Fully repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
@@ -2981,7 +3017,10 @@ const hasMeaningfulInputs = useMemo(() => {
                       )}
                     </dd>
                   </div>
-                  <div className="strategy-comparison-row">
+                  <div
+                    className="strategy-comparison-row"
+                    style={strategyComparisonKeyStatStyle("yellow")}
+                  >
                     <dt>Interest saved</dt>
                     <dd>
                       {toCurrency(
@@ -3036,7 +3075,10 @@ const hasMeaningfulInputs = useMemo(() => {
                           )}
                         </dd>
                       </div>
-                      <div className="strategy-comparison-row">
+                      <div
+                        className="strategy-comparison-row"
+                        style={strategyComparisonKeyStatStyle("yellow")}
+                      >
                         <dt>Fully repaid</dt>
                         <dd className="strategy-comparison-dd--timeline">
                           {renderStrategyComparisonTimelineInCards(
@@ -3054,7 +3096,15 @@ const hasMeaningfulInputs = useMemo(() => {
                       Uses your monthly cash flow and freed payments to repay the line.
                     </p>
                     <dl className="strategy-comparison-dl">
-                      <div className="strategy-comparison-row">
+                      <div
+                        className="strategy-comparison-row"
+                        style={
+                          (strategyComparisonProjections.heloc
+                            .interestSavedVsMinimum ?? 0) > 0
+                            ? strategyComparisonKeyStatStyle("yellow")
+                            : undefined
+                        }
+                      >
                         <dt>Interest saved</dt>
                         <dd>
                           {toCurrency(
@@ -3063,7 +3113,10 @@ const hasMeaningfulInputs = useMemo(() => {
                           )}
                         </dd>
                       </div>
-                      <div className="strategy-comparison-row">
+                      <div
+                        className="strategy-comparison-row"
+                        style={strategyComparisonKeyStatStyle("green")}
+                      >
                         <dt>Ending net (HELOC line)</dt>
                         <dd>
                           {toCurrency(
@@ -3114,7 +3167,10 @@ const hasMeaningfulInputs = useMemo(() => {
                       )}
                     </dd>
                   </div>
-                  <div className="strategy-comparison-row">
+                  <div
+                    className="strategy-comparison-row"
+                    style={strategyComparisonKeyStatStyle("yellow")}
+                  >
                     <dt>Fully repaid</dt>
                     <dd className="strategy-comparison-dd--timeline">
                       {renderStrategyComparisonTimelineInCards(
@@ -3133,7 +3189,15 @@ const hasMeaningfulInputs = useMemo(() => {
                   available dollar directly to payoff.
                 </p>
                 <dl className="strategy-comparison-dl">
-                  <div className="strategy-comparison-row">
+                  <div
+                    className="strategy-comparison-row"
+                    style={
+                      strategyComparisonProjections.banking
+                        .policyContributionExceedsAppliedStrategy
+                        ? undefined
+                        : strategyComparisonKeyStatStyle("yellow")
+                    }
+                  >
                     <dt>Interest saved</dt>
                     <dd>
                       {strategyComparisonProjections.banking
@@ -3145,7 +3209,15 @@ const hasMeaningfulInputs = useMemo(() => {
                           )}
                     </dd>
                   </div>
-                  <div className="strategy-comparison-row">
+                  <div
+                    className="strategy-comparison-row"
+                    style={
+                      strategyComparisonProjections.banking
+                        .policyContributionExceedsAppliedStrategy
+                        ? undefined
+                        : strategyComparisonKeyStatStyle("green")
+                    }
+                  >
                     <dt>Ending net (policy)</dt>
                     <dd>
                       {strategyComparisonProjections.banking

@@ -644,6 +644,45 @@ function accelerationLabel(m) {
   return "Standard";
 }
 
+const WALKTHROUGH_CALLOUT_BOX = {
+  padding: "10px 14px",
+  borderRadius: 12,
+  border: "1px solid rgba(234, 179, 8, 0.42)",
+  background: "linear-gradient(180deg, #fffbeb 0%, #fef9c3 100%)",
+  boxShadow: "0 1px 2px rgba(15, 23, 42, 0.06)"
+};
+
+function CalculatorWalkthroughCallout({ id, style, boldText, bodyText }) {
+  return (
+    <div id={id} role="note" style={{ ...WALKTHROUGH_CALLOUT_BOX, ...style }}>
+      <p
+        style={{
+          margin: 0,
+          fontWeight: 800,
+          fontSize: "clamp(0.88rem, 2.1vw, 0.97rem)",
+          lineHeight: 1.4,
+          color: "var(--text)"
+        }}
+      >
+        {boldText}
+      </p>
+      {bodyText ? (
+        <p
+          style={{
+            margin: "6px 0 0",
+            fontWeight: 500,
+            fontSize: "0.875rem",
+            lineHeight: 1.45,
+            color: "var(--text)"
+          }}
+        >
+          {bodyText}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function CalculatorPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -730,6 +769,21 @@ function CalculatorPage() {
     [form.debts]
   );
 
+  /** Debts with a balance need APR + minimum filled for the full guided flow. */
+  const guidedDebtDetailComplete = useMemo(
+    () =>
+      !form.debts.some((d) => {
+        const b = Number(d.balance) || 0;
+        if (b <= 0) return false;
+        const minP = Number(d.minPayment) || 0;
+        const rateStr = String(d.rate ?? "").trim();
+        if (minP <= 0) return true;
+        if (rateStr === "") return true;
+        return !Number.isFinite(Number(d.rate));
+      }),
+    [form.debts]
+  );
+
 const hasMeaningfulInputs = useMemo(() => {
   if (aggregated.total <= 0) return false;
 
@@ -741,60 +795,6 @@ const hasMeaningfulInputs = useMemo(() => {
 
   return true;
 }, [aggregated.total, form.monthly_income, form.monthly_expenses]);
-
-  const calculatorGuidedOnboarding = useMemo(() => {
-    const incomeStr = String(form.monthly_income ?? "").trim();
-    const incomeNum = Number(form.monthly_income);
-    const incomeFilled =
-      incomeStr !== "" && Number.isFinite(incomeNum) && incomeNum >= 0;
-
-    const expStr = String(form.monthly_expenses ?? "").trim();
-    const expNum = Number(form.monthly_expenses);
-    const expensesFilled =
-      expStr !== "" && Number.isFinite(expNum) && expNum >= 0;
-
-    const hasDebtBalance = aggregated.total > 0;
-
-    if (!incomeFilled) {
-      return {
-        message:
-          "👇 Start down where you see 👉 Enter your monthly income first. Then we'll walk you through the rest.",
-        showPointer: true,
-        pointerLabel: "Monthly income below"
-      };
-    }
-    if (!expensesFilled) {
-      return {
-        message: "Next: enter your living expenses.",
-        showPointer: true,
-        pointerLabel: "Living expenses below"
-      };
-    }
-    if (!hasDebtBalance) {
-      return {
-        message: "Next: add your debts one at a time.",
-        showPointer: true,
-        pointerLabel: "Debts section below"
-      };
-    }
-    if (isUnlocked) {
-      return {
-        message: "Nice work—your payoff summary is below.",
-        showPointer: false,
-        pointerLabel: null
-      };
-    }
-    return {
-      message: "Now unlock your free payoff summary.",
-      showPointer: true,
-      pointerLabel: "Unlock in Step 2 below"
-    };
-  }, [
-    form.monthly_income,
-    form.monthly_expenses,
-    aggregated.total,
-    isUnlocked
-  ]);
 
   const cashAllocationPreview = useMemo(
     () =>
@@ -981,6 +981,82 @@ const hasMeaningfulInputs = useMemo(() => {
     consumerDebtPayoffMonthById,
     totalInterestPaid: totalInterest
   } = projection;
+
+  const calculatorGuidedOnboarding = useMemo(() => {
+    const incomeStr = String(form.monthly_income ?? "").trim();
+    const incomeNum = Number(form.monthly_income);
+    const incomeFilled =
+      incomeStr !== "" && Number.isFinite(incomeNum) && incomeNum >= 0;
+
+    const expStr = String(form.monthly_expenses ?? "").trim();
+    const expNum = Number(form.monthly_expenses);
+    const expensesFilled =
+      expStr !== "" && Number.isFinite(expNum) && expNum >= 0;
+
+    const hasDebtBalance = aggregated.total > 0;
+
+    if (isUnlocked) {
+      return {
+        primaryMessage:
+          "Nice work — your payoff summary is below. Review your route and schedule a free consultation if you want help.",
+        secondaryMessage: null,
+        showPointer: false,
+        pointerLabel: null
+      };
+    }
+
+    if (!incomeFilled) {
+      return {
+        primaryMessage:
+          "👇 Start down where you see 👉 Enter your monthly income first. Then we'll walk you through the rest.",
+        secondaryMessage: null,
+        showPointer: true,
+        pointerLabel: "Monthly income below"
+      };
+    }
+    if (!expensesFilled) {
+      return {
+        primaryMessage:
+          "Next: enter your living expenses so Debt GPS can estimate what may be available after basic expenses.",
+        secondaryMessage: null,
+        showPointer: true,
+        pointerLabel: "Living expenses below"
+      };
+    }
+    if (!hasDebtBalance) {
+      return {
+        primaryMessage:
+          "Next: add all your debts one at a time — balances, interest rates, and minimum payments.",
+        secondaryMessage: null,
+        showPointer: true,
+        pointerLabel: "Debts below"
+      };
+    }
+    if (!guidedDebtDetailComplete) {
+      return {
+        primaryMessage:
+          "Keep going: add the balance, interest rate, and minimum payment for each debt you want included.",
+        secondaryMessage: null,
+        showPointer: true,
+        pointerLabel: "Debt rows below"
+      };
+    }
+
+    return {
+      primaryMessage:
+        "Next: choose your payoff path so Debt GPS can compare your route.",
+      secondaryMessage:
+        "Now save your plan and unlock your free payoff summary.",
+      showPointer: true,
+      pointerLabel: "↓ Payoff path & save"
+    };
+  }, [
+    form.monthly_income,
+    form.monthly_expenses,
+    aggregated.total,
+    guidedDebtDetailComplete,
+    isUnlocked
+  ]);
 
   const maxPayoffMonthFromProjection = useMemo(() => {
     const m = consumerDebtPayoffMonthById;
@@ -1585,74 +1661,91 @@ const hasMeaningfulInputs = useMemo(() => {
       </div>
 
       <div
-        className="calculator-guided-onboarding"
+        className="calculator-guided-onboarding calculator-guided-onboarding--secondary"
         role="status"
         aria-live="polite"
         style={{
           position: "sticky",
           top: 0,
-          zIndex: 25,
-          margin: "0 0 14px",
+          zIndex: 12,
+          margin: "0 0 10px",
           maxWidth: "100%",
-          padding: "12px 16px",
-          borderRadius: "12px",
-          border: "1px solid rgba(29, 107, 196, 0.22)",
-          background: "color-mix(in srgb, var(--card) 92%, transparent)",
-          boxShadow: "0 6px 20px rgba(15, 23, 42, 0.06)",
-          backdropFilter: "blur(8px)",
+          padding: "8px 12px",
+          borderRadius: 10,
+          border: "1px solid var(--line)",
+          background: "color-mix(in srgb, var(--bg) 88%, var(--card))",
+          boxShadow: "var(--shadow-xs)",
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
-          gap: "10px 14px",
+          gap: "8px 10px",
           width: "100%",
-          boxSizing: "border-box"
+          boxSizing: "border-box",
+          opacity: 0.94
         }}
       >
-        <p
+        <div
           style={{
-            margin: 0,
             flex: "1 1 200px",
-            fontWeight: 650,
-            fontSize: "clamp(0.92rem, 2.4vw, 1.02rem)",
-            lineHeight: 1.45,
-            color: "var(--text)"
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            gap: 4
           }}
         >
-          {calculatorGuidedOnboarding.message}
-        </p>
+          <p
+            style={{
+              margin: 0,
+              fontWeight: 600,
+              fontSize: "clamp(0.82rem, 2vw, 0.9rem)",
+              lineHeight: 1.45,
+              color: "var(--muted)"
+            }}
+          >
+            {calculatorGuidedOnboarding.primaryMessage}
+          </p>
+          {calculatorGuidedOnboarding.secondaryMessage ? (
+            <p
+              style={{
+                margin: 0,
+                fontWeight: 500,
+                fontSize: "clamp(0.78rem, 1.9vw, 0.86rem)",
+                lineHeight: 1.45,
+                color: "var(--muted)",
+                opacity: 0.95
+              }}
+            >
+              {calculatorGuidedOnboarding.secondaryMessage}
+            </p>
+          ) : null}
+        </div>
         {calculatorGuidedOnboarding.showPointer ? (
           <div
             style={{
               display: "inline-flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 2,
+              gap: 1,
               flexShrink: 0,
-              color: "#1d4ed8",
-              fontWeight: 700
+              color: "var(--muted)",
+              fontWeight: 600
             }}
             aria-hidden
           >
-            <span
-              style={{
-                fontSize: "1.35rem",
-                lineHeight: 1,
-                filter: "drop-shadow(0 1px 0 rgba(255,255,255,0.8))"
-              }}
-            >
+            <span style={{ fontSize: "1.05rem", lineHeight: 1, opacity: 0.75 }}>
               ↓
             </span>
             {calculatorGuidedOnboarding.pointerLabel ? (
               <span
                 style={{
-                  fontSize: "0.72rem",
+                  fontSize: "0.65rem",
                   fontWeight: 600,
                   letterSpacing: "0.02em",
                   textTransform: "uppercase",
-                  opacity: 0.85,
-                  maxWidth: 140,
+                  opacity: 0.75,
+                  maxWidth: 120,
                   textAlign: "center",
-                  lineHeight: 1.2
+                  lineHeight: 1.15
                 }}
               >
                 {calculatorGuidedOnboarding.pointerLabel}
@@ -1812,6 +1905,12 @@ const hasMeaningfulInputs = useMemo(() => {
                 </p>
               </div>
             </div>
+            <div className="field full">
+              <CalculatorWalkthroughCallout
+                id="calculator-walkthrough-step1-income"
+                boldText="👉 Step 1: Enter your monthly income and basic living expenses."
+              />
+            </div>
             <div className="field">
               <label htmlFor="calculator-monthly-income">Monthly income ($)</label>
               <div style={{ position: "relative" }}>
@@ -1871,6 +1970,12 @@ const hasMeaningfulInputs = useMemo(() => {
               Amount exceeds available for strategy
             </div>
           ) : null}
+
+          <CalculatorWalkthroughCallout
+            id="calculator-walkthrough-step2-debts"
+            style={{ marginBottom: 10 }}
+            boldText="👉 Step 2: Add every debt you want Debt GPS to include."
+          />
 
           <div className="debt-section-header" id="calculator-debts-section">
             <div className="debt-section-header-text">
@@ -1968,6 +2073,13 @@ const hasMeaningfulInputs = useMemo(() => {
             + Add debt
           </button>
 
+          <CalculatorWalkthroughCallout
+            id="calculator-walkthrough-step2-debts-hint"
+            style={{ marginTop: 10 }}
+            boldText="Include the balance, APR, and minimum payment for each debt."
+            bodyText="Add another row for each card, loan, or account."
+          />
+
           <div className="debt-section-header" style={{ marginTop: 16 }}>
             <div className="debt-section-header-text">
               <h3 className="subsection-title debt-section-title">One-Time Lump Sum Payments</h3>
@@ -2046,7 +2158,13 @@ const hasMeaningfulInputs = useMemo(() => {
             + Add lump sum
           </button>
 
-          <div className="field full">
+          <CalculatorWalkthroughCallout
+            id="calculator-walkthrough-step3-strategy"
+            style={{ marginTop: 14 }}
+            boldText="👉 Step 3: Review your estimated extra cash flow."
+          />
+
+          <div className="field full" id="calculator-strategy-budget">
             <label>Monthly Strategy Budget (Flexible)</label>
             <p className="help tight">
               This is the amount you choose to apply toward your strategy each month.
@@ -2075,7 +2193,7 @@ const hasMeaningfulInputs = useMemo(() => {
                 placeholder={
                   step1StrategyBudgetReady
                     ? `Leave blank to use full amount (${toCurrency(cashAllocationPreview.availableForStrategy)})`
-                    : "Enter your debts to calculate your strategy budget."
+                    : "👉 Enter your debts to calculate your strategy budget."
                 }
                 value={form.amount_toward_debt_strategy}
                 onChange={(e) =>
@@ -2095,6 +2213,15 @@ const hasMeaningfulInputs = useMemo(() => {
               </p>
             )}
 
+            {step1StrategyBudgetReady ? (
+              <CalculatorWalkthroughCallout
+                id="calculator-discretionary-helper"
+                style={{ marginTop: 10 }}
+                boldText="This is the estimated money left after living expenses and minimum debt payments."
+                bodyText="You can choose how much of it to use toward debt. If you leave this blank, Debt GPS assumes you want to use all available extra toward debt."
+              />
+            ) : null}
+
             {step1StrategyBudgetReady && appliedExceedsAvailableForStrategy ? (
               <div style={{ fontSize: 13, color: "#DC2626", marginTop: 6 }}>
                 You’re trying to use{" "}
@@ -2104,7 +2231,10 @@ const hasMeaningfulInputs = useMemo(() => {
               </div>
             ) : null}
 
+          </div>
+
           <div
+            id="calculator-standard-payoff-compare"
             className="standard-payoff-compare-panel"
             aria-label="Compare your Snowball and Avalanche payoff options"
           >
@@ -2223,7 +2353,15 @@ const hasMeaningfulInputs = useMemo(() => {
               </div>
             </div>
 
-          <h3 className="subsection-title">Choose Your Payoff Approach</h3>
+          <CalculatorWalkthroughCallout
+            id="calculator-walkthrough-step4-compare"
+            style={{ marginTop: 12, marginBottom: 12 }}
+            boldText="👉 Step 4: Choose your payoff path."
+          />
+
+          <h3 id="calculator-payoff-path" className="subsection-title">
+            Choose Your Payoff Approach
+          </h3>
           <p className="help tight">
             Ordering for consumer debt: smallest balance first (Snowball), highest APR
             first (Avalanche), or Fastest Route (the model runs both and uses whichever
@@ -2568,7 +2706,15 @@ const hasMeaningfulInputs = useMemo(() => {
             Tip: Save your plan when you&apos;re done — you can come back and update it
             anytime.
           </p>
-          <div style={{ display: "flex", gap: 12, marginBottom: 18 }}>
+          <CalculatorWalkthroughCallout
+            id="calculator-walkthrough-step6-save"
+            style={{ marginBottom: 10 }}
+            boldText={"👉 Step 6: Save your plan when you're done."}
+          />
+          <div
+            id="calculator-save-plan-area"
+            style={{ display: "flex", gap: 12, marginBottom: 18 }}
+          >
             <button
               type="button"
               className="primary-button"
@@ -2582,10 +2728,9 @@ const hasMeaningfulInputs = useMemo(() => {
               onClick={handleResetTestScenario}
             >
               Start over
-              </button>
-</div>
-</div>
-</section>
+            </button>
+          </div>
+        </section>
 
         <section
           ref={resultsRef}
@@ -2655,15 +2800,12 @@ const hasMeaningfulInputs = useMemo(() => {
                     marginBottom: 14
                   }}
                 />
-                <p style={{ margin: "0 0 6px", fontWeight: 700, color: "var(--text)" }}>
-                  Get your free payoff summary
-                </p>
-                <p className="help tight" style={{ margin: 0 }}>
-                  Enter your email to save your progress and unlock your personalized payoff summary.
-                </p>
-                <p className="help tight" style={{ marginTop: 6 }}>
-                  See exactly how long it will take and what to do next.
-                </p>
+                <CalculatorWalkthroughCallout
+                  id="calculator-walkthrough-step5-unlock"
+                  style={{ marginBottom: 12 }}
+                  boldText="👉 Step 5: Unlock your free payoff summary."
+                  bodyText="Enter your email so Debt GPS can save your progress and show your personalized payoff summary."
+                />
                 <input
                   type="email"
                   placeholder="Enter your email"
@@ -2674,7 +2816,7 @@ const hasMeaningfulInputs = useMemo(() => {
                   }}
                   style={{
                     width: "100%",
-                    marginTop: 12,
+                    marginTop: 10,
                     padding: "10px 12px",
                     borderRadius: 8,
                     border: "1px solid var(--line)",
@@ -2694,49 +2836,6 @@ const hasMeaningfulInputs = useMemo(() => {
                     className="primary-button"
                   >
                     Get My Free Results
-                  </button>
-                  <div
-                    style={{
-                      textAlign: "center",
-                      margin: "10px 0",
-                      fontSize: 12,
-                      opacity: 0.7
-                    }}
-                  >
-                    — or —
-                  </div>
-                  <button
-                    type="button"
-                    className="secondary-button"
-                    style={{
-                      marginTop: 0,
-                      opacity: 0.9
-                    }}
-                    onClick={async () => {
-                      const trimmedEmail = email.trim();
-
-                      if (trimmedEmail) {
-                        try {
-                          await fetch("/api/send-to-ghl", {
-                            method: "POST",
-                            headers: {
-                              "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                              email: trimmedEmail,
-                              source: "Debt GPS",
-                              plan: "paid"
-                            })
-                          });
-                        } catch (err) {
-                          console.warn("[leads] direct paid CTA error", err);
-                        }
-                      }
-
-                      window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcheckout%2Fsuccess%3Fsession_id%3D%7BCHECKOUT_SESSION_ID%7D`, "_blank");
-                    }}
-                  >
-                    Skip Results — Show Me My Fastest Payoff Plan
                   </button>
                 </div>
               </div>

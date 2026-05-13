@@ -3229,7 +3229,34 @@ const hasMeaningfulInputs = useMemo(() => {
                         : strategyComparisonKeyStatStyle("green")
                     }
                   >
-                    <dt>Ending net (policy) 🏦</dt>
+                    <dt
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-start",
+                        gap: 5,
+                        minWidth: 0
+                      }}
+                    >
+                      <span style={{ lineHeight: 1.35 }}>Ending net (policy) 🏦</span>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          fontSize: "0.65rem",
+                          fontWeight: 650,
+                          letterSpacing: "0.05em",
+                          textTransform: "uppercase",
+                          color: "#047857",
+                          background: "rgba(16, 185, 129, 0.16)",
+                          border: "1px solid rgba(16, 185, 129, 0.32)",
+                          borderRadius: 6,
+                          padding: "2px 7px",
+                          lineHeight: 1.2
+                        }}
+                      >
+                        Family Bank
+                      </span>
+                    </dt>
                     <dd>
                       {strategyComparisonProjections.banking
                         .policyContributionExceedsAppliedStrategy

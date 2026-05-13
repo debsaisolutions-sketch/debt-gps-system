@@ -683,7 +683,7 @@ function CalculatorWalkthroughCallout({ id, style, boldText, bodyText }) {
   );
 }
 
-/** Soft pills for key stats in Step 2 strategy comparison cards (UI only). */
+/** Soft pills for key stats: yellow = comparison, green = policy/capital net, red = HELOC line / caution (UI only). */
 function strategyComparisonKeyStatStyle(kind) {
   if (kind === "green") {
     return {
@@ -703,6 +703,17 @@ function strategyComparisonKeyStatStyle(kind) {
       borderRadius: 10,
       background: "linear-gradient(180deg, #fffbeb 0%, #fef9c3 100%)",
       border: "1px solid rgba(234, 179, 8, 0.3)",
+      borderBottom: "none",
+      boxSizing: "border-box"
+    };
+  }
+  if (kind === "red") {
+    return {
+      padding: "8px 10px",
+      margin: "3px 0",
+      borderRadius: 10,
+      background: "linear-gradient(180deg, #fef2f2 0%, #ffe4e6 100%)",
+      border: "1px solid rgba(244, 63, 94, 0.3)",
       borderBottom: "none",
       boxSizing: "border-box"
     };
@@ -3115,7 +3126,7 @@ const hasMeaningfulInputs = useMemo(() => {
                       </div>
                       <div
                         className="strategy-comparison-row"
-                        style={strategyComparisonKeyStatStyle("green")}
+                        style={strategyComparisonKeyStatStyle("red")}
                       >
                         <dt>Ending net (HELOC line)</dt>
                         <dd>

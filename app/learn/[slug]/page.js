@@ -108,18 +108,16 @@ export default async function LearnArticlePage({ params }) {
             background: "linear-gradient(180deg, rgba(232, 241, 251, 0.7), #ffffff)"
           }}
         >
-          <p className="step-badge" style={{ marginBottom: "10px" }}>
-            Calculator Embed Block (Placeholder)
-          </p>
-          <h2 style={{ marginBottom: "10px" }}>
-            See your personalized payoff timeline inside the Debt GPS calculator.
-          </h2>
-          <p className="help" style={{ marginBottom: "16px" }}>
-            This block is ready to be replaced by a full calculator embed in a future iteration.
-          </p>
-          <Link className="button-link primary-button" href="/calculator">
-            Open Calculator
-          </Link>
+          <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap" }}>
+            <a
+              href="https://debtgpssystem.com/calculator"
+              className="button-link primary-button"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Try the Free Debt GPS Calculator
+            </a>
+          </div>
         </section>
 
         <section className="card">

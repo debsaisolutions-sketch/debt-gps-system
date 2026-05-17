@@ -21,6 +21,10 @@ export default async function sitemap() {
       url: `${baseUrl}/learn`,
       lastModified: new Date(),
     },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+    },
     ...articleUrls,
   ];
 }

@@ -1258,7 +1258,7 @@ export default function LandingPage() {
         </div>
         <div className="landing-footer-bottom">
           <nav className="landing-footer-links" aria-label="Legal and contact links">
-            <a href="#">Privacy Policy</a>
+            <Link href="/privacy">Privacy Policy</Link>
             <a href="#">Terms</a>
             <a href="mailto:info@debtgpssystem.com">info@debtgpssystem.com</a>
           </nav>

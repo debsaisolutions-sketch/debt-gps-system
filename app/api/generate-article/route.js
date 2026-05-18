@@ -2,10 +2,12 @@ import { readFile, writeFile } from "fs/promises";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const ARTICLE_FILE_PATH = path.join(process.cwd(), "app/lib/seoArticles.js");
@@ -187,6 +189,13 @@ export async function POST(request) {
 
     if (body.action === "save") {
       const article = body.article;
+      const supabase = getSupabase();
+      if (!supabase) {
+        return Response.json(
+          { success: false, error: "Supabase is not configured." },
+          { status: 500 }
+        );
+      }
 
       const { error } = await supabase
         .from("seo_articles")

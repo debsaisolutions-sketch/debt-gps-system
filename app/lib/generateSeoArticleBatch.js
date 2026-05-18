@@ -1,14 +1,35 @@
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+let openaiClient;
+let supabaseClient;
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+function getOpenAI() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error(
+      "OPENAI_API_KEY is not configured. Set it in the server environment."
+    );
+  }
+  if (!openaiClient) {
+    openaiClient = new OpenAI({ apiKey });
+  }
+  return openaiClient;
+}
+
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) {
+    throw new Error(
+      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+    );
+  }
+  if (!supabaseClient) {
+    supabaseClient = createClient(url, key);
+  }
+  return supabaseClient;
+}
 
 function slugify(input) {
   return String(input || "")
@@ -50,7 +71,7 @@ Requirements:
 - No code fences
 `;
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: "gpt-4.1-mini",
     temperature: 0.7,
     messages: [
@@ -74,6 +95,7 @@ Requirements:
  * @returns {Promise<{ success: boolean, processed?: number, results?: Array, message?: string, error?: string, httpStatus?: number }>}
  */
 export async function generateSeoArticleBatch() {
+  const supabase = getSupabase();
   const { data: topics, error: topicError } = await supabase
     .from("seo_article_topics")
     .select("*")

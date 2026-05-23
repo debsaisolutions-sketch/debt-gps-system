@@ -1,5 +1,6 @@
 import "./globals.css";
 import FaithChatWidget from "./components/FaithChatWidget";
+import SuppressExternalChatWidgets from "./components/SuppressExternalChatWidgets";
 
 export const metadata = {
   title: "Debt & Capital Strategy Dashboard",
@@ -12,6 +13,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
+        <SuppressExternalChatWidgets />
         <FaithChatWidget />
       </body>
     </html>

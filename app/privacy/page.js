@@ -86,8 +86,8 @@ export default function PrivacyPolicyPage() {
             <strong>Stripe</strong> — payment processing and subscription checkout
           </li>
           <li>
-            <strong>GoHighLevel / LeadConnector</strong> — CRM, contact records, chat widget, and
-            lead routing when you submit your email or interact with our funnels
+            <strong>GoHighLevel / LeadConnector</strong> — CRM, contact records, and lead routing
+            when you submit your email or interact with our funnels
           </li>
           <li>
             <strong>GoHighLevel booking</strong> — scheduling strategy calls (when you book through our links)

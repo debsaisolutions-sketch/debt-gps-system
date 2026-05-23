@@ -28,7 +28,38 @@ function FaithAvatar({ size, className = "" }) {
   );
 }
 
-function AssistantMessage({ children, className = "" }) {
+function FaithMessageContent({ content }) {
+  const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
+  const normalized = String(content).replace(markdownLink, BOOKING_URL);
+  const parts = normalized.split(new RegExp(`(${escaped})`, "gi"));
+
+  return (
+    <div className="faith-chat__message-body">
+      {parts.map((part, i) => {
+        if (!part) return null;
+        if (part.toLowerCase() === BOOKING_URL.toLowerCase()) {
+          return (
+            <a
+              key={`booking-${i}`}
+              className="faith-chat__booking-btn"
+              href={BOOKING_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📅 Schedule a Free Call
+            </a>
+          );
+        }
+        return <span key={`text-${i}`}>{part}</span>;
+      })}
+    </div>
+  );
+}
+
+function AssistantMessage({ content, children, className = "" }) {
+  const body = content ?? children;
+
   return (
     <div className="faith-chat__row faith-chat__row--assistant">
       <FaithAvatar size={32} className="faith-chat__avatar-img--message" />
@@ -37,7 +68,7 @@ function AssistantMessage({ children, className = "" }) {
           .filter(Boolean)
           .join(" ")}
       >
-        {children}
+        {typeof body === "string" ? <FaithMessageContent content={body} /> : body}
       </div>
     </div>
   );
@@ -132,10 +163,10 @@ export default function FaithChatWidget() {
           </header>
 
           <div className="faith-chat__messages" ref={listRef}>
-            <AssistantMessage>{WELCOME}</AssistantMessage>
+            <AssistantMessage content={WELCOME} />
             {messages.map((msg, i) =>
               msg.role === "assistant" ? (
-                <AssistantMessage key={`${msg.role}-${i}`}>{msg.content}</AssistantMessage>
+                <AssistantMessage key={`${msg.role}-${i}`} content={msg.content} />
               ) : (
                 <div
                   key={`${msg.role}-${i}`}

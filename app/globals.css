@@ -1704,6 +1704,40 @@ tbody tr:hover {
   color: #fff;
 }
 
+.faith-chat__message-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.faith-chat__message-body > span {
+  white-space: pre-wrap;
+}
+
+.faith-chat__booking-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #fff !important;
+  text-decoration: none;
+  background: linear-gradient(135deg, #0f4c81 0%, #1d6bc4 100%);
+  box-shadow: 0 4px 14px rgba(15, 76, 129, 0.28);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.faith-chat__booking-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow: 0 6px 18px rgba(29, 107, 196, 0.38);
+}
+
 .faith-chat__typing {
   opacity: 0.75;
   font-style: italic;

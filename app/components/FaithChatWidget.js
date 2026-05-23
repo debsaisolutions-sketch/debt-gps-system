@@ -15,6 +15,10 @@ const QUICK_REPLIES = [
   "Book a consultation"
 ];
 
+const BOOKING_INTENT_MESSAGE = "I want to book a consultation";
+const BOOKING_CONFIRMED_MESSAGE =
+  "Got you booked! 🎉 If you have any questions before your call with Deb, I'm right here!";
+
 function FaithAvatar({ size, className = "" }) {
   return (
     <img
@@ -30,23 +34,26 @@ function FaithAvatar({ size, className = "" }) {
 
 const BOOKING_QUICK_PICKS = ["📅 This Week", "📅 Next Week", "📅 Pick a Time"];
 
-const BOOKING_LINK_PROPS = {
-  href: BOOKING_URL,
-  target: "_blank",
-  rel: "noopener noreferrer"
-};
-
-function FaithBookingActions() {
+function FaithBookingActions({ onScheduleClick, onBookingLinkOpen }) {
   return (
     <div className="faith-chat__booking-group">
-      <a className="faith-chat__booking-btn" {...BOOKING_LINK_PROPS}>
+      <button
+        type="button"
+        className="faith-chat__booking-btn"
+        onClick={onScheduleClick}
+      >
         📅 Schedule a Free Call
-      </a>
+      </button>
       <div className="faith-chat__booking-picks">
         {BOOKING_QUICK_PICKS.map((label) => (
-          <a key={label} className="faith-chat__booking-pick" {...BOOKING_LINK_PROPS}>
+          <button
+            key={label}
+            type="button"
+            className="faith-chat__booking-pick"
+            onClick={onBookingLinkOpen}
+          >
             {label}
-          </a>
+          </button>
         ))}
       </div>
     </div>
@@ -128,19 +135,24 @@ function containsBookingLink(content) {
   return parseFaithMessage(content).hasBooking;
 }
 
-function FaithMessageContent({ content }) {
+function FaithMessageContent({ content, onScheduleClick, onBookingLinkOpen }) {
   const { hasBooking, displayText } = parseFaithMessage(content);
 
   return (
     <div className="faith-chat__message-body">
       {displayText ? <span>{displayText}</span> : null}
-      {hasBooking ? <FaithBookingActions /> : null}
+      {hasBooking ? (
+        <FaithBookingActions
+          onScheduleClick={onScheduleClick}
+          onBookingLinkOpen={onBookingLinkOpen}
+        />
+      ) : null}
     </div>
   );
 }
 
 const AssistantMessage = forwardRef(function AssistantMessage(
-  { content, children, className = "" },
+  { content, children, className = "", onScheduleClick, onBookingLinkOpen },
   ref
 ) {
   const body = content ?? children;
@@ -153,7 +165,15 @@ const AssistantMessage = forwardRef(function AssistantMessage(
           .filter(Boolean)
           .join(" ")}
       >
-        {typeof body === "string" ? <FaithMessageContent content={body} /> : body}
+        {typeof body === "string" ? (
+          <FaithMessageContent
+            content={body}
+            onScheduleClick={onScheduleClick}
+            onBookingLinkOpen={onBookingLinkOpen}
+          />
+        ) : (
+          body
+        )}
       </div>
     </div>
   );
@@ -201,12 +221,11 @@ export default function FaithChatWidget() {
   }, [open]);
 
   const sendMessage = useCallback(async (text) => {
-    const trimmed = String(text ?? "").trim();
-    if (!trimmed || loading) return;
+    const raw = String(text ?? "").trim();
+    if (!raw || loading) return;
 
-    if (trimmed === "Book a consultation") {
-      window.open(BOOKING_URL, "_blank", "noopener,noreferrer");
-    }
+    const trimmed =
+      raw === "Book a consultation" ? BOOKING_INTENT_MESSAGE : raw;
 
     const userMessage = { role: "user", content: trimmed };
     const nextMessages = [...messages, userMessage];
@@ -232,6 +251,18 @@ export default function FaithChatWidget() {
       setLoading(false);
     }
   }, [loading, messages]);
+
+  const handleBookingLinkOpen = useCallback(() => {
+    window.open(BOOKING_URL, "_blank", "noopener,noreferrer");
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: BOOKING_CONFIRMED_MESSAGE }
+    ]);
+  }, []);
+
+  const triggerBookingResponse = useCallback(() => {
+    void sendMessage(BOOKING_INTENT_MESSAGE);
+  }, [sendMessage]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -272,6 +303,8 @@ export default function FaithChatWidget() {
                   key={`${msg.role}-${i}`}
                   content={msg.content}
                   ref={i === messages.length - 1 ? lastAssistantMessageRef : null}
+                  onScheduleClick={triggerBookingResponse}
+                  onBookingLinkOpen={handleBookingLinkOpen}
                 />
               ) : (
                 <div

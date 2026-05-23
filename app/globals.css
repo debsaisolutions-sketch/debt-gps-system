@@ -1730,11 +1730,14 @@ tbody tr:hover {
   align-self: flex-start;
   margin-top: 2px;
   padding: 10px 16px;
+  border: none;
   border-radius: 10px;
+  font-family: inherit;
   font-size: 0.88rem;
   font-weight: 700;
   line-height: 1.25;
-  color: #fff !important;
+  color: #fff;
+  cursor: pointer;
   text-decoration: none;
   background: linear-gradient(135deg, #0f4c81 0%, #1d6bc4 100%);
   box-shadow: 0 4px 14px rgba(15, 76, 129, 0.28);
@@ -1760,10 +1763,12 @@ tbody tr:hover {
   justify-content: center;
   padding: 6px 10px;
   border-radius: 999px;
+  font-family: inherit;
   font-size: 0.72rem;
   font-weight: 650;
   line-height: 1.2;
-  color: var(--accent) !important;
+  color: var(--accent);
+  cursor: pointer;
   text-decoration: none;
   background: #fff;
   border: 1px solid rgba(15, 76, 129, 0.4);
@@ -1774,7 +1779,7 @@ tbody tr:hover {
 .faith-chat__booking-pick:hover {
   background: var(--accent-soft);
   border-color: var(--accent-2);
-  color: var(--accent) !important;
+  color: var(--accent);
 }
 
 .faith-chat__typing {

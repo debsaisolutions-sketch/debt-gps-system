@@ -1549,6 +1549,7 @@ tbody tr:hover {
 .faith-chat__launcher {
   width: 58px;
   height: 58px;
+  padding: 3px;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -1556,7 +1557,6 @@ tbody tr:hover {
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #0f172a 0%, #0f4c81 55%, #1d6bc4 100%);
-  color: #fff;
   box-shadow: 0 8px 28px rgba(15, 23, 42, 0.35);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
@@ -1566,9 +1566,31 @@ tbody tr:hover {
   box-shadow: 0 12px 32px rgba(15, 76, 129, 0.45);
 }
 
-.faith-chat__launcher-icon {
-  font-size: 1.65rem;
-  line-height: 1;
+.faith-chat__avatar-img {
+  display: block;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.faith-chat__avatar-img--launcher {
+  width: 52px;
+  height: 52px;
+  border: 2px solid #fff;
+}
+
+.faith-chat__avatar-img--header {
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+.faith-chat__avatar-img--message {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-xs);
 }
 
 .faith-chat__panel {
@@ -1601,11 +1623,6 @@ tbody tr:hover {
   align-items: center;
   gap: 10px;
   min-width: 0;
-}
-
-.faith-chat__avatar {
-  font-size: 1.5rem;
-  line-height: 1;
 }
 
 .faith-chat__title {
@@ -1647,6 +1664,21 @@ tbody tr:hover {
   flex-direction: column;
   gap: 10px;
   background: var(--bg);
+}
+
+.faith-chat__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.faith-chat__row--assistant {
+  align-self: flex-start;
+}
+
+.faith-chat__row .faith-chat__bubble {
+  max-width: min(280px, calc(100% - 40px));
 }
 
 .faith-chat__bubble {

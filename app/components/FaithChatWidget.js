@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BOOKING_URL } from "../lib/bookingUrl";
 
+const FAITH_LOGO_URL =
+  "https://truefreedomfinancial.com/wp-content/uploads/2023/03/logopng-300x300.png";
+
 const WELCOME = "Hi! 👋 How may I help you today?";
 
 const QUICK_REPLIES = [
@@ -11,6 +14,34 @@ const QUICK_REPLIES = [
   "Tell me about annuities",
   "Book a consultation"
 ];
+
+function FaithAvatar({ size, className = "" }) {
+  return (
+    <img
+      src={FAITH_LOGO_URL}
+      alt=""
+      width={size}
+      height={size}
+      className={["faith-chat__avatar-img", className].filter(Boolean).join(" ")}
+      aria-hidden="true"
+    />
+  );
+}
+
+function AssistantMessage({ children, className = "" }) {
+  return (
+    <div className="faith-chat__row faith-chat__row--assistant">
+      <FaithAvatar size={32} className="faith-chat__avatar-img--message" />
+      <div
+        className={["faith-chat__bubble", "faith-chat__bubble--assistant", className]
+          .filter(Boolean)
+          .join(" ")}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function FaithChatWidget() {
   const [open, setOpen] = useState(false);
@@ -84,9 +115,7 @@ export default function FaithChatWidget() {
         >
           <header className="faith-chat__header">
             <div className="faith-chat__header-text">
-              <span className="faith-chat__avatar" aria-hidden="true">
-                🕊️
-              </span>
+              <FaithAvatar size={40} className="faith-chat__avatar-img--header" />
               <div>
                 <strong className="faith-chat__title">Faith</strong>
                 <span className="faith-chat__subtitle">True Freedom Financial</span>
@@ -103,21 +132,23 @@ export default function FaithChatWidget() {
           </header>
 
           <div className="faith-chat__messages" ref={listRef}>
-            <div className="faith-chat__bubble faith-chat__bubble--assistant">
-              {WELCOME}
-            </div>
-            {messages.map((msg, i) => (
-              <div
-                key={`${msg.role}-${i}`}
-                className={`faith-chat__bubble faith-chat__bubble--${msg.role}`}
-              >
-                {msg.content}
-              </div>
-            ))}
+            <AssistantMessage>{WELCOME}</AssistantMessage>
+            {messages.map((msg, i) =>
+              msg.role === "assistant" ? (
+                <AssistantMessage key={`${msg.role}-${i}`}>{msg.content}</AssistantMessage>
+              ) : (
+                <div
+                  key={`${msg.role}-${i}`}
+                  className="faith-chat__bubble faith-chat__bubble--user"
+                >
+                  {msg.content}
+                </div>
+              )
+            )}
             {loading ? (
-              <div className="faith-chat__bubble faith-chat__bubble--assistant faith-chat__typing">
+              <AssistantMessage className="faith-chat__typing">
                 Faith is typing…
-              </div>
+              </AssistantMessage>
             ) : null}
             {error ? <p className="faith-chat__error">{error}</p> : null}
           </div>
@@ -167,9 +198,7 @@ export default function FaithChatWidget() {
         aria-expanded={open}
         aria-label={open ? "Close Faith chat" : "Open Faith chat"}
       >
-        <span className="faith-chat__launcher-icon" aria-hidden="true">
-          🕊️
-        </span>
+        <FaithAvatar size={52} className="faith-chat__avatar-img--launcher" />
       </button>
     </div>
   );

@@ -57,14 +57,37 @@ function stripMarkdownArtifacts(text) {
   return String(text ?? "").replace(/\*\*/g, "");
 }
 
+function stripOrphanedPointerEmojis(text) {
+  return String(text)
+    .replace(/^\s*👉\s*$/gm, "")
+    .replace(/\s+👉\s*(?=[.!?,;:\n]|$)/g, "")
+    .replace(/(?:^|\n)\s*👉\s+(?=\n)/g, "\n");
+}
+
+function stripBookingUrlAndPointer(text) {
+  const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const markdownLink = new RegExp(
+    `(?:👉\\s*)*\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`,
+    "gi"
+  );
+
+  let result = String(text ?? "")
+    .replace(markdownLink, " ")
+    .replace(new RegExp(`👉[\\s\\S]{0,40}?${escaped}`, "gi"), " ")
+    .replace(new RegExp(`(?:👉\\s*)+${escaped}`, "gi"), " ")
+    .replace(new RegExp(`${escaped}\\s*(?:👉\\s*)+`, "gi"), " ")
+    .replace(new RegExp(escaped, "gi"), " ");
+
+  return stripOrphanedPointerEmojis(result);
+}
+
 function parseFaithMessage(content) {
   const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
   const normalized = String(content ?? "").replace(markdownLink, BOOKING_URL);
   const hasBooking = normalized.toLowerCase().includes(BOOKING_URL.toLowerCase());
   const displayText = stripMarkdownArtifacts(
-    normalized
-      .replace(new RegExp(escaped, "gi"), " ")
+    stripBookingUrlAndPointer(normalized)
       .replace(/[ \t]+\n/g, "\n")
       .replace(/\n{3,}/g, "\n\n")
       .replace(/[ \t]{2,}/g, " ")

@@ -1,16 +1,23 @@
 import { TFF_SYSTEM } from "../../lib/tffFaithSystemPrompt";
 
 const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const MODEL = "claude-sonnet-4-20250514";
+const ANTHROPIC_VERSION = "2023-06-01";
+/** claude-sonnet-4-20250514 is not a valid API model id; Sonnet 4.6 is the current Sonnet 4 release. */
+const DEFAULT_MODEL = "claude-sonnet-4-6";
+
+export const runtime = "nodejs";
 
 export async function POST(request) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) {
     return Response.json(
       { error: "Chat is not configured. Please try again later." },
       { status: 503 }
     );
   }
+
+  const model =
+    process.env.ANTHROPIC_MODEL?.trim() || DEFAULT_MODEL;
 
   let body;
   try {
@@ -38,20 +45,25 @@ export async function POST(request) {
       headers: {
         "Content-Type": "application/json",
         "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01"
+        "anthropic-version": ANTHROPIC_VERSION
       },
       body: JSON.stringify({
-        model: MODEL,
+        model,
         max_tokens: 1000,
         system: TFF_SYSTEM,
         messages: anthropicMessages
       })
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      console.error("Anthropic API error:", data);
+      console.error("Anthropic API error:", {
+        status: res.status,
+        model,
+        type: data?.error?.type,
+        message: data?.error?.message
+      });
       return Response.json(
         { error: "Sorry, I could not respond right now. Please try again." },
         { status: 502 }
@@ -60,6 +72,7 @@ export async function POST(request) {
 
     const text = data?.content?.find((block) => block.type === "text")?.text?.trim();
     if (!text) {
+      console.error("Anthropic API returned no text content", { model });
       return Response.json(
         { error: "Sorry, I could not respond right now. Please try again." },
         { status: 502 }

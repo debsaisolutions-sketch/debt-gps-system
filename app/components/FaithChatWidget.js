@@ -53,28 +53,38 @@ function FaithBookingActions() {
   );
 }
 
-function containsBookingLink(content) {
+function stripMarkdownArtifacts(text) {
+  return String(text ?? "").replace(/\*\*/g, "");
+}
+
+function parseFaithMessage(content) {
   const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
   const normalized = String(content ?? "").replace(markdownLink, BOOKING_URL);
-  return normalized.toLowerCase().includes(BOOKING_URL.toLowerCase());
+  const hasBooking = normalized.toLowerCase().includes(BOOKING_URL.toLowerCase());
+  const displayText = stripMarkdownArtifacts(
+    normalized
+      .replace(new RegExp(escaped, "gi"), " ")
+      .replace(/[ \t]+\n/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .replace(/[ \t]{2,}/g, " ")
+      .trim()
+  );
+
+  return { hasBooking, displayText };
+}
+
+function containsBookingLink(content) {
+  return parseFaithMessage(content).hasBooking;
 }
 
 function FaithMessageContent({ content }) {
-  const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
-  const normalized = String(content).replace(markdownLink, BOOKING_URL);
-  const parts = normalized.split(new RegExp(`(${escaped})`, "gi"));
+  const { hasBooking, displayText } = parseFaithMessage(content);
 
   return (
     <div className="faith-chat__message-body">
-      {parts.map((part, i) => {
-        if (!part) return null;
-        if (part.toLowerCase() === BOOKING_URL.toLowerCase()) {
-          return <FaithBookingActions key={`booking-${i}`} />;
-        }
-        return <span key={`text-${i}`}>{part}</span>;
-      })}
+      {hasBooking ? <FaithBookingActions /> : null}
+      {displayText ? <span>{displayText}</span> : null}
     </div>
   );
 }
@@ -223,7 +233,7 @@ export default function FaithChatWidget() {
                   key={`${msg.role}-${i}`}
                   className="faith-chat__bubble faith-chat__bubble--user"
                 >
-                  {msg.content}
+                  {stripMarkdownArtifacts(msg.content)}
                 </div>
               )
             )}

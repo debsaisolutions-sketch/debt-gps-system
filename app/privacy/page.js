@@ -90,7 +90,7 @@ export default function PrivacyPolicyPage() {
             lead routing when you submit your email or interact with our funnels
           </li>
           <li>
-            <strong>Calendly</strong> — scheduling strategy calls (when you book through our links)
+            <strong>GoHighLevel booking</strong> — scheduling strategy calls (when you book through our links)
           </li>
         </ul>
         <p className="help" style={{ marginTop: "12px", marginBottom: 0, lineHeight: 1.65 }}>

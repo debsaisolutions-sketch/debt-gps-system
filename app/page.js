@@ -1,7 +1,7 @@
 'use client';
 import Link from "next/link";
 import Image from "next/image";
-const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
+import { BOOKING_URL } from "./lib/bookingUrl";
 const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/4gM00k3KP2I94IQfPn28804";
 
 const trustPoints = [
@@ -435,7 +435,7 @@ export default function LandingPage() {
               </Link>
               <a
                 className="landing-cta-secondary"
-                href={CALENDLY_URL}
+                href={BOOKING_URL}
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -1228,7 +1228,7 @@ export default function LandingPage() {
           </Link>
           <a
             className="landing-cta-secondary"
-            href={CALENDLY_URL}
+            href={BOOKING_URL}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -1251,7 +1251,7 @@ export default function LandingPage() {
             <a href="#how-it-works">How it works</a>
             <a href="#pricing">Pricing</a>
             <Link href="/calculator">Calculator</Link>
-            <a href={CALENDLY_URL} target="_blank" rel="noopener noreferrer">
+            <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
               Book a call
             </a>
           </nav>

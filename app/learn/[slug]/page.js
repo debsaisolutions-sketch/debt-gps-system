@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
-const CALENDLY_URL = "https://calendly.com/debsaisolutions/30min";
+import { BOOKING_URL } from "../../lib/bookingUrl";
 
 export const dynamic = "force-dynamic";
 
@@ -171,7 +171,7 @@ export default async function LearnArticlePage({ params }) {
             </a>
 
             <a
-              href="https://calendly.com/debsaisolutions/30min"
+              href={BOOKING_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="button-link primary-button"

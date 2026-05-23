@@ -302,6 +302,7 @@ import {
   AUTO_PROJECTION_CAP_MONTHS
 } from "../lib/finance";
 import { toCurrency } from "../lib/format";
+import { BOOKING_URL } from "../lib/bookingUrl";
 import {
   appendScenario,
   deleteScenarioById,
@@ -1632,7 +1633,7 @@ const hasMeaningfulInputs = useMemo(() => {
               </p>
               <div style={{ marginTop: 18 }}>
                 <Link
-                  href="https://calendly.com/debsaisolutions/30min"
+                  href={BOOKING_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

@@ -81,22 +81,25 @@ function stripBookingUrlAndPointer(text) {
   return stripOrphanedPointerEmojis(result);
 }
 
-function stripContactInfoFromBookingResponse(text) {
-  let result = String(text)
-    .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/gi, "")
-    .replace(
-      /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b/g,
-      ""
-    )
-    .replace(/\b(?:toll[- ]?free|local\s+kerrville)\s*:?\s*/gi, "")
-    .replace(/\|/g, " ")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/[ \t]{2,}/g, " ")
-    .replace(/^\s*[-•]\s*$/gm, "")
-    .trim();
+const PHONE_CALL_LINE_PATTERN =
+  /(?:📞|☎️|📱|tel:|mailto:|\(\d{3}\)|\d{3}[-.\s]?\d{3}[-.\s]?\d{4}|toll[- ]?free|\blocal\s*:|\blocal\s+kerrville|\bphone\b|\bcall\b|reach\s+out(?:\s+directly)?|questions?\s+before\s+your\s+appointment)/i;
 
-  return result;
+const EMAIL_LINE_PATTERN = /(?:@|📧|✉️|\be-?mail\b)/i;
+
+function isContactOrCallLine(line) {
+  const trimmed = String(line).trim();
+  if (!trimmed) return true;
+  return PHONE_CALL_LINE_PATTERN.test(trimmed) || EMAIL_LINE_PATTERN.test(trimmed);
+}
+
+function stripContactInfoFromBookingResponse(text) {
+  return String(text)
+    .split(/\r?\n/)
+    .filter((line) => !isContactOrCallLine(line))
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join("\n")
+    .trim();
 }
 
 function parseFaithMessage(content) {
@@ -164,7 +167,7 @@ export default function FaithChatWidget() {
   const [error, setError] = useState(null);
   const listRef = useRef(null);
   const inputRef = useRef(null);
-  const bookingMessageRef = useRef(null);
+  const lastAssistantMessageRef = useRef(null);
 
   const showQuickReplies = messages.length === 0 && !loading;
 
@@ -172,18 +175,17 @@ export default function FaithChatWidget() {
     if (!open || !listRef.current) return;
 
     const lastMessage = messages[messages.length - 1];
-    const scrollToBookingMessage =
+    const scrollToFaithReply =
       !loading &&
       lastMessage?.role === "assistant" &&
-      containsBookingLink(lastMessage.content) &&
-      bookingMessageRef.current;
+      lastAssistantMessageRef.current;
 
-    if (scrollToBookingMessage) {
+    if (scrollToFaithReply) {
       requestAnimationFrame(() => {
-        const row = bookingMessageRef.current;
-        const bookingBlock =
-          row?.querySelector(".faith-chat__booking-group") ?? row;
-        bookingBlock?.scrollIntoView({ block: "start", behavior: "smooth" });
+        lastAssistantMessageRef.current?.scrollIntoView({
+          block: "start",
+          behavior: "smooth"
+        });
       });
       return;
     }
@@ -269,11 +271,7 @@ export default function FaithChatWidget() {
                 <AssistantMessage
                   key={`${msg.role}-${i}`}
                   content={msg.content}
-                  ref={
-                    i === messages.length - 1 && containsBookingLink(msg.content)
-                      ? bookingMessageRef
-                      : null
-                  }
+                  ref={i === messages.length - 1 ? lastAssistantMessageRef : null}
                 />
               ) : (
                 <div

@@ -28,6 +28,31 @@ function FaithAvatar({ size, className = "" }) {
   );
 }
 
+const BOOKING_QUICK_PICKS = ["📅 This Week", "📅 Next Week", "📅 Pick a Time"];
+
+const BOOKING_LINK_PROPS = {
+  href: BOOKING_URL,
+  target: "_blank",
+  rel: "noopener noreferrer"
+};
+
+function FaithBookingActions() {
+  return (
+    <div className="faith-chat__booking-group">
+      <a className="faith-chat__booking-btn" {...BOOKING_LINK_PROPS}>
+        📅 Schedule a Free Call
+      </a>
+      <div className="faith-chat__booking-picks">
+        {BOOKING_QUICK_PICKS.map((label) => (
+          <a key={label} className="faith-chat__booking-pick" {...BOOKING_LINK_PROPS}>
+            {label}
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function FaithMessageContent({ content }) {
   const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
@@ -39,17 +64,7 @@ function FaithMessageContent({ content }) {
       {parts.map((part, i) => {
         if (!part) return null;
         if (part.toLowerCase() === BOOKING_URL.toLowerCase()) {
-          return (
-            <a
-              key={`booking-${i}`}
-              className="faith-chat__booking-btn"
-              href={BOOKING_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              📅 Schedule a Free Call
-            </a>
-          );
+          return <FaithBookingActions key={`booking-${i}`} />;
         }
         return <span key={`text-${i}`}>{part}</span>;
       })}

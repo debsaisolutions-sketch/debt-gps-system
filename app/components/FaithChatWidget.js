@@ -81,13 +81,37 @@ function stripBookingUrlAndPointer(text) {
   return stripOrphanedPointerEmojis(result);
 }
 
+function stripContactInfoFromBookingResponse(text) {
+  let result = String(text)
+    .replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/gi, "")
+    .replace(
+      /(?:\+?1[-.\s]?)?(?:\(?\d{3}\)?[-.\s]?)?\d{3}[-.\s]?\d{4}\b/g,
+      ""
+    )
+    .replace(/\b(?:toll[- ]?free|local\s+kerrville)\s*:?\s*/gi, "")
+    .replace(/\|/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/^\s*[-•]\s*$/gm, "")
+    .trim();
+
+  return result;
+}
+
 function parseFaithMessage(content) {
   const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
   const normalized = String(content ?? "").replace(markdownLink, BOOKING_URL);
   const hasBooking = normalized.toLowerCase().includes(BOOKING_URL.toLowerCase());
+
+  let text = stripBookingUrlAndPointer(normalized);
+  if (hasBooking) {
+    text = stripContactInfoFromBookingResponse(text);
+  }
+
   const displayText = stripMarkdownArtifacts(
-    stripBookingUrlAndPointer(normalized)
+    text
       .replace(/[ \t]+\n/g, "\n")
       .replace(/\n{3,}/g, "\n\n")
       .replace(/[ \t]{2,}/g, " ")
@@ -106,8 +130,8 @@ function FaithMessageContent({ content }) {
 
   return (
     <div className="faith-chat__message-body">
-      {hasBooking ? <FaithBookingActions /> : null}
       {displayText ? <span>{displayText}</span> : null}
+      {hasBooking ? <FaithBookingActions /> : null}
     </div>
   );
 }

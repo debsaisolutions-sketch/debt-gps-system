@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { BOOKING_URL } from "../lib/bookingUrl";
 
 const FAITH_LOGO_URL =
@@ -53,6 +53,13 @@ function FaithBookingActions() {
   );
 }
 
+function containsBookingLink(content) {
+  const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
+  const normalized = String(content ?? "").replace(markdownLink, BOOKING_URL);
+  return normalized.toLowerCase().includes(BOOKING_URL.toLowerCase());
+}
+
 function FaithMessageContent({ content }) {
   const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
@@ -72,11 +79,14 @@ function FaithMessageContent({ content }) {
   );
 }
 
-function AssistantMessage({ content, children, className = "" }) {
+const AssistantMessage = forwardRef(function AssistantMessage(
+  { content, children, className = "" },
+  ref
+) {
   const body = content ?? children;
 
   return (
-    <div className="faith-chat__row faith-chat__row--assistant">
+    <div ref={ref} className="faith-chat__row faith-chat__row--assistant">
       <FaithAvatar size={32} className="faith-chat__avatar-img--message" />
       <div
         className={["faith-chat__bubble", "faith-chat__bubble--assistant", className]
@@ -87,7 +97,7 @@ function AssistantMessage({ content, children, className = "" }) {
       </div>
     </div>
   );
-}
+});
 
 export default function FaithChatWidget() {
   const [open, setOpen] = useState(false);
@@ -97,13 +107,31 @@ export default function FaithChatWidget() {
   const [error, setError] = useState(null);
   const listRef = useRef(null);
   const inputRef = useRef(null);
+  const bookingMessageRef = useRef(null);
 
   const showQuickReplies = messages.length === 0 && !loading;
 
   useEffect(() => {
-    if (open && listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight;
+    if (!open || !listRef.current) return;
+
+    const lastMessage = messages[messages.length - 1];
+    const scrollToBookingMessage =
+      !loading &&
+      lastMessage?.role === "assistant" &&
+      containsBookingLink(lastMessage.content) &&
+      bookingMessageRef.current;
+
+    if (scrollToBookingMessage) {
+      requestAnimationFrame(() => {
+        const row = bookingMessageRef.current;
+        const bookingBlock =
+          row?.querySelector(".faith-chat__booking-group") ?? row;
+        bookingBlock?.scrollIntoView({ block: "start", behavior: "smooth" });
+      });
+      return;
     }
+
+    listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [open, messages, loading]);
 
   useEffect(() => {
@@ -181,7 +209,15 @@ export default function FaithChatWidget() {
             <AssistantMessage content={WELCOME} />
             {messages.map((msg, i) =>
               msg.role === "assistant" ? (
-                <AssistantMessage key={`${msg.role}-${i}`} content={msg.content} />
+                <AssistantMessage
+                  key={`${msg.role}-${i}`}
+                  content={msg.content}
+                  ref={
+                    i === messages.length - 1 && containsBookingLink(msg.content)
+                      ? bookingMessageRef
+                      : null
+                  }
+                />
               ) : (
                 <div
                   key={`${msg.role}-${i}`}

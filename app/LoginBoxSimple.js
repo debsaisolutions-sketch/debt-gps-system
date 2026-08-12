@@ -1,17 +1,25 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createBrowserSupabaseClient } from './lib/supabase/browser'
 import { recordCalculatorLoginLead } from './lib/recordCalculatorLoginLead'
 
 export default function LoginBoxSimple({
   redirectTo = '/calculator',
   onSent = null,
-  compact = false
+  compact = false,
+  initialEmail = ''
 } = {}) {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => String(initialEmail || '').trim())
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+
+  // Carry over email already typed in the free unlock field on this visit.
+  useEffect(() => {
+    const next = String(initialEmail || '').trim()
+    if (!next) return
+    setEmail((prev) => (String(prev || '').trim() ? prev : next))
+  }, [initialEmail])
 
   const handleLogin = async () => {
     if (!email) {

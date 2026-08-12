@@ -726,79 +726,114 @@ function strategyComparisonKeyStatStyle(kind) {
 
 /** Monthly vs annual billing toggle for paid unlock CTAs. */
 function BillingPlanToggle({ value, onChange, disabled = false }) {
-  const baseBtn = {
-    flex: "1 1 140px",
-    padding: "10px 12px",
-    borderRadius: 10,
-    border: "1px solid var(--line)",
-    background: "#fff",
-    color: "var(--text)",
-    fontWeight: 650,
-    fontSize: "0.9rem",
+  const isYear = value === "year";
+  const segmentBtn = {
+    position: "relative",
+    zIndex: 1,
+    flex: "1 1 0",
+    minWidth: 0,
+    padding: "9px 14px",
+    border: "none",
+    background: "transparent",
+    fontWeight: 700,
+    fontSize: "0.92rem",
     cursor: disabled ? "not-allowed" : "pointer",
-    lineHeight: 1.3,
-    opacity: disabled ? 0.7 : 1
-  };
-  const activeBtn = {
-    ...baseBtn,
-    border: "1px solid rgba(29, 107, 196, 0.55)",
-    background: "rgba(29, 107, 196, 0.1)",
-    color: "#1d4ed8",
-    boxShadow: "0 1px 2px rgba(15, 23, 42, 0.06)"
+    lineHeight: 1.2,
+    borderRadius: 999
   };
 
   return (
-    <div style={{ marginBottom: 12 }}>
+    <div style={{ marginBottom: 14, textAlign: "center" }}>
       <div
-        role="group"
-        aria-label="Choose billing plan"
         style={{
-          display: "flex",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 10,
           flexWrap: "wrap",
-          gap: 8
+          justifyContent: "center"
         }}
       >
-        <button
-          type="button"
-          disabled={disabled}
-          aria-pressed={value === "month"}
-          onClick={() => onChange("month")}
-          style={value === "month" ? activeBtn : baseBtn}
+        <div
+          role="group"
+          aria-label="Choose billing plan"
+          style={{
+            position: "relative",
+            display: "inline-flex",
+            width: 240,
+            padding: 4,
+            borderRadius: 999,
+            background: "#e8eef6",
+            border: "1px solid var(--line)",
+            opacity: disabled ? 0.7 : 1
+          }}
         >
-          $17/mo
           <span
+            aria-hidden
             style={{
-              display: "block",
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              opacity: 0.85,
-              marginTop: 2
+              position: "absolute",
+              top: 4,
+              bottom: 4,
+              left: isYear ? "50%" : 4,
+              width: "calc(50% - 4px)",
+              borderRadius: 999,
+              background: "#fff",
+              boxShadow: "0 1px 3px rgba(15, 23, 42, 0.12)",
+              transition: "left 180ms ease",
+              pointerEvents: "none"
+            }}
+          />
+          <button
+            type="button"
+            disabled={disabled}
+            aria-pressed={!isYear}
+            onClick={() => onChange("month")}
+            style={{
+              ...segmentBtn,
+              color: !isYear ? "#0f172a" : "var(--muted)"
             }}
           >
-            Billed monthly
-          </span>
-        </button>
-        <button
-          type="button"
-          disabled={disabled}
-          aria-pressed={value === "year"}
-          onClick={() => onChange("year")}
-          style={value === "year" ? activeBtn : baseBtn}
-        >
-          $15/mo
-          <span
+            Monthly
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            aria-pressed={isYear}
+            onClick={() => onChange("year")}
             style={{
-              display: "block",
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              opacity: 0.85,
-              marginTop: 2
+              ...segmentBtn,
+              color: isYear ? "#0f172a" : "var(--muted)"
             }}
           >
-            $180 billed annually
-          </span>
-        </button>
+            Annual
+          </button>
+        </div>
+        <span
+          style={{
+            display: "inline-block",
+            padding: "4px 9px",
+            borderRadius: 999,
+            background: isYear ? "rgba(22, 163, 74, 0.14)" : "rgba(15, 23, 42, 0.06)",
+            color: isYear ? "#15803d" : "var(--muted)",
+            fontSize: "0.75rem",
+            fontWeight: 700,
+            letterSpacing: "0.01em",
+            whiteSpace: "nowrap"
+          }}
+        >
+          Save $24/year
+        </span>
       </div>
+      <p
+        style={{
+          margin: "10px 0 0",
+          fontWeight: 750,
+          fontSize: "1.05rem",
+          color: "var(--text)",
+          lineHeight: 1.35
+        }}
+      >
+        {isYear ? "$15/mo, billed $180/year" : "$17/mo, billed monthly"}
+      </p>
     </div>
   );
 }
@@ -806,8 +841,8 @@ function BillingPlanToggle({ value, onChange, disabled = false }) {
 function paidCheckoutButtonLabel(busy, interval) {
   if (busy) return "Starting checkout…";
   return interval === "year"
-    ? "Unlock My Plan — $180/year"
-    : "Unlock My Plan — $17/mo";
+    ? "Unlock My Plan — $180 billed annually"
+    : "Unlock My Plan — $17 billed monthly";
 }
 
 function CalculatorPage() {
@@ -3465,6 +3500,7 @@ const hasMeaningfulInputs = useMemo(() => {
                 <LoginBoxSimple
                   compact
                   redirectTo="/calculator"
+                  initialEmail={email}
                   onSent={() =>
                     setCheckoutError(
                       "Check your email, then return here and click Unlock again."
@@ -3917,8 +3953,8 @@ const hasMeaningfulInputs = useMemo(() => {
                   {checkoutBusy
                     ? "Starting checkout…"
                     : billingInterval === "year"
-                      ? "Unlock fastest strategy — $180/year"
-                      : "Unlock fastest strategy — $17/mo"}
+                      ? "Unlock fastest strategy — $180 billed annually"
+                      : "Unlock fastest strategy — $17 billed monthly"}
                 </button>
               </p>
             </div>
@@ -4161,7 +4197,11 @@ const hasMeaningfulInputs = useMemo(() => {
               </button>
               {showCheckoutLogin ? (
                 <div style={{ marginTop: 12 }}>
-                  <LoginBoxSimple compact redirectTo="/calculator" />
+                  <LoginBoxSimple
+                    compact
+                    redirectTo="/calculator"
+                    initialEmail={email}
+                  />
                 </div>
               ) : null}
               {checkoutError ? (

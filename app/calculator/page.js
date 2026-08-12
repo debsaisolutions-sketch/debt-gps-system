@@ -308,6 +308,8 @@ import {
   deleteScenarioById,
   readScenarioList
 } from "../lib/localScenarios";
+import { startPaidCheckout } from "../lib/startPaidCheckout";
+import LoginBoxSimple from "../LoginBoxSimple";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -722,15 +724,111 @@ function strategyComparisonKeyStatStyle(kind) {
   return undefined;
 }
 
+/** Monthly vs annual billing toggle for paid unlock CTAs. */
+function BillingPlanToggle({ value, onChange, disabled = false }) {
+  const baseBtn = {
+    flex: "1 1 140px",
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "1px solid var(--line)",
+    background: "#fff",
+    color: "var(--text)",
+    fontWeight: 650,
+    fontSize: "0.9rem",
+    cursor: disabled ? "not-allowed" : "pointer",
+    lineHeight: 1.3,
+    opacity: disabled ? 0.7 : 1
+  };
+  const activeBtn = {
+    ...baseBtn,
+    border: "1px solid rgba(29, 107, 196, 0.55)",
+    background: "rgba(29, 107, 196, 0.1)",
+    color: "#1d4ed8",
+    boxShadow: "0 1px 2px rgba(15, 23, 42, 0.06)"
+  };
+
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div
+        role="group"
+        aria-label="Choose billing plan"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8
+        }}
+      >
+        <button
+          type="button"
+          disabled={disabled}
+          aria-pressed={value === "month"}
+          onClick={() => onChange("month")}
+          style={value === "month" ? activeBtn : baseBtn}
+        >
+          $17/mo
+          <span
+            style={{
+              display: "block",
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              opacity: 0.85,
+              marginTop: 2
+            }}
+          >
+            Billed monthly
+          </span>
+        </button>
+        <button
+          type="button"
+          disabled={disabled}
+          aria-pressed={value === "year"}
+          onClick={() => onChange("year")}
+          style={value === "year" ? activeBtn : baseBtn}
+        >
+          $15/mo
+          <span
+            style={{
+              display: "block",
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              opacity: 0.85,
+              marginTop: 2
+            }}
+          >
+            $180 billed annually
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function paidCheckoutButtonLabel(busy, interval) {
+  if (busy) return "Starting checkout…";
+  return interval === "year"
+    ? "Unlock My Plan — $180/year"
+    : "Unlock My Plan — $17/mo";
+}
+
 function CalculatorPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authEmail, setAuthEmail] = useState("");
+  const [checkoutError, setCheckoutError] = useState("");
+  const [showCheckoutLogin, setShowCheckoutLogin] = useState(false);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
+  const [billingInterval, setBillingInterval] = useState("month");
   const resultsRef = useRef(null);
 
   useEffect(() => {
     fetch("/api/access", { credentials: "same-origin" })
       .then((res) => res.json())
       .then((data) => {
+        if (data?.authenticated) {
+          setIsAuthenticated(true);
+          if (data.email) setAuthEmail(data.email);
+        }
         if (data?.premium) {
           setIsPremium(true);
           setIsUnlocked(true);
@@ -790,6 +888,27 @@ function CalculatorPage() {
   const [email, setEmail] = useState("");
   const [unlockError, setUnlockError] = useState("");
   const [step1NotesOpen, setStep1NotesOpen] = useState(false);
+
+  const handlePaidCheckout = useCallback(async () => {
+    setCheckoutError("");
+    setCheckoutBusy(true);
+    try {
+      const result = await startPaidCheckout({
+        interval: billingInterval === "year" ? "year" : "month",
+        emailForLead: email.trim() || authEmail || ""
+      });
+      if (result.loginRequired) {
+        setShowCheckoutLogin(true);
+        setCheckoutError(result.error || "Please log in before checkout.");
+        return;
+      }
+      if (!result.ok) {
+        setCheckoutError(result.error || "Checkout failed.");
+      }
+    } finally {
+      setCheckoutBusy(false);
+    }
+  }, [email, authEmail, billingInterval]);
   /** Step 2: simulated month for Debt Payoff Order / Paid Off Debts timeline (0 = start). */
   const [payoffTimelineCurrentMonth, setPayoffTimelineCurrentMonth] = useState(0);
 
@@ -3322,38 +3441,52 @@ const hasMeaningfulInputs = useMemo(() => {
               }}
             >
               See your exact payoff order, full roadmap, and advanced strategy options.
-              Regular price is $67/month — early-access users may qualify for $20 off while the
-              founder offer is active.
+              Choose monthly ($17/mo) or annual ($15/mo, billed $180/year).
             </p>
+            <BillingPlanToggle
+              value={billingInterval}
+              onChange={setBillingInterval}
+              disabled={checkoutBusy}
+            />
             <button
               type="button"
               className="primary-button"
-              onClick={async () => {
-                const trimmedEmail = email.trim();
-
-                if (trimmedEmail) {
-                  try {
-                    await fetch("/api/send-to-ghl", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json"
-                      },
-                      body: JSON.stringify({
-                        email: trimmedEmail,
-                        source: "Debt GPS",
-                        plan: "paid"
-                      })
-                    });
-                  } catch (err) {
-                    console.warn("[leads] paid lead send-to-ghl error", err);
-                  }
-                }
-
-                window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
-              }}
+              disabled={checkoutBusy}
+              onClick={handlePaidCheckout}
             >
-              Unlock My Plan — $67/mo
+              {paidCheckoutButtonLabel(checkoutBusy, billingInterval)}
             </button>
+            {showCheckoutLogin || (!isAuthenticated && checkoutError) ? (
+              <div style={{ marginTop: 12 }}>
+                <p className="help tight" style={{ marginBottom: 8 }}>
+                  Log in with a magic link first — we use your account to keep your
+                  subscription active across renewals.
+                </p>
+                <LoginBoxSimple
+                  compact
+                  redirectTo="/calculator"
+                  onSent={() =>
+                    setCheckoutError(
+                      "Check your email, then return here and click Unlock again."
+                    )
+                  }
+                />
+              </div>
+            ) : null}
+            {checkoutError ? (
+              <p
+                className="help tight"
+                style={{ marginTop: 8, color: "#b91c1c" }}
+                role="alert"
+              >
+                {checkoutError}
+              </p>
+            ) : null}
+            {isAuthenticated ? (
+              <p className="help tight" style={{ marginTop: 8 }}>
+                Signed in as {authEmail || "your account"}.
+              </p>
+            ) : null}
             <p
               className="help tight"
               style={{
@@ -3770,34 +3903,22 @@ const hasMeaningfulInputs = useMemo(() => {
                   lineHeight: 1.5
                 }}
               >
+                <BillingPlanToggle
+                  value={billingInterval}
+                  onChange={setBillingInterval}
+                  disabled={checkoutBusy}
+                />
                 <button
                   type="button"
                   className="primary-button"
-                  onClick={async () => {
-                    const trimmedEmail = email.trim();
-
-                    if (trimmedEmail) {
-                      try {
-                        await fetch("/api/send-to-ghl", {
-                          method: "POST",
-                          headers: {
-                            "Content-Type": "application/json"
-                          },
-                          body: JSON.stringify({
-                            email: trimmedEmail,
-                            source: "Debt GPS",
-                            plan: "paid"
-                          })
-                        });
-                      } catch (err) {
-                        console.warn("[leads] paid lead send-to-ghl error", err);
-                      }
-                    }
-
-                    window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
-                  }}
+                  disabled={checkoutBusy}
+                  onClick={handlePaidCheckout}
                 >
-                  Unlock your fastest strategy — see exact payoff order + roadmap
+                  {checkoutBusy
+                    ? "Starting checkout…"
+                    : billingInterval === "year"
+                      ? "Unlock fastest strategy — $180/year"
+                      : "Unlock fastest strategy — $17/mo"}
                 </button>
               </p>
             </div>
@@ -3950,8 +4071,7 @@ const hasMeaningfulInputs = useMemo(() => {
               </h4>
               <p className="help tight" style={{ margin: "4px 0 12px", fontWeight: 500 }}>
                 See your exact payoff order, full roadmap, and advanced strategy options.
-                Regular price is $67/month — early-access users may qualify for $20 off while
-                the founder offer is active.
+                $17/mo or $15/mo when billed annually ($180/year).
               </p>
               <ul>
                 <li>Unlock Banking + HELOC comparisons</li>
@@ -4026,35 +4146,33 @@ const hasMeaningfulInputs = useMemo(() => {
                   </ul>
                 </div>
               </div>
+              <BillingPlanToggle
+                value={billingInterval}
+                onChange={setBillingInterval}
+                disabled={checkoutBusy}
+              />
               <button
                 type="button"
                 className="primary-button"
-                onClick={async () => {
-                  const trimmedEmail = email.trim();
-
-                  if (trimmedEmail) {
-                    try {
-                      await fetch("/api/send-to-ghl", {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                          email: trimmedEmail,
-                          source: "Debt GPS",
-                          plan: "paid"
-                        })
-                      });
-                    } catch (err) {
-                      console.warn("[leads] paid lead send-to-ghl error", err);
-                    }
-                  }
-
-                  window.open(`https://buy.stripe.com/4gM00k3KP2I94IQfPn28804?prefilled_email=${email}&redirect_url=https%3A%2F%2Fdebtgpssystem.com%2Fcalculator%3Faccess%3Dpaid`, "_blank");
-                }}
+                disabled={checkoutBusy}
+                onClick={handlePaidCheckout}
               >
-                Unlock My Plan — $67/mo
+                {paidCheckoutButtonLabel(checkoutBusy, billingInterval)}
               </button>
+              {showCheckoutLogin ? (
+                <div style={{ marginTop: 12 }}>
+                  <LoginBoxSimple compact redirectTo="/calculator" />
+                </div>
+              ) : null}
+              {checkoutError ? (
+                <p
+                  className="help tight"
+                  style={{ marginTop: 8, color: "#b91c1c" }}
+                  role="alert"
+                >
+                  {checkoutError}
+                </p>
+              ) : null}
               <p className="help tight" style={{ marginTop: 6, textAlign: "center", fontSize: "0.86rem" }}>
                 After unlocking your preview, check your email/text for your founder discount
                 code.

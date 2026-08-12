@@ -3,7 +3,6 @@ import Link from "next/link";
 import Image from "next/image";
 const BOOKING_URL =
   "https://link.agent-crm.com/widget/booking/3g7EgtS4IewV5fuPcKO8";
-const STRIPE_CHECKOUT_URL = "https://buy.stripe.com/4gM00k3KP2I94IQfPn28804";
 
 const trustPoints = [
   "Compare four payoff routes side by side",

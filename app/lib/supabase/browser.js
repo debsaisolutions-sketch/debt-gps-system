@@ -1,4 +1,5 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { SSR_COOKIE_ENCODE } from "./ssrCookies";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -9,5 +10,9 @@ const supabaseAnonKey =
 
 /** Browser Supabase client with cookie-backed auth session. */
 export function createBrowserSupabaseClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      encode: SSR_COOKIE_ENCODE
+    }
+  });
 }

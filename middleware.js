@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
+import { SSR_COOKIE_ENCODE } from "./app/lib/supabase/ssrCookies";
 
 export async function middleware(request) {
   let response = NextResponse.next({
@@ -17,6 +18,7 @@ export async function middleware(request) {
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
+      encode: SSR_COOKIE_ENCODE,
       getAll() {
         return request.cookies.getAll();
       },

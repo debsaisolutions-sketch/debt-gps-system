@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { ensureDgpsProfile } from "../../lib/dgpsProfile";
+import { SSR_COOKIE_ENCODE } from "../../lib/supabase/ssrCookies";
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +38,7 @@ function createCallbackClient(request, response) {
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
+      encode: SSR_COOKIE_ENCODE,
       getAll() {
         return request.cookies.getAll();
       },
@@ -103,6 +105,18 @@ export async function GET(request) {
       console.warn("[auth/callback] ensure profile failed", err.message);
     }
   }
+
+  const expireVerifier = {
+    path: "/",
+    sameSite: "lax",
+    secure: true,
+    maxAge: 0
+  };
+  request.cookies.getAll().forEach((cookie) => {
+    if (String(cookie.name).includes("code-verifier")) {
+      redirectResponse.cookies.set(cookie.name, "", expireVerifier);
+    }
+  });
 
   const outgoing = redirectResponse.cookies.getAll().map((cookie) => ({
     name: cookie.name,

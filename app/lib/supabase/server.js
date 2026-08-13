@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { SSR_COOKIE_ENCODE } from "./ssrCookies";
 
 const supabaseUrl =
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -17,6 +18,7 @@ export function createServerSupabaseClient() {
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
+      encode: SSR_COOKIE_ENCODE,
       getAll() {
         return cookieStore.getAll();
       },

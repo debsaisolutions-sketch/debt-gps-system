@@ -46,7 +46,6 @@ export const config = {
     "/calculator",
     "/checkout/:path*",
     "/api/access",
-    "/api/checkout/:path*",
-    "/auth/callback"
+    "/api/checkout/:path*"
   ]
 };

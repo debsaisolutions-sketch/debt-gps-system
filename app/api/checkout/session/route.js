@@ -15,6 +15,18 @@ function siteOrigin(request) {
 
 export async function POST(request) {
   try {
+    const incomingAuthCookies = request.cookies
+      .getAll()
+      .filter((cookie) => /^(sb-|supabase)/i.test(cookie.name))
+      .map((cookie) => ({
+        name: cookie.name,
+        valueLength: cookie.value ? String(cookie.value).length : 0
+      }));
+    console.log(
+      "[checkout/session] incoming auth cookies",
+      JSON.stringify(incomingAuthCookies)
+    );
+
     const supabase = createServerSupabaseClient();
     const {
       data: { user },

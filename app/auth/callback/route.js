@@ -13,6 +13,20 @@ const EMAIL_OTP_TYPES = new Set([
   "email"
 ]);
 
+function cookieMeta(cookie) {
+  const options = cookie.options || {};
+  return {
+    name: cookie.name,
+    valueLength: cookie.value ? String(cookie.value).length : 0,
+    domain: options.domain ?? null,
+    path: options.path ?? null,
+    secure: options.secure ?? null,
+    sameSite: options.sameSite ?? null,
+    httpOnly: options.httpOnly ?? null,
+    maxAge: options.maxAge ?? null
+  };
+}
+
 function createCallbackClient(request, response) {
   const supabaseUrl =
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -27,6 +41,10 @@ function createCallbackClient(request, response) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
+        console.log(
+          "[auth/callback] setAll cookies",
+          JSON.stringify(cookiesToSet.map(cookieMeta))
+        );
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });
@@ -80,6 +98,19 @@ export async function GET(request) {
       console.warn("[auth/callback] ensure profile failed", err.message);
     }
   }
+
+  const outgoing = redirectResponse.cookies.getAll().map((cookie) => ({
+    name: cookie.name,
+    valueLength: cookie.value ? String(cookie.value).length : 0
+  }));
+  console.log(
+    "[auth/callback] redirect Set-Cookie names",
+    JSON.stringify({
+      origin,
+      location: `${origin}${safeNext}`,
+      cookies: outgoing
+    })
+  );
 
   return redirectResponse;
 }

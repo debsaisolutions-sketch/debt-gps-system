@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import {
+  getDgpsProfileByEmail,
+  isDgpsPremiumStatus
+} from "../../../lib/dgpsProfile";
+import { stampPremiumCookie } from "../../../lib/premiumCookie";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +27,32 @@ export async function POST(request) {
     const body = await request.json().catch(() => ({}));
     const interval = body?.interval === "year" ? "year" : "month";
     const email = normalizeEmail(body?.email);
+
+    if (!email) {
+      return NextResponse.json(
+        {
+          error:
+            "Enter the email you used to subscribe so we can restore access or start checkout."
+        },
+        { status: 400 }
+      );
+    }
+
+    const existing = await getDgpsProfileByEmail(email);
+    if (existing && isDgpsPremiumStatus(existing.subscription_status)) {
+      const origin = siteOrigin(request);
+      const res = NextResponse.json({
+        alreadyPaid: true,
+        url: `${origin}/calculator`
+      });
+      stampPremiumCookie(
+        res,
+        process.env.ACCESS_COOKIE_SECRET,
+        existing,
+        existing.stripe_subscription_id || existing.user_id
+      );
+      return res;
+    }
 
     const monthlyPrice =
       process.env.STRIPE_PRICE_ID_MONTHLY || process.env.STRIPE_PRICE_ID;
@@ -60,12 +91,12 @@ export async function POST(request) {
     const metadata = {
       app: "debt_gps",
       plan_interval: interval,
-      ...(email ? { email } : {})
+      email
     };
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      ...(email ? { customer_email: email } : {}),
+      customer_email: email,
       allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,

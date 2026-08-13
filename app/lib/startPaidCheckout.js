@@ -1,8 +1,9 @@
 /**
- * Start Stripe Checkout with an email only — no login/session required.
+ * Start Stripe Checkout with an email, or restore access if that email
+ * already has an active paid subscription.
  *
  * @param {{ interval?: 'month'|'year', emailForLead?: string }} [opts]
- * @returns {Promise<{ ok: boolean, error?: string }>}
+ * @returns {Promise<{ ok: boolean, error?: string, alreadyPaid?: boolean }>}
  */
 export async function startPaidCheckout(opts = {}) {
   const interval = opts.interval === "year" ? "year" : "month";
@@ -10,6 +11,14 @@ export async function startPaidCheckout(opts = {}) {
     opts.emailForLead && String(opts.emailForLead).trim()
       ? String(opts.emailForLead).trim()
       : "";
+
+  if (!emailForLead) {
+    return {
+      ok: false,
+      error:
+        "Enter the email you used to subscribe. If you already paid, we’ll unlock this browser instead of charging again."
+    };
+  }
 
   if (emailForLead) {
     try {
@@ -29,10 +38,11 @@ export async function startPaidCheckout(opts = {}) {
 
   const res = await fetch("/api/checkout/session", {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       interval,
-      email: emailForLead || undefined
+      email: emailForLead
     })
   });
 
@@ -46,5 +56,5 @@ export async function startPaidCheckout(opts = {}) {
   }
 
   window.location.href = data.url;
-  return { ok: true };
+  return { ok: true, alreadyPaid: Boolean(data.alreadyPaid) };
 }

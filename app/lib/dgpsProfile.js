@@ -61,6 +61,32 @@ export async function getDgpsProfile(userId) {
 }
 
 /**
+ * @param {string} email
+ */
+export async function getDgpsProfileByEmail(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!normalized) return null;
+
+  const admin = createAdminSupabaseClient();
+  const { data, error } = await admin
+    .from("dgps_profiles")
+    .select("*")
+    .eq("email", normalized);
+
+  if (error) {
+    throw new Error(`getDgpsProfileByEmail failed: ${error.message}`);
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  if (!rows.length) return null;
+
+  return (
+    rows.find((row) => isDgpsPremiumStatus(row.subscription_status)) ||
+    rows[0]
+  );
+}
+
+/**
  * Apply Stripe subscription fields onto dgps_profiles.
  * @param {object} args
  * @param {string} [args.userId]

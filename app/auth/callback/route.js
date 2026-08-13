@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { ensureDgpsProfile } from "../../lib/dgpsProfile";
+import {
+  ensureDgpsProfile,
+  isDgpsPremiumStatus
+} from "../../lib/dgpsProfile";
+import {
+  createPremiumCookieValue,
+  PREMIUM_COOKIE_NAME
+} from "../../lib/premiumCookie";
 import { SSR_COOKIE_ENCODE } from "../../lib/supabase/ssrCookies";
 
 export const dynamic = "force-dynamic";
@@ -95,14 +102,42 @@ export async function GET(request) {
   }
 
   if (error) {
-    return NextResponse.redirect(`${origin}/calculator?auth=error`);
+    return NextResponse.redirect(`${origin}/login?error=1`);
   }
 
   if (data?.user) {
+    let profile = null;
     try {
-      await ensureDgpsProfile(data.user);
+      profile = await ensureDgpsProfile(data.user);
     } catch (err) {
       console.warn("[auth/callback] ensure profile failed", err.message);
+    }
+
+    const cookieSecret = process.env.ACCESS_COOKIE_SECRET;
+    if (
+      profile &&
+      cookieSecret &&
+      isDgpsPremiumStatus(profile.subscription_status)
+    ) {
+      const expUnix = profile.current_period_end
+        ? Math.floor(new Date(profile.current_period_end).getTime() / 1000)
+        : Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
+      const maxAge = Math.max(0, expUnix - Math.floor(Date.now() / 1000));
+      redirectResponse.cookies.set(
+        PREMIUM_COOKIE_NAME,
+        createPremiumCookieValue(
+          cookieSecret,
+          expUnix,
+          profile.stripe_subscription_id || profile.user_id
+        ),
+        {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          path: "/",
+          maxAge
+        }
+      );
     }
   }
 

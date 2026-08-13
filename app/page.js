@@ -375,6 +375,9 @@ export default function LandingPage() {
             <a className="landing-nav-link" href="#pricing">
               Pricing
             </a>
+            <Link className="landing-nav-link" href="/login">
+              Log in
+            </Link>
             <Link className="landing-nav-pill" href="/calculator">
               See your strategy
             </Link>
@@ -1251,6 +1254,7 @@ export default function LandingPage() {
             <a href="#how-it-works">How it works</a>
             <a href="#pricing">Pricing</a>
             <Link href="/calculator">Calculator</Link>
+            <Link href="/login">Log in</Link>
             <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
               Book a call
             </a>

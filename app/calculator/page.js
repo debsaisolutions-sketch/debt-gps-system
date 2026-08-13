@@ -1801,6 +1801,9 @@ const hasMeaningfulInputs = useMemo(() => {
                 <Link className="button-link ghost" href="/scenarios">
                   Saved scenarios
                 </Link>
+                <Link className="button-link ghost" href="/login">
+                  Already a member? Log in
+                </Link>
               </div>
             </div>
             <div
@@ -3497,7 +3500,13 @@ const hasMeaningfulInputs = useMemo(() => {
               <p className="help tight" style={{ marginTop: 8 }}>
                 Signed in as {authEmail || "your account"}.
               </p>
-            ) : null}
+            ) : (
+              <p className="help tight" style={{ marginTop: 10, textAlign: "center" }}>
+                <Link href="/login" style={{ color: "var(--accent-2)", fontWeight: 600 }}>
+                  Already a member? Log in
+                </Link>
+              </p>
+            )}
             <p
               className="help tight"
               style={{
@@ -3931,6 +3940,11 @@ const hasMeaningfulInputs = useMemo(() => {
                       ? "Unlock fastest strategy — $180 billed annually"
                       : "Unlock fastest strategy — $17 billed monthly"}
                 </button>
+                <span style={{ display: "block", marginTop: 8, textAlign: "center" }}>
+                  <Link href="/login" style={{ color: "var(--accent-2)", fontWeight: 600 }}>
+                    Already a member? Log in
+                  </Link>
+                </span>
               </p>
             </div>
           ) : null}
@@ -4179,6 +4193,11 @@ const hasMeaningfulInputs = useMemo(() => {
                   {checkoutError}
                 </p>
               ) : null}
+              <p className="help tight" style={{ marginTop: 10, textAlign: "center" }}>
+                <Link href="/login" style={{ color: "var(--accent-2)", fontWeight: 600 }}>
+                  Already a member? Log in
+                </Link>
+              </p>
               <p className="help tight" style={{ marginTop: 6, textAlign: "center", fontSize: "0.86rem" }}>
                 After unlocking your preview, check your email/text for your founder discount
                 code.

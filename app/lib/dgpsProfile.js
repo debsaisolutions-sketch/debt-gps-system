@@ -94,6 +94,16 @@ export async function upsertDgpsSubscriptionState(args) {
     userId = bySub?.user_id || null;
   }
 
+  if (!userId && args.email) {
+    const { data: byEmail } = await admin
+      .from("dgps_profiles")
+      .select("user_id")
+      .eq("email", String(args.email).trim().toLowerCase())
+      .limit(1)
+      .maybeSingle();
+    userId = byEmail?.user_id || null;
+  }
+
   if (!userId) {
     throw new Error(
       "upsertDgpsSubscriptionState: could not resolve user_id from Stripe ids"
@@ -135,6 +145,94 @@ export async function upsertDgpsSubscriptionState(args) {
   }
 
   return data;
+}
+
+/**
+ * Find an auth user by email, or create a confirmed user (no password).
+ * Used after Stripe Checkout so login is not required before pay.
+ * @param {string} email
+ * @returns {Promise<{ id: string, email?: string | null }>}
+ */
+export async function findOrCreateAuthUserByEmail(email) {
+  const normalized = String(email || "").trim().toLowerCase();
+  if (!normalized || !normalized.includes("@")) {
+    throw new Error("findOrCreateAuthUserByEmail: missing email");
+  }
+
+  const admin = createAdminSupabaseClient();
+
+  const { data: profiles, error: profileError } = await admin
+    .from("dgps_profiles")
+    .select("user_id")
+    .eq("email", normalized)
+    .limit(1);
+
+  if (profileError) {
+    console.warn("[dgps] email profile lookup failed", profileError.message);
+  }
+
+  const existingId = profiles?.[0]?.user_id;
+  if (existingId) {
+    const { data, error } = await admin.auth.admin.getUserById(existingId);
+    if (!error && data?.user) return data.user;
+  }
+
+  const { data: created, error: createError } = await admin.auth.admin.createUser({
+    email: normalized,
+    email_confirm: true,
+    user_metadata: { app: "debt_gps" }
+  });
+
+  if (created?.user) return created.user;
+
+  const duplicate = /already|registered|exists/i.test(
+    String(createError?.message || createError?.code || "")
+  );
+
+  if (duplicate) {
+    const { data: linkData, error: linkError } =
+      await admin.auth.admin.generateLink({
+        type: "magiclink",
+        email: normalized
+      });
+    if (linkData?.user) return linkData.user;
+    throw new Error(
+      `findOrCreateAuthUserByEmail: existing user lookup failed: ${
+        linkError?.message || createError.message
+      }`
+    );
+  }
+
+  throw new Error(
+    `findOrCreateAuthUserByEmail failed: ${createError?.message || "unknown error"}`
+  );
+}
+
+/**
+ * Create/link auth user + dgps_profiles from a paid Stripe Checkout.
+ * @param {object} args
+ * @param {string} args.email
+ * @param {string} [args.stripeCustomerId]
+ * @param {string} [args.stripeSubscriptionId]
+ * @param {string} [args.subscriptionStatus]
+ * @param {'month'|'year'|null} [args.planInterval]
+ * @param {number|null} [args.currentPeriodEndUnix]
+ */
+export async function provisionPaidDgpsProfile(args) {
+  const user = await findOrCreateAuthUserByEmail(args.email);
+  const email = String(args.email || user.email || "")
+    .trim()
+    .toLowerCase();
+  await ensureDgpsProfile({ id: user.id, email });
+  return upsertDgpsSubscriptionState({
+    userId: user.id,
+    stripeCustomerId: args.stripeCustomerId,
+    stripeSubscriptionId: args.stripeSubscriptionId,
+    subscriptionStatus: args.subscriptionStatus,
+    planInterval: args.planInterval,
+    currentPeriodEndUnix: args.currentPeriodEndUnix,
+    email
+  });
 }
 
 /**

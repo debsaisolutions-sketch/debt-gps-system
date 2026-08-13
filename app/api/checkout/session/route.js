@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createServerSupabaseClient } from "../../../lib/supabase/server";
-import { ensureDgpsProfile } from "../../../lib/dgpsProfile";
 
 export const dynamic = "force-dynamic";
 
@@ -9,42 +7,21 @@ function siteOrigin(request) {
   return (
     process.env.NEXT_PUBLIC_SITE_URL ||
     request.nextUrl.origin ||
-    "https://debtgpssystem.com"
+    "https://www.debtgpssystem.com"
   ).replace(/\/$/, "");
+}
+
+function normalizeEmail(value) {
+  const email = String(value || "").trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "";
+  return email;
 }
 
 export async function POST(request) {
   try {
-    const incomingAuthCookies = request.cookies
-      .getAll()
-      .filter((cookie) => /^(sb-|supabase)/i.test(cookie.name))
-      .map((cookie) => ({
-        name: cookie.name,
-        valueLength: cookie.value ? String(cookie.value).length : 0
-      }));
-    console.log(
-      "[checkout/session] incoming auth cookies",
-      JSON.stringify(incomingAuthCookies)
-    );
-
-    const supabase = createServerSupabaseClient();
-    const {
-      data: { user },
-      error: userError
-    } = await supabase.auth.getUser();
-
-    if (userError || !user) {
-      return NextResponse.json(
-        {
-          error: "login_required",
-          message: "Please log in with your email magic link before checkout."
-        },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json().catch(() => ({}));
     const interval = body?.interval === "year" ? "year" : "month";
+    const email = normalizeEmail(body?.email);
 
     const monthlyPrice =
       process.env.STRIPE_PRICE_ID_MONTHLY || process.env.STRIPE_PRICE_ID;
@@ -78,51 +55,24 @@ export async function POST(request) {
       );
     }
 
-    const profile = await ensureDgpsProfile(user);
     const stripe = new Stripe(stripeSecret, { apiVersion: "2024-06-20" });
-
-    const { upsertDgpsSubscriptionState } = await import(
-      "../../../lib/dgpsProfile"
-    );
-
-    let customerId = profile.stripe_customer_id || null;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email || undefined,
-        metadata: {
-          supabase_user_id: user.id,
-          app: "debt_gps"
-        }
-      });
-      customerId = customer.id;
-      await upsertDgpsSubscriptionState({
-        userId: user.id,
-        stripeCustomerId: customerId,
-        email: user.email
-      });
-    }
-
     const origin = siteOrigin(request);
+    const metadata = {
+      app: "debt_gps",
+      plan_interval: interval,
+      ...(email ? { email } : {})
+    };
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      customer: customerId,
-      client_reference_id: user.id,
+      ...(email ? { customer_email: email } : {}),
       allow_promotion_codes: true,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/calculator`,
-      metadata: {
-        supabase_user_id: user.id,
-        app: "debt_gps",
-        plan_interval: interval
-      },
+      metadata,
       subscription_data: {
-        metadata: {
-          supabase_user_id: user.id,
-          app: "debt_gps",
-          plan_interval: interval
-        }
+        metadata
       }
     });
 

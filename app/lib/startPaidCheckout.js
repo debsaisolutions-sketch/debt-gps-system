@@ -1,9 +1,8 @@
 /**
- * Start Stripe Checkout for a logged-in Debt GPS user.
- * Requires magic-link session cookies (login before pay).
+ * Start Stripe Checkout with an email only — no login/session required.
  *
  * @param {{ interval?: 'month'|'year', emailForLead?: string }} [opts]
- * @returns {Promise<{ ok: boolean, error?: string, loginRequired?: boolean }>}
+ * @returns {Promise<{ ok: boolean, error?: string }>}
  */
 export async function startPaidCheckout(opts = {}) {
   const interval = opts.interval === "year" ? "year" : "month";
@@ -30,22 +29,14 @@ export async function startPaidCheckout(opts = {}) {
 
   const res = await fetch("/api/checkout/session", {
     method: "POST",
-    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ interval })
+    body: JSON.stringify({
+      interval,
+      email: emailForLead || undefined
+    })
   });
 
   const data = await res.json().catch(() => ({}));
-
-  if (res.status === 401 || data.error === "login_required") {
-    return {
-      ok: false,
-      loginRequired: true,
-      error:
-        data.message ||
-        "Please log in with your email magic link before checkout."
-    };
-  }
 
   if (!res.ok || !data.url) {
     return {

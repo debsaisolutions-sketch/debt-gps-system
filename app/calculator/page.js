@@ -309,7 +309,6 @@ import {
   readScenarioList
 } from "../lib/localScenarios";
 import { startPaidCheckout } from "../lib/startPaidCheckout";
-import LoginBoxSimple from "../LoginBoxSimple";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -851,7 +850,6 @@ function CalculatorPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authEmail, setAuthEmail] = useState("");
   const [checkoutError, setCheckoutError] = useState("");
-  const [showCheckoutLogin, setShowCheckoutLogin] = useState(false);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [billingInterval, setBillingInterval] = useState("month");
   const resultsRef = useRef(null);
@@ -932,11 +930,6 @@ function CalculatorPage() {
         interval: billingInterval === "year" ? "year" : "month",
         emailForLead: email.trim() || authEmail || ""
       });
-      if (result.loginRequired) {
-        setShowCheckoutLogin(true);
-        setCheckoutError(result.error || "Please log in before checkout.");
-        return;
-      }
       if (!result.ok) {
         setCheckoutError(result.error || "Checkout failed.");
       }
@@ -3491,24 +3484,6 @@ const hasMeaningfulInputs = useMemo(() => {
             >
               {paidCheckoutButtonLabel(checkoutBusy, billingInterval)}
             </button>
-            {showCheckoutLogin || (!isAuthenticated && checkoutError) ? (
-              <div style={{ marginTop: 12 }}>
-                <p className="help tight" style={{ marginBottom: 8 }}>
-                  Log in with a magic link first — we use your account to keep your
-                  subscription active across renewals.
-                </p>
-                <LoginBoxSimple
-                  compact
-                  redirectTo="/calculator"
-                  initialEmail={email}
-                  onSent={() =>
-                    setCheckoutError(
-                      "Check your email, then return here and click Unlock again."
-                    )
-                  }
-                />
-              </div>
-            ) : null}
             {checkoutError ? (
               <p
                 className="help tight"
@@ -4195,15 +4170,6 @@ const hasMeaningfulInputs = useMemo(() => {
               >
                 {paidCheckoutButtonLabel(checkoutBusy, billingInterval)}
               </button>
-              {showCheckoutLogin ? (
-                <div style={{ marginTop: 12 }}>
-                  <LoginBoxSimple
-                    compact
-                    redirectTo="/calculator"
-                    initialEmail={email}
-                  />
-                </div>
-              ) : null}
               {checkoutError ? (
                 <p
                   className="help tight"

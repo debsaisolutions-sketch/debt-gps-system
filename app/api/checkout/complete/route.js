@@ -5,12 +5,10 @@ import {
   PREMIUM_COOKIE_NAME
 } from "../../../lib/premiumCookie";
 import {
-  ensureDgpsProfile,
   isDgpsPremiumStatus,
   planIntervalFromSubscription,
-  upsertDgpsSubscriptionState
+  provisionPaidDgpsProfile
 } from "../../../lib/dgpsProfile";
-import { createServerSupabaseClient } from "../../../lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -40,47 +38,44 @@ export async function GET(request) {
       return NextResponse.redirect(new URL("/calculator", request.url));
     }
 
-    const supabase = createServerSupabaseClient();
-    const {
-      data: { user }
-    } = await supabase.auth.getUser();
-
-    const userId =
-      session.client_reference_id ||
-      session.metadata?.supabase_user_id ||
-      user?.id ||
-      null;
-
     const email =
-      user?.email ||
       session.customer_details?.email ||
       session.customer_email ||
+      session.metadata?.email ||
       null;
 
     let profile = null;
 
-    if (userId) {
-      await ensureDgpsProfile({ id: userId, email });
+    try {
+      if (email) {
+        const stripeCustomerId =
+          typeof session.customer === "string"
+            ? session.customer
+            : session.customer?.id;
 
-      if (session.mode === "subscription" && session.subscription) {
-        const subId =
-          typeof session.subscription === "string"
-            ? session.subscription
-            : session.subscription.id;
-        const subscription = await stripe.subscriptions.retrieve(subId);
-        profile = await upsertDgpsSubscriptionState({
-          userId,
-          stripeCustomerId:
-            typeof session.customer === "string"
-              ? session.customer
-              : session.customer?.id,
-          stripeSubscriptionId: subscription.id,
-          subscriptionStatus: subscription.status,
-          planInterval: planIntervalFromSubscription(subscription),
-          currentPeriodEndUnix: subscription.current_period_end || null,
-          email
-        });
+        if (session.mode === "subscription" && session.subscription) {
+          const subId =
+            typeof session.subscription === "string"
+              ? session.subscription
+              : session.subscription.id;
+          const subscription = await stripe.subscriptions.retrieve(subId);
+          profile = await provisionPaidDgpsProfile({
+            email,
+            stripeCustomerId,
+            stripeSubscriptionId: subscription.id,
+            subscriptionStatus: subscription.status,
+            planInterval: planIntervalFromSubscription(subscription),
+            currentPeriodEndUnix: subscription.current_period_end || null
+          });
+        } else {
+          profile = await provisionPaidDgpsProfile({
+            email,
+            stripeCustomerId
+          });
+        }
       }
+    } catch (err) {
+      console.error("[checkout/complete] profile provision failed", err);
     }
 
     let expUnix =

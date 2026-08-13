@@ -45,7 +45,6 @@ export const config = {
   matcher: [
     "/calculator",
     "/checkout/:path*",
-    "/api/access",
-    "/api/checkout/:path*"
+    "/api/access"
   ]
 };

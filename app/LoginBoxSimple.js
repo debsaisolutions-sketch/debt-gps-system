@@ -30,25 +30,23 @@ export default function LoginBoxSimple({
     setLoading(true)
     setMessage('')
 
-    const supabase = createBrowserSupabaseClient()
     const next = redirectTo.startsWith('/') ? redirectTo : '/calculator'
-    const emailRedirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo,
-      },
+    const sendRes = await fetch('/api/auth/magic-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, next }),
     })
+    const sendData = await sendRes.json().catch(() => ({}))
 
     setLoading(false)
 
-    if (error) {
-      setMessage(error.message)
+    if (!sendRes.ok) {
+      setMessage(sendData.error || 'Could not send login link')
       return
     }
 
     try {
+      const supabase = createBrowserSupabaseClient()
       await recordCalculatorLoginLead(supabase, email)
     } catch (err) {
       console.warn('[leads] record after OTP failed', err)

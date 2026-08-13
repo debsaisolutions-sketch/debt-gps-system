@@ -46,7 +46,12 @@ function createCallbackClient(request, response) {
           JSON.stringify(cookiesToSet.map(cookieMeta))
         );
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, {
+            ...options,
+            path: options?.path || "/",
+            sameSite: options?.sameSite || "lax",
+            secure: true
+          });
         });
       }
     }

@@ -64,20 +64,51 @@ function createCallbackClient(request, response) {
   });
 }
 
+function resolveSafeNext(request) {
+  const { searchParams, pathname } = request.nextUrl;
+  const fromQuery = searchParams.get("next");
+  if (
+    fromQuery &&
+    fromQuery.startsWith("/") &&
+    fromQuery !== "/calculator"
+  ) {
+    return fromQuery;
+  }
+  const fromCookie = request.cookies.get("dgps_auth_next")?.value;
+  if (
+    fromCookie &&
+    fromCookie.startsWith("/") &&
+    fromCookie !== "/calculator"
+  ) {
+    return fromCookie;
+  }
+  if (String(pathname || "").includes("/set-password")) {
+    return "/set-password";
+  }
+  // Login is the only magic-link sender. Email templates often drop ?next=
+  // and land on /auth/callback with no destination — send them to set password.
+  return "/set-password";
+}
+
 export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
   const tokenHash = searchParams.get("token_hash");
   const typeParam = searchParams.get("type");
   const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/calculator";
-  const safeNext = next.startsWith("/") ? next : "/calculator";
+  const safeNext = resolveSafeNext(request);
   const otpType = EMAIL_OTP_TYPES.has(typeParam) ? typeParam : "magiclink";
 
   if (!tokenHash && !code) {
-    return NextResponse.redirect(`${origin}/calculator`);
+    return NextResponse.redirect(`${origin}/login?error=1`);
   }
 
   const redirectResponse = NextResponse.redirect(`${origin}${safeNext}`);
+  redirectResponse.cookies.set("dgps_auth_next", "", {
+    path: "/",
+    sameSite: "lax",
+    secure: true,
+    maxAge: 0
+  });
   const supabase = createCallbackClient(request, redirectResponse);
 
   let data;

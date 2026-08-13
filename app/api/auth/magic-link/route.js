@@ -19,8 +19,8 @@ export async function POST(request) {
   try {
     const body = await request.json().catch(() => ({}));
     const email = String(body.email || "").trim().toLowerCase();
-    const nextRaw = String(body.next || "/calculator");
-    const next = nextRaw.startsWith("/") ? nextRaw : "/calculator";
+    const nextRaw = String(body.next || "/set-password");
+    const next = nextRaw.startsWith("/") ? nextRaw : "/set-password";
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json(
@@ -45,7 +45,10 @@ export async function POST(request) {
       }
     });
 
-    const emailRedirectTo = `${siteOrigin()}/auth/callback?next=${encodeURIComponent(next)}`;
+    const emailRedirectTo =
+      next === "/set-password"
+        ? `${siteOrigin()}/auth/callback/set-password`
+        : `${siteOrigin()}/auth/callback?next=${encodeURIComponent(next)}`;
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -59,7 +62,15 @@ export async function POST(request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ ok: true });
+    const res = NextResponse.json({ ok: true });
+    res.cookies.set("dgps_auth_next", next, {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60
+    });
+    return res;
   } catch (err) {
     console.error("[auth/magic-link]", err);
     return NextResponse.json(

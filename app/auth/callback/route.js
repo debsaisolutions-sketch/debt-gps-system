@@ -1,21 +1,19 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import {
-  ensureDgpsProfile
-} from "../../lib/dgpsProfile";
+import { ensureDgpsProfile } from "../../lib/dgpsProfile";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/calculator";
-  const safeNext = next.startsWith("/") ? next : "/calculator";
+const EMAIL_OTP_TYPES = new Set([
+  "signup",
+  "invite",
+  "magiclink",
+  "recovery",
+  "email_change",
+  "email"
+]);
 
-  if (!code) {
-    return NextResponse.redirect(`${origin}/calculator`);
-  }
-
+function createCallbackClient(request, response) {
   const supabaseUrl =
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
     "https://egyruxwhldsmxhiqcekl.supabase.co";
@@ -23,26 +21,55 @@ export async function GET(request) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
     "sb_publishable_9AsiDMx2RM8e657vv0w0lg__glnZ3hv";
 
-  const redirectResponse = NextResponse.redirect(`${origin}${safeNext}`);
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name) {
-        return request.cookies.get(name)?.value;
+      getAll() {
+        return request.cookies.getAll();
       },
-      set(name, value, options) {
-        redirectResponse.cookies.set({ name, value, ...options });
-      },
-      remove(name, options) {
-        redirectResponse.cookies.set({ name, value: "", ...options });
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
       }
     }
   });
+}
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+export async function GET(request) {
+  const { searchParams, origin } = new URL(request.url);
+  const tokenHash = searchParams.get("token_hash");
+  const typeParam = searchParams.get("type");
+  const code = searchParams.get("code");
+  const next = searchParams.get("next") || "/calculator";
+  const safeNext = next.startsWith("/") ? next : "/calculator";
+  const otpType = EMAIL_OTP_TYPES.has(typeParam) ? typeParam : "magiclink";
+
+  if (!tokenHash && !code) {
+    return NextResponse.redirect(`${origin}/calculator`);
+  }
+
+  const redirectResponse = NextResponse.redirect(`${origin}${safeNext}`);
+  const supabase = createCallbackClient(request, redirectResponse);
+
+  let data;
+  let error;
+
+  if (tokenHash) {
+    ({ data, error } = await supabase.auth.verifyOtp({
+      type: otpType,
+      token_hash: tokenHash
+    }));
+    if (error) {
+      console.error("[auth/callback] verifyOtp failed", error.message);
+    }
+  } else {
+    ({ data, error } = await supabase.auth.exchangeCodeForSession(code));
+    if (error) {
+      console.error("[auth/callback] exchange failed", error.message);
+    }
+  }
 
   if (error) {
-    console.error("[auth/callback] exchange failed", error.message);
     return NextResponse.redirect(`${origin}/calculator?auth=error`);
   }
 

@@ -17,21 +17,16 @@ export function createServerSupabaseClient() {
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
-      get(name) {
-        return cookieStore.get(name)?.value;
+      getAll() {
+        return cookieStore.getAll();
       },
-      set(name, value, options) {
+      setAll(cookiesToSet) {
         try {
-          cookieStore.set({ name, value, ...options });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
         } catch {
           /* Called from a Server Component — middleware will refresh. */
-        }
-      },
-      remove(name, options) {
-        try {
-          cookieStore.set({ name, value: "", ...options });
-        } catch {
-          /* ignore */
         }
       }
     }

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import {
-  createPremiumCookieValue,
-  PREMIUM_COOKIE_NAME
+  stampPremiumCookie,
+  stampLegacyPremiumCookie
 } from "../../../lib/premiumCookie";
 import {
   isDgpsPremiumStatus,
@@ -96,25 +96,18 @@ export async function GET(request) {
 
     const res = NextResponse.redirect(new URL("/calculator", request.url));
 
+    const paid =
+      session.payment_status === "paid" || session.status === "complete";
     const shouldSetCookie =
       cookieSecret &&
-      (isDgpsPremiumStatus(profile?.subscription_status) ||
-        session.payment_status === "paid");
+      (isDgpsPremiumStatus(profile?.subscription_status) || paid);
 
     if (shouldSetCookie) {
-      const maxAge = Math.max(0, expUnix - Math.floor(Date.now() / 1000));
-      const token = createPremiumCookieValue(
-        cookieSecret,
-        expUnix,
-        session.id
-      );
-      res.cookies.set(PREMIUM_COOKIE_NAME, token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        path: "/",
-        maxAge
-      });
+      if (profile?.user_id) {
+        stampPremiumCookie(res, cookieSecret, profile, session.id);
+      } else {
+        stampLegacyPremiumCookie(res, cookieSecret, expUnix, session.id);
+      }
     }
 
     return res;

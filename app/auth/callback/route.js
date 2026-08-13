@@ -4,10 +4,7 @@ import {
   ensureDgpsProfile,
   isDgpsPremiumStatus
 } from "../../lib/dgpsProfile";
-import {
-  createPremiumCookieValue,
-  PREMIUM_COOKIE_NAME
-} from "../../lib/premiumCookie";
+import { stampPremiumCookie } from "../../lib/premiumCookie";
 import { SSR_COOKIE_ENCODE } from "../../lib/supabase/ssrCookies";
 
 export const dynamic = "force-dynamic";
@@ -119,24 +116,11 @@ export async function GET(request) {
       cookieSecret &&
       isDgpsPremiumStatus(profile.subscription_status)
     ) {
-      const expUnix = profile.current_period_end
-        ? Math.floor(new Date(profile.current_period_end).getTime() / 1000)
-        : Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30;
-      const maxAge = Math.max(0, expUnix - Math.floor(Date.now() / 1000));
-      redirectResponse.cookies.set(
-        PREMIUM_COOKIE_NAME,
-        createPremiumCookieValue(
-          cookieSecret,
-          expUnix,
-          profile.stripe_subscription_id || profile.user_id
-        ),
-        {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge
-        }
+      stampPremiumCookie(
+        redirectResponse,
+        cookieSecret,
+        profile,
+        profile.stripe_subscription_id || profile.user_id
       );
     }
   }

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import LoginBoxSimple from "../LoginBoxSimple";
+import LoginPasswordForm from "../LoginPasswordForm";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Log in — Debt GPS System",
-  description: "Email yourself a login link to reopen your paid Debt GPS plan on this device."
+  description:
+    "Log in with a password or email link to reopen your paid Debt GPS plan on this device."
 };
 
 export default function LoginPage({ searchParams }) {
@@ -17,8 +19,8 @@ export default function LoginPage({ searchParams }) {
         <p className="hero-eyebrow">Debt GPS System</p>
         <h1 style={{ margin: "0 0 8px" }}>Already a member?</h1>
         <p style={{ margin: 0, opacity: 0.92, lineHeight: 1.5 }}>
-          Enter the email you used at checkout. We’ll send a login link so you can
-          open your paid plan on this browser or device.
+          Use the email from checkout. Log in with a password, or email yourself a
+          one-time link.
         </p>
       </header>
 
@@ -35,7 +37,23 @@ export default function LoginPage({ searchParams }) {
             That login link expired or could not be used. Request a new one below.
           </p>
         ) : null}
-        <LoginBoxSimple redirectTo="/calculator" />
+
+        <h2 style={{ margin: "0 0 12px", fontSize: "1.05rem" }}>Log in with password</h2>
+        <LoginPasswordForm />
+
+        <div
+          style={{
+            margin: "22px 0 16px",
+            borderTop: "1px solid var(--line)",
+            paddingTop: 16
+          }}
+        >
+          <h2 style={{ margin: "0 0 8px", fontSize: "1.05rem" }}>Or email a login link</h2>
+          <p className="help tight" style={{ margin: "0 0 12px" }}>
+            No password yet? Request a link, then you can set one.
+          </p>
+          <LoginBoxSimple redirectTo="/set-password" />
+        </div>
       </div>
 
       <p className="help tight" style={{ marginTop: 16 }}>

@@ -1,8 +1,7 @@
 'use client';
 import Link from "next/link";
 import Image from "next/image";
-const BOOKING_URL =
-  "https://link.agent-crm.com/widget/booking/3g7EgtS4IewV5fuPcKO8";
+import { PAYOFF_PLAN_PATH, goallCalendarUrl } from "./lib/bookingUrl";
 
 const trustPoints = [
   "Compare four payoff routes side by side",
@@ -307,6 +306,7 @@ const LANDING_PREMIUM_CSS = `
 
 export default function LandingPage() {
   const year = new Date().getFullYear();
+  const calendarUrl = goallCalendarUrl();
   return (
     <main className="page landing-page" style={{ maxWidth: "1160px", paddingTop: "32px" }}>
       <style dangerouslySetInnerHTML={{ __html: LANDING_PREMIUM_CSS }} />
@@ -436,14 +436,19 @@ export default function LandingPage() {
               <Link className="landing-cta-primary" href="/calculator">
                 Run My Debt GPS Calculator
               </Link>
-              <a
-                className="landing-cta-secondary"
-                href={BOOKING_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Book a Free Strategy Call
-              </a>
+              <Link className="landing-cta-secondary" href={PAYOFF_PLAN_PATH}>
+                Get your payoff plan
+              </Link>
+              {calendarUrl ? (
+                <a
+                  className="landing-cta-secondary"
+                  href={calendarUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GOALL calendar
+                </a>
+              ) : null}
             </div>
             <p
               style={{
@@ -455,8 +460,8 @@ export default function LandingPage() {
                 fontWeight: 500
               }}
             >
-              You are not left alone with a calculator. After running your numbers, you can
-              schedule a free consultation to review your options with a real person.
+              Run your numbers in the calculator, then get your payoff plan to see the full
+              payoff order and roadmap.
             </p>
             <p
               className="help tight"
@@ -622,8 +627,8 @@ export default function LandingPage() {
               fontWeight: 450
             }}
           >
-            In less than a minute, see how Debt GPS helps you start with your numbers, compare
-            payoff routes, and understand when a free consultation may help.
+            In less than a minute, see how Debt GPS helps you start with your numbers and compare
+            payoff routes.
           </p>
           <div
             style={{
@@ -1086,7 +1091,6 @@ export default function LandingPage() {
         </p>
       </section>
 
-      {/* Free consultation */}
       <section
         id="consultation"
         aria-labelledby="consultation-heading"
@@ -1112,11 +1116,11 @@ export default function LandingPage() {
             maxWidth: "640px"
           }}
         >
-          Numbers are helpful. Guidance matters too.
+          Numbers are helpful. A plan is next.
         </h2>
         <p
           style={{
-            margin: 0,
+            margin: "0 0 16px",
             fontSize: "1.02rem",
             lineHeight: 1.65,
             color: "var(--text)",
@@ -1124,9 +1128,12 @@ export default function LandingPage() {
             fontWeight: 500
           }}
         >
-          After using Debt GPS, you can schedule a free consultation so a real person can help
-          you understand what your results mean.
+          After you run Debt GPS, get your payoff plan to see the full payoff order, roadmap,
+          and strategy comparison.
         </p>
+        <Link className="landing-cta-primary" href={PAYOFF_PLAN_PATH}>
+          Start Debt GPS
+        </Link>
       </section>
 
       {/* Founding member offer */}
@@ -1229,14 +1236,19 @@ export default function LandingPage() {
           <Link className="landing-cta-primary" href="/calculator">
             Run My Debt GPS Calculator
           </Link>
-          <a
-            className="landing-cta-secondary"
-            href={BOOKING_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Book a Free Strategy Call
-          </a>
+          <Link className="landing-cta-secondary" href={PAYOFF_PLAN_PATH}>
+            Get your payoff plan
+          </Link>
+          {calendarUrl ? (
+            <a
+              className="landing-cta-secondary"
+              href={calendarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GOALL calendar
+            </a>
+          ) : null}
         </div>
       </section>
 
@@ -1255,9 +1267,12 @@ export default function LandingPage() {
             <a href="#pricing">Pricing</a>
             <Link href="/calculator">Calculator</Link>
             <Link href="/login">Log in</Link>
-            <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
-              Book a call
-            </a>
+            <Link href={PAYOFF_PLAN_PATH}>Get your payoff plan</Link>
+            {calendarUrl ? (
+              <a href={calendarUrl} target="_blank" rel="noopener noreferrer">
+                GOALL calendar
+              </a>
+            ) : null}
           </nav>
         </div>
         <div className="landing-footer-bottom">

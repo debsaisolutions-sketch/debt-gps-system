@@ -6,7 +6,7 @@ export const metadata = {
     "How Debt GPS System collects, uses, and protects your information, including cookies and third-party services."
 };
 
-const LAST_UPDATED = "May 17, 2026";
+const LAST_UPDATED = "October 30, 2026";
 const CONTACT_EMAIL = "info@debtgpssystem.com";
 
 export default function PrivacyPolicyPage() {
@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
         <p className="help" style={{ marginBottom: "12px", lineHeight: 1.65 }}>
           We may collect information you provide directly, such as your name, email address,
           financial inputs you enter in the calculator (income, expenses, debts, strategy
-          choices), notes, and messages you send us. If you book a call or subscribe to a
+          choices), notes, and messages you send us. If you subscribe to a
           paid plan, we may also receive billing-related identifiers from our payment
           processor (we do not store full payment card numbers on our servers).
         </p>
@@ -73,8 +73,8 @@ export default function PrivacyPolicyPage() {
       <section className="card" style={{ marginBottom: "16px" }}>
         <h2 style={{ marginBottom: "10px" }}>Third-party services</h2>
         <p className="help" style={{ marginBottom: "12px", lineHeight: 1.65 }}>
-          We use trusted providers to host data, process payments, and support marketing and
-          scheduling. They process information only as needed to perform services for us and
+          We use trusted providers to host data, process payments, and support marketing.
+          They process information only as needed to perform services for us and
           under their own privacy terms:
         </p>
         <ul className="help" style={{ margin: 0, paddingLeft: "1.25rem", lineHeight: 1.65 }}>
@@ -89,9 +89,6 @@ export default function PrivacyPolicyPage() {
             <strong>GoHighLevel / LeadConnector</strong> — CRM, contact records, and lead routing
             when you submit your email or interact with our funnels
           </li>
-          <li>
-            <strong>GoHighLevel booking</strong> — scheduling strategy calls (when you book through our links)
-          </li>
         </ul>
         <p className="help" style={{ marginTop: "12px", marginBottom: 0, lineHeight: 1.65 }}>
           Links to other websites (for example payment or scheduling pages) are governed by
@@ -103,7 +100,7 @@ export default function PrivacyPolicyPage() {
         <h2 style={{ marginBottom: "10px" }}>Sharing of information</h2>
         <p className="help" style={{ marginBottom: 0, lineHeight: 1.65 }}>
           We do not sell your personal information. We share data with service providers
-          listed above, when you direct us to (for example booking a call), when required by
+          listed above, when you direct us to (for example starting a subscription), when required by
           law, or to protect our rights and users. We may share aggregated or de-identified
           data that cannot reasonably identify you.
         </p>

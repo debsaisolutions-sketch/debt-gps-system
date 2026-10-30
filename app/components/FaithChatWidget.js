@@ -1,7 +1,11 @@
 "use client";
 
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
-import { BOOKING_URL } from "../lib/bookingUrl";
+import {
+  LEGACY_AGENT_CRM_BOOKING_URL,
+  PAYOFF_PLAN_PATH,
+  goallCalendarUrl
+} from "../lib/bookingUrl";
 
 const FAITH_LOGO_URL =
   "https://truefreedomfinancial.com/wp-content/uploads/2023/03/logopng-300x300.png";
@@ -12,12 +16,8 @@ const QUICK_REPLIES = [
   "How does Debt GPS work?",
   "What is Infinite Banking?",
   "Tell me about annuities",
-  "Book a consultation"
+  "Get your payoff plan"
 ];
-
-const BOOKING_INTENT_MESSAGE = "I want to book a consultation";
-const BOOKING_CONFIRMED_MESSAGE =
-  "Got you booked! 🎉 If you have any questions before your call with Deb, I'm right here!";
 
 function FaithAvatar({ size, className = "" }) {
   return (
@@ -32,30 +32,23 @@ function FaithAvatar({ size, className = "" }) {
   );
 }
 
-const BOOKING_QUICK_PICKS = ["📅 This Week", "📅 Next Week", "📅 Pick a Time"];
-
-function FaithBookingActions({ onScheduleClick, onBookingLinkOpen }) {
+function FaithPlanActions() {
+  const calendar = goallCalendarUrl();
   return (
     <div className="faith-chat__booking-group">
-      <button
-        type="button"
-        className="faith-chat__booking-btn"
-        onClick={onScheduleClick}
-      >
-        📅 Schedule a Free Call
-      </button>
-      <div className="faith-chat__booking-picks">
-        {BOOKING_QUICK_PICKS.map((label) => (
-          <button
-            key={label}
-            type="button"
-            className="faith-chat__booking-pick"
-            onClick={onBookingLinkOpen}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <a className="faith-chat__booking-btn" href={PAYOFF_PLAN_PATH}>
+        Get your payoff plan
+      </a>
+      {calendar ? (
+        <a
+          className="faith-chat__booking-btn"
+          href={calendar}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GOALL calendar
+        </a>
+      ) : null}
     </div>
   );
 }
@@ -72,7 +65,7 @@ function stripOrphanedPointerEmojis(text) {
 }
 
 function stripBookingUrlAndPointer(text) {
-  const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escaped = LEGACY_AGENT_CRM_BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const markdownLink = new RegExp(
     `(?:👉\\s*)*\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`,
     "gi"
@@ -110,10 +103,10 @@ function stripContactInfoFromBookingResponse(text) {
 }
 
 function parseFaithMessage(content) {
-  const escaped = BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escaped = LEGACY_AGENT_CRM_BOOKING_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const markdownLink = new RegExp(`\\[[^\\]]*\\]\\(\\s*${escaped}\\s*\\)`, "gi");
-  const normalized = String(content ?? "").replace(markdownLink, BOOKING_URL);
-  const hasBooking = normalized.toLowerCase().includes(BOOKING_URL.toLowerCase());
+  const normalized = String(content ?? "").replace(markdownLink, LEGACY_AGENT_CRM_BOOKING_URL);
+  const hasBooking = normalized.toLowerCase().includes(LEGACY_AGENT_CRM_BOOKING_URL.toLowerCase());
 
   let text = stripBookingUrlAndPointer(normalized);
   if (hasBooking) {
@@ -135,24 +128,19 @@ function containsBookingLink(content) {
   return parseFaithMessage(content).hasBooking;
 }
 
-function FaithMessageContent({ content, onScheduleClick, onBookingLinkOpen }) {
+function FaithMessageContent({ content }) {
   const { hasBooking, displayText } = parseFaithMessage(content);
 
   return (
     <div className="faith-chat__message-body">
       {displayText ? <span>{displayText}</span> : null}
-      {hasBooking ? (
-        <FaithBookingActions
-          onScheduleClick={onScheduleClick}
-          onBookingLinkOpen={onBookingLinkOpen}
-        />
-      ) : null}
+      {hasBooking ? <FaithPlanActions /> : null}
     </div>
   );
 }
 
 const AssistantMessage = forwardRef(function AssistantMessage(
-  { content, children, className = "", onScheduleClick, onBookingLinkOpen },
+  { content, children, className = "" },
   ref
 ) {
   const body = content ?? children;
@@ -166,11 +154,7 @@ const AssistantMessage = forwardRef(function AssistantMessage(
           .join(" ")}
       >
         {typeof body === "string" ? (
-          <FaithMessageContent
-            content={body}
-            onScheduleClick={onScheduleClick}
-            onBookingLinkOpen={onBookingLinkOpen}
-          />
+          <FaithMessageContent content={body} />
         ) : (
           body
         )}
@@ -224,10 +208,7 @@ export default function FaithChatWidget() {
     const raw = String(text ?? "").trim();
     if (!raw || loading) return;
 
-    const trimmed =
-      raw === "Book a consultation" ? BOOKING_INTENT_MESSAGE : raw;
-
-    const userMessage = { role: "user", content: trimmed };
+    const userMessage = { role: "user", content: raw };
     const nextMessages = [...messages, userMessage];
     setMessages(nextMessages);
     setInput("");
@@ -251,18 +232,6 @@ export default function FaithChatWidget() {
       setLoading(false);
     }
   }, [loading, messages]);
-
-  const handleBookingLinkOpen = useCallback(() => {
-    window.open(BOOKING_URL, "_blank", "noopener,noreferrer");
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: BOOKING_CONFIRMED_MESSAGE }
-    ]);
-  }, []);
-
-  const triggerBookingResponse = useCallback(() => {
-    void sendMessage(BOOKING_INTENT_MESSAGE);
-  }, [sendMessage]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -303,8 +272,6 @@ export default function FaithChatWidget() {
                   key={`${msg.role}-${i}`}
                   content={msg.content}
                   ref={i === messages.length - 1 ? lastAssistantMessageRef : null}
-                  onScheduleClick={triggerBookingResponse}
-                  onBookingLinkOpen={handleBookingLinkOpen}
                 />
               ) : (
                 <div
@@ -330,7 +297,13 @@ export default function FaithChatWidget() {
                   key={label}
                   type="button"
                   className="faith-chat__quick-btn"
-                  onClick={() => sendMessage(label)}
+                  onClick={() => {
+                    if (label === "Get your payoff plan") {
+                      window.location.assign(PAYOFF_PLAN_PATH);
+                      return;
+                    }
+                    sendMessage(label);
+                  }}
                 >
                   {label}
                 </button>

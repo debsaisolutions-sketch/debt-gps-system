@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
-import { BOOKING_URL } from "../../lib/bookingUrl";
+import { PAYOFF_PLAN_PATH, goallCalendarUrl } from "../../lib/bookingUrl";
 
 export const dynamic = "force-dynamic";
 
@@ -170,14 +170,19 @@ export default async function LearnArticlePage({ params }) {
               See My Plan
             </a>
 
-            <a
-              href={BOOKING_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="button-link primary-button"
-            >
-              Get Expert Help
+            <a href={PAYOFF_PLAN_PATH} className="button-link primary-button">
+              Start Debt GPS
             </a>
+            {goallCalendarUrl() ? (
+              <a
+                href={goallCalendarUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button-link primary-button"
+              >
+                GOALL calendar
+              </a>
+            ) : null}
           </div>
         </section>
       </article>

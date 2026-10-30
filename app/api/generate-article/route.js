@@ -1,6 +1,8 @@
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
+import { isAdminEmail, isCronAuthorized } from "../../lib/adminAccess";
+import { createServerSupabaseClient } from "../../lib/supabase/server";
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -134,9 +136,6 @@ Rules:
 - Ensure slug is URL-safe kebab-case.
 `;
 
-  console.log("env key prefix:", process.env.OPENAI_API_KEY?.slice(0, 12));
-  console.log("using auth header prefix:", `Bearer ${process.env.OPENAI_API_KEY}`.slice(0, 19));
-
   const upstream = await fetch(OPENAI_API_URL, {
     method: "POST",
     headers: {
@@ -182,7 +181,31 @@ Rules:
   return articlePayload;
 }
 
+async function requireArticleAccess(request) {
+  if (isCronAuthorized(request)) return null;
+
+  let user = null;
+  try {
+    const supabase = createServerSupabaseClient();
+    const { data, error } = await supabase.auth.getUser();
+    if (!error) user = data?.user ?? null;
+  } catch {
+    user = null;
+  }
+
+  if (!user) {
+    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  if (!isAdminEmail(user.email)) {
+    return Response.json({ success: false, error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
 export async function POST(request) {
+  const denied = await requireArticleAccess(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const action = cleanText(body?.action || "generate");
@@ -249,9 +272,13 @@ export async function POST(request) {
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("generate-article error:", error);
+    const message = error?.message || "Failed to generate article";
+    const apiKey = process.env.OPENAI_API_KEY;
+    const safeMessage =
+      apiKey && message.includes(apiKey) ? message.split(apiKey).join("[redacted]") : message;
+    console.error("generate-article error:", safeMessage);
     return new Response(
-      JSON.stringify({ success: false, error: error?.message || "Failed to generate article" }),
+      JSON.stringify({ success: false, error: safeMessage }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }

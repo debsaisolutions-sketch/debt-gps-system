@@ -1,20 +1,9 @@
+import { isCronAuthorized } from "../../lib/adminAccess";
 import { generateSeoArticleBatch } from "../../lib/generateSeoArticleBatch";
 
 function requireCronAuth(request) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) {
-    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
-  const authHeader = request.headers.get("authorization");
-  const xCronSecret = request.headers.get("x-cron-secret");
-  const querySecret = new URL(request.url).searchParams.get("cron_secret");
-  const bearerOk = authHeader === `Bearer ${secret}`;
-  const secretHeaderOk = xCronSecret === secret;
-  const queryOk = querySecret === secret;
-  if (!bearerOk && !secretHeaderOk && !queryOk) {
-    return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
+  if (isCronAuthorized(request)) return null;
+  return Response.json({ success: false, error: "Unauthorized" }, { status: 401 });
 }
 
 export async function GET(request) {

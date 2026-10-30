@@ -302,7 +302,7 @@ import {
   AUTO_PROJECTION_CAP_MONTHS
 } from "../lib/finance";
 import { toCurrency } from "../lib/format";
-import { BOOKING_URL } from "../lib/bookingUrl";
+import { PAYOFF_PLAN_PATH, goallCalendarUrl } from "../lib/bookingUrl";
 import {
   appendScenario,
   deleteScenarioById,
@@ -316,9 +316,6 @@ const supabase =
   supabaseUrl && supabaseAnonKey
     ? createClient(supabaseUrl, supabaseAnonKey)
     : null;
-
-const STRATEGY_CALL_URL =
-  process.env.NEXT_PUBLIC_STRATEGY_CALL_URL ?? "";
 
 function normalizeSnapshotDebtNumber(v) {
   if (v === "" || v == null) return "";
@@ -1184,7 +1181,7 @@ const hasMeaningfulInputs = useMemo(() => {
     if (isUnlocked) {
       return {
         primaryMessage:
-          "Nice work — your payoff summary is below. Review your route and schedule a free consultation if you want help.",
+          "Nice work — your payoff summary is below. Review your route, then get your payoff plan for the full order and roadmap.",
         secondaryMessage: null,
         showPointer: false,
         pointerLabel: null
@@ -1778,11 +1775,9 @@ const hasMeaningfulInputs = useMemo(() => {
                 When you are ready to continue, open a saved scenario to pick up where you
                 left off.
               </p>
-              <div style={{ marginTop: 18 }}>
+              <div style={{ marginTop: 18, display: "flex", flexWrap: "wrap", gap: 10 }}>
                 <Link
-                  href={BOOKING_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={PAYOFF_PLAN_PATH}
                   style={{
                     display: "inline-block",
                     background: "#111827",
@@ -1794,8 +1789,28 @@ const hasMeaningfulInputs = useMemo(() => {
                     fontSize: 14
                   }}
                 >
-                  Book Your Free Strategy Call
+                  Get your payoff plan
                 </Link>
+                {goallCalendarUrl() ? (
+                  <a
+                    href={goallCalendarUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "inline-block",
+                      background: "#ffffff",
+                      color: "#111827",
+                      padding: "10px 16px",
+                      borderRadius: 10,
+                      fontWeight: 600,
+                      textDecoration: "none",
+                      fontSize: 14,
+                      border: "1px solid rgba(255,255,255,0.7)"
+                    }}
+                  >
+                    GOALL calendar
+                  </a>
+                ) : null}
               </div>
               <div className="top-actions">
                 <Link className="button-link ghost" href="/scenarios">
@@ -2922,6 +2937,7 @@ const hasMeaningfulInputs = useMemo(() => {
         </section>
 
         <section
+          id="pricing"
           ref={resultsRef}
           className="card step-card results-card"
           aria-labelledby="step2-heading"
@@ -2975,7 +2991,7 @@ const hasMeaningfulInputs = useMemo(() => {
               id="calculator-walkthrough-step2-review-route"
               style={{ marginTop: 4, marginBottom: 12 }}
               boldText="👉 Review your payoff route."
-              bodyText="Look at your timeline, interest savings, and recommended next step. If you want help reviewing the options, schedule a free consultation."
+              bodyText="Look at your timeline, interest savings, and recommended next step. Get your payoff plan when you want the full roadmap."
             />
           ) : null}
 
@@ -5001,18 +5017,22 @@ const hasMeaningfulInputs = useMemo(() => {
           {isPremium && form.acceleration_method === ACCELERATION_METHODS.BANKING ? (
             <div className="banking-cta">
               <p>
-                This strategy can be very powerful when structured correctly. If
-                you&apos;d like help setting this up, we can walk you through it
-                step-by-step.
+                This strategy can be very powerful when structured correctly.
+                Get your payoff plan to compare it with your numbers.
               </p>
-              <a
-                className="cta-soft"
-                href={STRATEGY_CALL_URL || "https://cal.com"}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Book Free Strategy Call
+              <a className="cta-soft" href={PAYOFF_PLAN_PATH}>
+                Get your payoff plan
               </a>
+              {goallCalendarUrl() ? (
+                <a
+                  className="cta-soft"
+                  href={goallCalendarUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  GOALL calendar
+                </a>
+              ) : null}
             </div>
           ) : null}
 

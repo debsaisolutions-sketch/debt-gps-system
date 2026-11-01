@@ -291,6 +291,7 @@ export function MonthTable({ columns, rows, className = "", style = {}, ...props
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState, useCallback, useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import {
   aggregateDebts,
@@ -302,7 +303,7 @@ import {
   AUTO_PROJECTION_CAP_MONTHS
 } from "../lib/finance";
 import { toCurrency } from "../lib/format";
-import { BOOKING_URL } from "../lib/bookingUrl";
+import { BOOKING_GATE_NOTE, markCalculatorUnlocked } from "../lib/calculatorUnlock";
 import {
   appendScenario,
   deleteScenarioById,
@@ -845,6 +846,7 @@ function paidCheckoutButtonLabel(busy, interval) {
 }
 
 function CalculatorPage() {
+  const searchParams = useSearchParams();
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -865,6 +867,7 @@ function CalculatorPage() {
         if (data?.premium) {
           setIsPremium(true);
           setIsUnlocked(true);
+          markCalculatorUnlocked();
         }
       })
       .catch(() => {});
@@ -886,6 +889,32 @@ function CalculatorPage() {
     }
 
     setUnlockError("");
+
+    const debtCount = form.debts.filter((d) => Number(d.balance) > 0).length;
+    try {
+      const leadRes = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          name: String(form.client_name || "").trim(),
+          summary: {
+            debtCount,
+            totalBalance: aggregated.total,
+            totalMinPayment: aggregated.totalMin,
+            monthlyIncome: Number(form.monthly_income) || 0,
+            monthlyExpenses: Number(form.monthly_expenses) || 0
+          }
+        })
+      });
+      if (!leadRes.ok) {
+        console.warn("[leads] /api/leads failed", leadRes.status);
+      }
+    } catch (err) {
+      console.warn("[leads] /api/leads error", err);
+    }
+
+    markCalculatorUnlocked();
 
     console.log("[leads] sending email to GHL:", trimmedEmail);
     fetch("/api/send-to-ghl", {
@@ -1730,8 +1759,27 @@ const hasMeaningfulInputs = useMemo(() => {
   const statusType = saveStatus.split("|")[0];
   const statusText = saveStatus.split("|")[1] || "";
 
+  const showBookingNote = searchParams.get("booking") === "1" && !isUnlocked;
+
   return (
     <main className="page dashboard">
+      {showBookingNote ? (
+        <p
+          role="status"
+          style={{
+            margin: "0 0 16px",
+            padding: "12px 14px",
+            background: "var(--accent-soft)",
+            border: "1px solid rgba(29, 107, 196, 0.35)",
+            borderRadius: 10,
+            color: "var(--accent)",
+            fontWeight: 650,
+            lineHeight: 1.45
+          }}
+        >
+          {BOOKING_GATE_NOTE}
+        </p>
+      ) : null}
       <header className="hero hero-dashboard">
         <div className="hero-inner" style={{ maxWidth: "none" }}>
           <div
@@ -1780,7 +1828,7 @@ const hasMeaningfulInputs = useMemo(() => {
               </p>
               <div style={{ marginTop: 18 }}>
                 <Link
-                  href={BOOKING_URL}
+                  href="/book"
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{

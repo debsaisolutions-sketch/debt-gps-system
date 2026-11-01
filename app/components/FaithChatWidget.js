@@ -2,6 +2,7 @@
 
 import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import { BOOKING_URL } from "../lib/bookingUrl";
+import { hasCalculatorUnlockClient } from "../lib/calculatorUnlock";
 
 const FAITH_LOGO_URL =
   "https://truefreedomfinancial.com/wp-content/uploads/2023/03/logopng-300x300.png";
@@ -253,7 +254,9 @@ export default function FaithChatWidget() {
   }, [loading, messages]);
 
   const handleBookingLinkOpen = useCallback(() => {
-    window.open(BOOKING_URL, "_blank", "noopener,noreferrer");
+    const unlocked = hasCalculatorUnlockClient();
+    window.open("/book", "_blank", "noopener,noreferrer");
+    if (!unlocked) return;
     setMessages((prev) => [
       ...prev,
       { role: "assistant", content: BOOKING_CONFIRMED_MESSAGE }

@@ -2687,6 +2687,11 @@ const hasMeaningfulInputs = useMemo(() => {
                       updateField("monthly_policy_contribution", e.target.value)
                     }
                   />
+                  <p className="help tight">
+                    This money isn't spent — it builds cash value you own and can borrow
+                    against later. A higher contribution grows your capital faster, even if
+                    it takes longer to fully repay the loan.
+                  </p>
                 </div>
                 <div className="field">
                   <label>Annual cash value growth %</label>
@@ -3348,7 +3353,9 @@ const hasMeaningfulInputs = useMemo(() => {
                 </p>
                 <p className="help tight subtle" style={{ margin: "0 0 10px" }}>
                   You are continuing to build capital instead of applying every
-                  available dollar directly to payoff.
+                  available dollar directly to payoff. A longer payoff time here isn't a
+                  setback — it means more of your money is still yours, not already spent
+                  on debt.
                 </p>
                 <dl className="strategy-comparison-dl">
                   <div

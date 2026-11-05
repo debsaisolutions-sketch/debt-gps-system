@@ -2,8 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
-import { BOOKING_URL } from "../../lib/bookingUrl";
-
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }) {
@@ -171,7 +169,7 @@ export default async function LearnArticlePage({ params }) {
             </a>
 
             <a
-              href={BOOKING_URL}
+              href="/book"
               target="_blank"
               rel="noopener noreferrer"
               className="button-link primary-button"

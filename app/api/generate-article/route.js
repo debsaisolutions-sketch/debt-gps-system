@@ -1,6 +1,8 @@
 import { readFile, writeFile } from "fs/promises";
 import path from "path";
 import { createClient } from "@supabase/supabase-js";
+import { authorizeArticleGenerator } from "../../lib/articleGeneratorAuth";
+import { createServerSupabaseClient } from "../../lib/supabase/server";
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -134,9 +136,6 @@ Rules:
 - Ensure slug is URL-safe kebab-case.
 `;
 
-  console.log("env key prefix:", process.env.OPENAI_API_KEY?.slice(0, 12));
-  console.log("using auth header prefix:", `Bearer ${process.env.OPENAI_API_KEY}`.slice(0, 19));
-
   const upstream = await fetch(OPENAI_API_URL, {
     method: "POST",
     headers: {
@@ -182,7 +181,32 @@ Rules:
   return articlePayload;
 }
 
+async function requireGeneratorAccess(request) {
+  const decision = await authorizeArticleGenerator(
+    {
+      get(name) {
+        return request.headers.get(name);
+      }
+    },
+    async () => {
+      const supabase = createServerSupabaseClient();
+      const {
+        data: { user }
+      } = await supabase.auth.getUser();
+      return user;
+    }
+  );
+
+  if (decision.ok) return null;
+
+  const error = decision.status === 403 ? "Forbidden" : "Unauthorized";
+  return Response.json({ success: false, error }, { status: decision.status });
+}
+
 export async function POST(request) {
+  const denied = await requireGeneratorAccess(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const action = cleanText(body?.action || "generate");

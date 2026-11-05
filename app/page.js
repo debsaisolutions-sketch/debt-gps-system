@@ -1,8 +1,6 @@
 'use client';
 import Link from "next/link";
 import Image from "next/image";
-const BOOKING_URL =
-  "https://link.agent-crm.com/widget/booking/3g7EgtS4IewV5fuPcKO8";
 
 const trustPoints = [
   "Compare four payoff routes side by side",
@@ -438,7 +436,7 @@ export default function LandingPage() {
               </Link>
               <a
                 className="landing-cta-secondary"
-                href={BOOKING_URL}
+                href="/book"
                 target="_blank"
                 rel="noopener noreferrer"
               >
@@ -1231,7 +1229,7 @@ export default function LandingPage() {
           </Link>
           <a
             className="landing-cta-secondary"
-            href={BOOKING_URL}
+            href="/book"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -1255,7 +1253,7 @@ export default function LandingPage() {
             <a href="#pricing">Pricing</a>
             <Link href="/calculator">Calculator</Link>
             <Link href="/login">Log in</Link>
-            <a href={BOOKING_URL} target="_blank" rel="noopener noreferrer">
+            <a href="/book" target="_blank" rel="noopener noreferrer">
               Book a call
             </a>
           </nav>
